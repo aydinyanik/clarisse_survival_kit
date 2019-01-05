@@ -7,9 +7,11 @@
 CSK requires Python 2.7 to be installed. The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
 
 On Windows you can find the shelf_installation.log file here:
+
 *C:\Users\YOUR_USERNAME\AppData\Roaming\Isotropix\Clarisse\VERSION*
 
-And on Mac/Linux you can find it:
+And on Mac/Linux you can find it here:
+
 */home/YOUR_USERNAME/.isotropix/VERSION*  
   
 
