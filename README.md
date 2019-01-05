@@ -4,12 +4,24 @@
 
 ## Installation
 
-CSK requires Python 2.7 and pip to be installed. The shelf will automatically be updated and backed up.
+CSK requires Python 2.7 to be installed. The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
 
-Download the tarball in the dist folder and use the following command to set it up:
+On Windows you can find the shelf_installation.log file here:
+*C:\Users\YOUR_USERNAME\AppData\Roaming\Isotropix\Clarisse\VERSION*
+
+And on Mac/Linux you can find it:
+*/home/YOUR_USERNAME/.isotropix/VERSION*  
+  
+
+If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
 
 ```sh
 $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
+```
+
+Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
+```sh
+$ python setup.py
 ```
 
 ## Features
@@ -17,7 +29,7 @@ $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
 
 The kit provides the following scripts:
 ### Import Asset
-  - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases and will also have a shading rule created for them. 
+  - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
   - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file.
 
 ### Mix Surface
