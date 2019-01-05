@@ -1,0 +1,53 @@
+{
+  "category": "Clarisse Survival Kit",
+  "shelf_items": [
+    {
+      "title": "Import Asset",
+      "description": "Imports a Megascans asset or generic texture item as a new context.",
+      "script_filename": "import_asset.py",
+      "icon_filename": "import_asset.png"
+    },
+    {
+      "title": "Mix Surfaces",
+      "description": "Mixes 2 surfaces together.",
+      "script_filename": "mix.py",
+      "icon_filename": "mix.png"
+    },
+    {
+      "title": "Textures to Triplanar",
+      "description": "Converts the selected texture(s) to triplanar.",
+      "script_filename": "triplanar.py",
+      "icon_filename": "triplanar.png"
+    },
+    {
+      "title": "Replace Surface",
+      "description": "Replaces the selected surfaces and updates the mapping.",
+      "script_filename": "replace.py",
+      "icon_filename": "replace.png"
+    },
+    {
+      "title": "Toggle Surface Complexity",
+      "description": "Temporarily converts the selected surface to a simple PhysicalDiffuse material and disables the Displacement map. This can be handy when mixing two materials to reduce overhead.",
+      "script_filename": "simplify.py",
+      "icon_filename": "simplify.png"
+    },
+    {
+      "title": "Moisten Surface",
+      "description": "Adds a wet layer on top of the selected surface. Requires Diffuse, Specular and Roughness texture map files to be set in your material.",
+      "script_filename": "moisten.py",
+      "icon_filename": "moisten.png"
+    },
+    {
+      "title": "Tint Surface",
+      "description": "Tints the diffuse with a custom color. Handy when you blend two materials together and when they look different.",
+      "script_filename": "tint.py",
+      "icon_filename": "tint.png"
+    },
+    {
+      "title": "Blur textures",
+      "description": "Blurs the selected texture.",
+      "script_filename": "blur.py",
+      "icon_filename": "blur.png"
+    }
+  ]
+}
