@@ -142,15 +142,15 @@ class PostDevelopCommand(develop):
     """Post-installation for development mode."""
 
     def run(self):
-        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
-        print "Post develop command running..."
         develop.run(self)
+        print "Post develop command running..."
 
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
 
     def run(self):
+        install.run(self)
         print "Post installation command running..."
         if platform.system().lower() == "windows":
             clarisse_dir = os.path.join(os.getenv('APPDATA'), "Isotropix\Clarisse\\")
@@ -164,7 +164,7 @@ class PostInstallCommand(install):
                             print "Found shelf config file."
                             setup_shelf(shelf_path)
 
-        elif platform.system().lower().startswith("linux") or platform.system().lower() == "darwin":
+        elif platform.system().lower().startswith("linux"):
             clarisse_dir = os.path.join(os.path.expanduser("~"), ".isotropix/clarisse/")
             for version_dir in os.listdir(clarisse_dir):
                 if os.path.isdir(os.path.join(clarisse_dir, version_dir)):
@@ -172,7 +172,16 @@ class PostInstallCommand(install):
                         shelf_path = os.path.join(clarisse_dir, version_dir, "shelf.cfg")
                         if os.path.isfile(shelf_path):
                             setup_shelf(shelf_path)
-        install.run(self)
+        elif platform.system().lower() == "darwin":
+            clarisse_dir = "/Applications/Isotropix/"
+            for version_dir in os.listdir(clarisse_dir):
+                if os.path.isdir(os.path.join(clarisse_dir, version_dir)):
+                    version_match = re.search(r"(\d[.\d]*)$", version_dir)
+                    if version_match and version_match.group(1) in versions:
+                        shelf_path = os.path.join(clarisse_dir, version_dir,
+                                                  "clarisse.app/Contents/MacOS/shelves/shelf.cfg")
+                        if os.path.isfile(shelf_path):
+                            setup_shelf(shelf_path)
 
 
 long_description = ''
