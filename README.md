@@ -9,17 +9,16 @@
 
 CSK requires Python 2.7 to be installed.
 
-If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
-
 **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
 
-```sh
-$ pip install .\clarisse_survival_kit-0.0.1.tar.gz
-```
-
-Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
+Download the zip by clicking the big green button, extract the files and run the following command via the command line:
 ```sh
 $ python setup.py install
+```
+
+Or if you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
+```sh
+$ pip install .\clarisse_survival_kit-0.0.1.tar.gz
 ```
 
 The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
