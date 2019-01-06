@@ -1,5 +1,7 @@
 # Clarisse Survival Kit
 
+![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
+
 >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
 
 ## Installation
@@ -8,12 +10,16 @@ CSK requires Python 2.7 to be installed. The shelf will automatically be updated
 
 On Windows you can find the shelf_installation.log file here:
 
-*C:\Users\YOUR_USERNAME\AppData\Roaming\Isotropix\Clarisse\VERSION*
+>C:/Users/**YOUR_USERNAME**/AppData/Roaming/Isotropix/Clarisse/**VERSION**
 
-And on Mac/Linux you can find it here:
+On Linux you can find it here:
 
-*/home/YOUR_USERNAME/.isotropix/VERSION*  
-  
+>/home/**YOUR_USERNAME**/.isotropix/**VERSION**
+
+On Mac you can find it here:
+
+>/Applications/Isotropix/Clarisse iFX **VERSION**/clarisse.app/Contents/MacOS/shelves
+
 
 If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
 
