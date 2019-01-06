@@ -73,7 +73,7 @@ Blurs the selected texture with a custom radius.
 Nothing yet. Got any ideas? Did I miss anything important? Let me know.
 
 # Thank you
-***Aleks Katunar*** was really kind to help me test out the script.
+[Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
 
 ***Isotropix*** for their support and for creating Clarisse.
 
