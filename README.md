@@ -1,3 +1,4 @@
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url)
 # Clarisse Survival Kit
 
 ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
