@@ -1,18 +1,18 @@
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
 IMAGE_FORMATS = ('tx', 'exr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
 FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse$|_Albedo$|_baseColor$|_color$|^albedo$|^diffuse$|^color$)',
-                           'specular': r'(?:_Specular$|_spec$|_Reflection$|^specular$|^reflection$)',
-                           'roughness': r'(?:_Roughness$|^roughness$)',
-                           'refraction': r'(?:_refraction$|^refraction$)',
-                           'gloss': r'(?:_Gloss$|_glossiness$|^glossiness$)',
-                           'normal': r'(?:_Normal$|_NormalBump$|^normal$)',
-                           'bump': r'(?:_bump$|^bump$)',
-                           'normal_lods': r'_Normal_LOD[0-9]$',
-                           'opacity': r'(?:_Opacity$|_transparency$|^opacity$|^transparency$)',
-                           'translucency': r'_Translucency$',
-                           'emissive': r'(?:_Emissive$|^emissive$|^luminance$|^luminosity$)',
-                           'ior': r'(?:_ior$|^ior$)',
-                           'displacement': r'(?:_Displacement$|_height$|^displacement$|^height$)'}
+						   'specular': r'(?:_Specular$|_spec$|_Reflection$|^specular$|^reflection$)',
+						   'roughness': r'(?:_Roughness$|^roughness$)',
+						   'refraction': r'(?:_refraction$|^refraction$)',
+						   'gloss': r'(?:_Gloss$|_glossiness$|^glossiness$)',
+						   'normal': r'(?:_Normal$|_NormalBump$|^normal$)',
+						   'bump': r'(?:_bump$|^bump$)',
+						   'normal_lods': r'_Normal_LOD[0-9]$',
+						   'opacity': r'(?:_Opacity$|_transparency$|^opacity$|^transparency$)',
+						   'translucency': r'_Translucency$',
+						   'emissive': r'(?:_Emissive$|^emissive$|^luminance$|^luminosity$)',
+						   'ior': r'(?:_ior$|^ior$)',
+						   'displacement': r'(?:_Displacement$|_height$|^displacement$|^height$)'}
 
 MEGASCANS_SRGB_TEXTURES = ['diffuse', 'translucency']
 SUBSTANCE_SRGB_TEXTURES = ['diffuse', 'specular', 'emissive', 'translucency']
@@ -45,21 +45,21 @@ DEFAULT_UV_SCALE = (1, 1)
 DEFAULT_IOR = 1.5
 
 SUFFIXES = {
-    'diffuse': DIFFUSE_SUFFIX,
-    'specular': SPECULAR_COLOR_SUFFIX,
-    'roughness': SPECULAR_ROUGHNESS_SUFFIX,
-    'opacity': OPACITY_SUFFIX,
-    'refraction': REFRACTION_SUFFIX,
-    'translucency': TRANSLUCENCY_SUFFIX,
-    'emissive': EMISSIVE_SUFFIX,
-    'ior': IOR_SUFFIX,
-    'ior_divide': IOR_DIVIDE_SUFFIX,
-    'bump': BUMP_SUFFIX,
-    'bump_map': BUMP_MAP_SUFFIX,
-    'normal': NORMAL_SUFFIX,
-    'normal_map': NORMAL_MAP_SUFFIX,
-    'displacement': DISPLACEMENT_SUFFIX,
-    'displacement_map': DISPLACEMENT_MAP_SUFFIX
+	'diffuse': DIFFUSE_SUFFIX,
+	'specular': SPECULAR_COLOR_SUFFIX,
+	'roughness': SPECULAR_ROUGHNESS_SUFFIX,
+	'opacity': OPACITY_SUFFIX,
+	'refraction': REFRACTION_SUFFIX,
+	'translucency': TRANSLUCENCY_SUFFIX,
+	'emissive': EMISSIVE_SUFFIX,
+	'ior': IOR_SUFFIX,
+	'ior_divide': IOR_DIVIDE_SUFFIX,
+	'bump': BUMP_SUFFIX,
+	'bump_map': BUMP_MAP_SUFFIX,
+	'normal': NORMAL_SUFFIX,
+	'normal_map': NORMAL_MAP_SUFFIX,
+	'displacement': DISPLACEMENT_SUFFIX,
+	'displacement_map': DISPLACEMENT_MAP_SUFFIX
 }
 
 # Other Suffixes & Variables

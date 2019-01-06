@@ -2,22 +2,42 @@ Metadata-Version: 2.1
 Name: clarisse-survival-kit
 Version: 0.0.1
 Summary: Provides utility functions to import common assets such as Megascans assets and Substance textures.
-Home-page: https://github.com/pypa/sampleproject
+Home-page: https://github.com/aydinyanik/clarisse_survival_kit
 Author: Aydin Yanik
 Author-email: aydinyanik@gmail.com
 License: UNKNOWN
 Description: # Clarisse Survival Kit
         
+        ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
+        
         >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
         
         ## Installation
         
-        CSK requires Python 2.7 and pip to be installed. The shelf will automatically be updated and backed up.
+        CSK requires Python 2.7 to be installed. The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
         
-        Download the tarball in the dist folder and use the following command to set it up:
+        On Windows you can find the shelf_installation.log file here:
+        
+        >C:/Users/**YOUR_USERNAME**/AppData/Roaming/Isotropix/Clarisse/**VERSION**
+        
+        On Linux you can find it here:
+        
+        >/home/**YOUR_USERNAME**/.isotropix/**VERSION**
+        
+        On Mac you can find it here:
+        
+        >/Applications/Isotropix/Clarisse iFX **VERSION**/clarisse.app/Contents/MacOS/shelves
+        
+        
+        If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
         
         ```sh
         $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
+        ```
+        
+        Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
+        ```sh
+        $ python setup.py
         ```
         
         ## Features
@@ -25,7 +45,7 @@ Description: # Clarisse Survival Kit
         
         The kit provides the following scripts:
         ### Import Asset
-          - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases and will also have a shading rule created for them. 
+          - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
           - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file.
         
         ### Mix Surface
@@ -61,7 +81,7 @@ Description: # Clarisse Survival Kit
         Nothing yet. Got any ideas? Did I miss anything important? Let me know.
         
         # Thank you
-        ***Aleks Katunar*** was really kind to help me test out the script.
+        [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
         
         ***Isotropix*** for their support and for creating Clarisse.
         

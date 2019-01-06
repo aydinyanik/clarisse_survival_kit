@@ -13,8 +13,8 @@ import logging
 
 def setup_shelf(shelf_path, slot=0):
 	"""Sets up the shelf"""
-	print os.path.dirname(shelf_path) + 'shelf_installation.log'
-	logging.basicConfig(filename=os.path.join(os.path.dirname(shelf_path), '/shelf_installation.log'),
+	print os.path.dirname(os.path.join(shelf_path, 'shelf_installation.log'))
+	logging.basicConfig(filename=os.path.join(os.path.dirname(shelf_path), 'shelf_installation.log'),
 						level=logging.DEBUG, format='%(message)s')
 	log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 	logging.debug("--------------------------------------")
@@ -174,15 +174,15 @@ class PostInstallCommand(install):
 							setup_shelf(shelf_path)
 		elif platform.system().lower() == "darwin":
 			homedir = os.path.expanduser('~')
-			clarisse_dir = homedir+'/Library/Preferences/Isotropix/Clarisse/'
+			clarisse_dir = homedir + '/Library/Preferences/Isotropix/Clarisse/'
 			for version_dir in os.listdir(clarisse_dir):
 				if os.path.isdir(os.path.join(clarisse_dir, version_dir)):
 					version_match = re.search(r"(\d[.\d]*)$", version_dir)
 					if version_match and version_match.group(1) in versions:
-						shelf_path = os.path.join(clarisse_dir, version_dir,"shelf.cfg")
+						shelf_path = os.path.join(clarisse_dir, version_dir, "shelf.cfg")
 						if os.path.isfile(shelf_path):
 							setup_shelf(shelf_path)
-							print "sp: ",shelf_path
+							print "sp: ", shelf_path
 
 
 long_description = ''
