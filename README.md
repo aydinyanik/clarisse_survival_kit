@@ -1,3 +1,4 @@
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url)
 # Clarisse Survival Kit
 
 ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
@@ -18,7 +19,7 @@ $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
 
 Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
 ```sh
-$ python setup.py
+$ python setup.py install
 ```
 
 The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
