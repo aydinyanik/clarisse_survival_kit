@@ -14,7 +14,22 @@ Description: # Clarisse Survival Kit
         
         ## Installation
         
-        CSK requires Python 2.7 to be installed. The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
+        CSK requires Python 2.7 to be installed.
+        
+        If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
+        
+        **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
+        
+        ```sh
+        $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
+        ```
+        
+        Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
+        ```sh
+        $ python setup.py
+        ```
+        
+        The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
         
         On Windows you can find the shelf_installation.log file here:
         
@@ -26,19 +41,8 @@ Description: # Clarisse Survival Kit
         
         On Mac you can find it here:
         
-        >/Applications/Isotropix/Clarisse iFX **VERSION**/clarisse.app/Contents/MacOS/shelves
+        >/Users/**YOUR_USERNAME**/Library/Preferences/Isotropix/Clarisse/**VERSION**
         
-        
-        If you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
-        
-        ```sh
-        $ pip install .\clarisse_survival_kit-0.0.1.tar.gz
-        ```
-        
-        Otherwise download the zip by clicking the big green button, extract the files and run the following command via the command line:
-        ```sh
-        $ python setup.py
-        ```
         
         ## Features
         *When a script asks you to select a material either select the PhysicalStandard material or its parent context*
@@ -78,7 +82,22 @@ Description: # Clarisse Survival Kit
         Blurs the selected texture with a custom radius.
         
         # TODO
-        Nothing yet. Got any ideas? Did I miss anything important? Let me know.
+        - Mix Multiple Surfaces. Handy for covering multiple materials simultaneously with one material.
+        - Scatter point cloud on selected geo. The point cloud will be decimated with the same selectors as used in the Mix Surfaces command except Displacement.
+        - Import Megascans library GUI. The function is already done and works. It just needs a GUI. You can run it from the script editor if needed.
+        ```python
+        from clarisse_survival_kit.app import *
+        
+        import_ms_library("PATH TO THE DOWNLOADED FOLDER", skip_categories=[], ix=ix)
+        ```
+        
+        if you want to exclude categories you can run the following command. "surfaces" is the name of the custom mixer surfaces.
+        ```python
+        from clarisse_survival_kit.app import *
+        import_ms_library("PATH TO THE DOWNLOADED FOLDER", skip_categories=["3d", "3dplant", "atlas", "surface", "surfaces"], ix=ix)
+        ```
+        
+        Got any ideas? Did I miss anything important? Let me know.
         
         # Thank you
         [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
