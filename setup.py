@@ -9,6 +9,7 @@ import site
 import datetime
 from shutil import copyfile
 import logging
+import codecs
 
 
 def setup_shelf(shelf_path, slot=0):
@@ -26,7 +27,7 @@ def setup_shelf(shelf_path, slot=0):
 	logging.debug("Setting up shelf: " + shelf_title)
 	required_shelf_items = json_data.get('shelf_items')
 	category_search = None
-	with open(shelf_path, "r") as f:
+	with codecs.open(shelf_path, "r", encoding="utf-8") as f:
 		shelf_file = f.read()
 
 	# Make a backup
@@ -39,14 +40,14 @@ def setup_shelf(shelf_path, slot=0):
 
 	# Search for view mode #:
 	logging.debug("Searching for view mode string")
-	view_mode_search = re.search(r"view_mode [0-9]", shelf_file, re.MULTILINE | re.DOTALL)
+	view_mode_search = re.search(ur"view_mode [0-9]", shelf_file, re.MULTILINE | re.DOTALL)
 	if view_mode_search:
 		write_index = view_mode_search.end()
 		logging.debug("Found view mode:")
 		logging.debug(view_mode_search.group(0))
 	# Search for slot #:
 	logging.debug("Searching for slot string")
-	slot_search = re.search(r"slot [0-9] {", shelf_file,
+	slot_search = re.search(ur"slot [0-9] {", shelf_file,
 							re.MULTILINE | re.DOTALL)
 	if not slot_search:
 		generated_string += "\n\tslot " + str(slot) + " {\n"
@@ -56,7 +57,7 @@ def setup_shelf(shelf_path, slot=0):
 		logging.debug("Found slot block:")
 		logging.debug(slot_search.group(0))
 		logging.debug("Searching for category string")
-		category_search = re.search(r"category \"" + shelf_title + "+\" {(.*?)\s{12}}\n\s{8}}", shelf_file,
+		category_search = re.search(r'category "' + shelf_title + '" {(.*?)\s{12}}(?:\n|\r\n?)\s{8}}', shelf_file,
 									re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 	existing_items = []
@@ -64,7 +65,7 @@ def setup_shelf(shelf_path, slot=0):
 		generated_string += "\t\tcategory \"" + shelf_title + "\" {\n"
 	else:
 		logging.debug("Found category block:")
-		logging.debug(str(shelf_file[category_search.start():category_search.end()]))
+		logging.debug(unicode(shelf_file[category_search.start():category_search.end()]))
 		write_index = category_search.end()
 		shelf_item_search = re.finditer(r"\s{12}shelf_item {(.*?)\s{12}}",
 										shelf_file[category_search.start():category_search.end()],
@@ -127,10 +128,12 @@ def setup_shelf(shelf_path, slot=0):
 
 	new_cfg = shelf_file[:write_index] + generated_string + shelf_file[write_index:]
 	new_cfg = new_cfg.replace("\t", "    ")
+	cleaned_whitespace = "\n".join([line for line in new_cfg.split('\n') if line.strip() != ''])
+	new_cfg = cleaned_whitespace
 
 	new_cfg = re.sub("category_selected \"[\w\s]+\"", "category_selected \"" + shelf_title + "\"", new_cfg)
 
-	cfg_file = open(shelf_path, "w")
+	cfg_file = codecs.open(shelf_path, "w", encoding="utf-8")
 	cfg_file.write(new_cfg)
 	cfg_file.close()
 	logging.debug("...Shelf installed!")
