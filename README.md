@@ -9,6 +9,8 @@
 
 CSK requires Python 2.7 to be installed.
 
+**Make sure Clarisse is not running while installing the kit**
+
 **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
 
 Download the zip by clicking the big green button, extract the files and run the following command via the command line:
