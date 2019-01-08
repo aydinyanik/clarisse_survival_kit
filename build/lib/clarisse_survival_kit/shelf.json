@@ -32,6 +32,12 @@
       "icon_filename": "simplify.png"
     },
     {
+      "title": "Generate Decimated Point Cloud",
+      "description": "Quickly generate a decimated point cloud from the selected object with several selectors for masking.",
+      "script_filename": "scatter.py",
+      "icon_filename": "scatter.png"
+    },
+    {
       "title": "Moisten Surface",
       "description": "Adds a wet layer on top of the selected surface. Requires Diffuse, Specular and Roughness texture map files to be set in your material.",
       "script_filename": "moisten.py",

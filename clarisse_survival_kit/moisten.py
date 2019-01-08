@@ -2,7 +2,7 @@ from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.app import *
 
 
-def moisten_ms_surface_gui():
+def moisten_surface_gui():
 	class EventRewire(ix.api.EventObject):
 		def cancel(self, sender, evtid):
 			sender.get_window().hide()
@@ -33,7 +33,7 @@ def moisten_ms_surface_gui():
 
 	# Window creation
 	clarisse_win = ix.application.get_event_window()
-	window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 320)  # Parent, X position, Y position, Width, Height
+	window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 410)  # Parent, X position, Y position, Width, Height
 	window.set_title('Moisten surface')  # Window name
 
 	# Main widget creation
@@ -42,32 +42,40 @@ def moisten_ms_surface_gui():
 						  ix.api.GuiWidget.CONSTRAINT_RIGHT, ix.api.GuiWidget.CONSTRAINT_BOTTOM)
 
 	# Form generation
-	height_blend_label = ix.api.GuiLabel(panel, 10, 10, 150, 22,
-										 "Height blend: ")
-	height_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 10, "")
-	displacement_blend_label = ix.api.GuiLabel(panel, 10, 40, 150, 22,
+	displacement_blend_label = ix.api.GuiLabel(panel, 10, 10, 150, 22,
 											   "Displacement blend: ")
-	displacement_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 40, "")
-	fractal_blend_label = ix.api.GuiLabel(panel, 10, 70, 150, 22,
+	displacement_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 10, "")
+	fractal_blend_label = ix.api.GuiLabel(panel, 10, 40, 150, 22,
 										  "Fractal blend: ")
-	fractal_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 70, "")
-	scope_blend_label = ix.api.GuiLabel(panel, 10, 100, 150, 22,
+	fractal_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 40, "")
+	triplanar_blend_label = ix.api.GuiLabel(panel, 10, 70, 150, 22,
+											"Triplanar blend: ")
+	triplanar_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 70, "")
+	slope_blend_label = ix.api.GuiLabel(panel, 10, 100, 150, 22,
+										"Slope blend: ")
+	slope_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 100, "")
+	scope_blend_label = ix.api.GuiLabel(panel, 10, 130, 150, 22,
 										"Scope blend: ")
-	scope_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 100, "")
-	ao_blend_label = ix.api.GuiLabel(panel, 10, 130, 150, 22,
+	scope_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 130, "")
+	ao_blend_label = ix.api.GuiLabel(panel, 10, 160, 150, 22,
 									 "Occlusion blend: ")
-	ao_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 130, "")
-	diffuse_multiplier = ix.api.GuiNumberField(panel, 129, 160, 151, "Diffuse multiply:         ")
+	ao_slope_label2 = ix.api.GuiLabel(panel, 240, 160, 150, 22, "*Slow with displacement")
+	ao_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 160, "")
+	height_blend_label = ix.api.GuiLabel(panel, 10, 190, 190, 22,
+										 "Height blend: ")
+	height_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 190, "")
+
+	diffuse_multiplier = ix.api.GuiNumberField(panel, 129, 220, 151, "Diffuse multiply:         ")
 	diffuse_multiplier.set_slider_range(0.0, 1)
-	specular_multiplier = ix.api.GuiNumberField(panel, 129, 190, 151, "Specular screen:          ")
+	specular_multiplier = ix.api.GuiNumberField(panel, 129, 250, 151, "Specular screen:          ")
 	specular_multiplier.set_slider_range(0.0, 1)
-	roughness_multiplier = ix.api.GuiNumberField(panel, 129, 220, 151, "Roughness multiply:  ")
+	roughness_multiplier = ix.api.GuiNumberField(panel, 129, 280, 151, "Roughness multiply:  ")
 	roughness_multiplier.set_slider_range(0.0, 1)
-	ior = ix.api.GuiNumberField(panel, 129, 250, 151, "IOR:                               ")
+	ior = ix.api.GuiNumberField(panel, 129, 310, 151, "IOR:                               ")
 	ior.set_slider_range(1.0, 10)
 
-	cancel_btn = ix.api.GuiPushButton(panel, 10, 280, 100, 22, "Close")  # The cancel button (destroy the script window)
-	run_btn = ix.api.GuiPushButton(panel, 130, 280, 250, 22, "Apply")  # The run button to run your script
+	cancel_btn = ix.api.GuiPushButton(panel, 10, 370, 100, 22, "Close")  # The cancel button (destroy the script window)
+	run_btn = ix.api.GuiPushButton(panel, 130, 370, 250, 22, "Apply")  # The run button to run your script
 
 	# init values
 	diffuse_multiplier.set_value(MOISTURE_DEFAULT_DIFFUSE_MULTIPLIER)
@@ -90,4 +98,4 @@ def moisten_ms_surface_gui():
 	window.destroy()
 
 
-moisten_ms_surface_gui()
+moisten_surface_gui()

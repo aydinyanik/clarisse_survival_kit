@@ -65,7 +65,6 @@ def mix_surface_gui():
 				blend_mtl = mix_surfaces(ctx1, ctx2,
 										 mix_surface_name=surface_name,
 										 slope_blend=slope_blend_checkbox.get_value(),
-										 invert_slope=invert_slope_checkbox.get_value(),
 										 scope_blend=scope_blend_checkbox.get_value(),
 										 triplanar_blend=triplanar_blend_checkbox.get_value(),
 										 displacement_blend=displacement_blend_checkbox.get_value(),
@@ -116,9 +115,6 @@ def mix_surface_gui():
 	slope_blend_label = ix.api.GuiLabel(panel, 10, 310, 150, 22,
 										"Slope blend: ")
 	slope_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 310, "")
-	invert_slope_label = ix.api.GuiLabel(panel, 240, 310, 100, 22,
-										 "Invert: ")
-	invert_slope_checkbox = ix.api.GuiCheckbox(panel, 370, 310, "")
 	scope_blend_label = ix.api.GuiLabel(panel, 10, 340, 150, 22,
 										"Scope blend: ")
 	scope_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 340, "")
