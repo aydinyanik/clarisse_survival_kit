@@ -1,9 +1,9 @@
 import json
 import os
-import random
 import re
 
-from clarisse_survival_kit.settings import *
+from clarisse_survival_kit.selectors import *
+from clarisse_survival_kit.utility import *
 
 # Global variable
 PROJECTIONS = ['planar', 'cylindrical', 'spherical', 'cubic', 'camera', 'parametric', 'uv']
@@ -446,16 +446,6 @@ class Surface:
 			self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(0)])
 
 
-def get_ix(ix_local):
-	"""Simple function to check if ix is imported or not."""
-	try:
-		ix
-	except NameError:
-		return ix_local
-	else:
-		return ix
-
-
 def check_context(ctx, **kwargs):
 	"""Tests if you can write to specified context."""
 	ix = get_ix(kwargs.get("ix"))
@@ -772,6 +762,8 @@ def moisten_surface(ctx,
 					fractal_blend=False,
 					displacement_blend=False,
 					scope_blend=False,
+					slope_blend=False,
+					triplanar_blend=False,
 					ao_blend=False,
 					ior=MOISTURE_DEFAULT_IOR,
 					diffuse_multiplier=MOISTURE_DEFAULT_DIFFUSE_MULTIPLIER,
@@ -791,6 +783,7 @@ def moisten_surface(ctx,
 	diffuse_tx = None
 	specular_tx = None
 	roughness_tx = None
+	disp = None
 	disp_tx = None
 	for ctx_member in objects_array:
 		if ctx_member.get_contextual_name().endswith(DIFFUSE_SUFFIX):
@@ -803,121 +796,88 @@ def moisten_surface(ctx,
 			if ctx_member.is_local() or not mtl:
 				mtl = ctx_member
 		if ctx_member.is_kindof("Displacement"):
-			disp_tx = ix.get_item(str(ctx_member) + ".front_value").get_texture()
+			disp = ctx_member
+		if ctx_member.get_contextual_name().endswith(DISPLACEMENT_SUFFIX):
+			disp_tx = ctx_member
 	if not mtl:
 		ix.log_warning("No MaterialPhysicalStandard found in context.")
+		return False
+	if not disp and not disp_tx and displacement_blend:
+		ix.log_warning("No Displacement found in context. Cannot use Displacement blending.")
 		return False
 	elif not diffuse_tx or not specular_tx or not roughness_tx:
 		ix.log_warning("Make sure the material has a diffuse, specular and roughness texture.")
 		return False
 
-	multi_blend_tx = ix.cmds.CreateObject(surface_name + MOISTURE_MULTI_BLEND_SUFFIX, "TextureMultiBlend", "Global",
-										  str(ctx))
-
-	# Setup height selector
-	world_position_tx = ix.cmds.CreateObject(surface_name + MOISTURE_WORLD_POSITION_SUFFIX, "TextureUtility", "Global",
-											 str(ctx))
-	world_position_reorder_tx = ix.cmds.CreateObject(surface_name + MOISTURE_WORLD_POSITION_REORDER_SUFFIX,
-													 "TextureReorder", "Global", str(ctx))
-	world_position_reorder_tx.attrs.channel_order[0] = "ggga"
-	ix.cmds.SetTexture([str(world_position_reorder_tx) + ".input"], str(world_position_tx))
-
-	height_gradient_tx = ix.cmds.CreateObject(surface_name + MOISTURE_HEIGHT_GRADIENT_SUFFIX, "TextureGradient",
-											  "Global", str(ctx))
-	add_gradient_key(str(height_gradient_tx) + ".output", 0.45, [1, 1, 1], ix=ix)
-	add_gradient_key(str(height_gradient_tx) + ".output", 0.55, [0, 0, 0], ix=ix)
-	ix.cmds.RemoveCurveValue([str(height_gradient_tx) + ".output"], [1, 1, 1, 1, 1, 1, 1, 1])
-	ix.cmds.SetTexture([str(height_gradient_tx) + ".input"], str(world_position_reorder_tx))
-
+	multi_blend_tx = ix.cmds.CreateObject(surface_name + MOISTURE_SUFFIX + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+										  "Global", str(ctx))
 	# Setup fractal noise
-	fractal_tx = ix.cmds.CreateObject(surface_name + MOISTURE_FRACTAL_SUFFIX, "TextureFractalNoise", "Global", str(ctx))
-	fractal_tx.attrs.color1[0] = 1.0
-	fractal_tx.attrs.color1[1] = 1.0
-	fractal_tx.attrs.color1[2] = 1.0
-	fractal_tx.attrs.contrast = .5
-	fractal_tx.attrs.projection = 0
-	fractal_tx.attrs.axis = 1
-	fractal_tx.attrs.octaves = 2
-	random_offset = random.randrange(-123456, 123456)
-	fractal_tx.attrs.uv_translate[0] = random_offset
-	fractal_tx.attrs.uv_translate[1] = random_offset
-	fractal_tx.attrs.uv_translate[2] = random_offset
+	fractal_selector = create_fractal_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix)
 
-	fractal_tx.attrs.uv_scale[0] = .5
-	fractal_tx.attrs.uv_scale[1] = .5
-	fractal_tx.attrs.uv_scale[2] = .5
-	fractal_tx.attrs.turbulent = False
-	fractal_tx.attrs.normalize = False
-	fractal_clamp_tx = ix.cmds.CreateObject(surface_name + MOISTURE_FRACTAL_CLAMP_SUFFIX, "TextureClamp", "Global",
-											str(ctx))
-	ix.cmds.SetTexture([str(fractal_clamp_tx) + ".input"], str(fractal_tx))
-	fractal_remap_tx = ix.cmds.CreateObject(surface_name + MOISTURE_FRACTAL_REMAP_SUFFIX, "TextureRemap", "Global",
-											str(ctx))
-	ix.cmds.SetTexture([str(fractal_remap_tx) + ".input"], str(fractal_clamp_tx))
-
-	# Setup displacement blend
-	branch_tx = ix.cmds.CreateObject(surface_name + MOISTURE_DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch", "Global",
-									 str(ctx))
-	offset_tx = ix.cmds.CreateObject(surface_name + MOISTURE_DISPLACEMENT_OFFSET_SUFFIX, "TextureConstantColor",
-									 "Global",
-									 str(ctx))
-	offset_tx.attrs.color[0] = 0.5
-	offset_tx.attrs.color[1] = 0.5
-	offset_tx.attrs.color[2] = 0.5
-
-	ix.cmds.SetTexture([str(branch_tx) + ".input_a"], str(disp_tx))
-	ix.cmds.SetTexture([str(branch_tx) + ".input_b"], str(offset_tx))
-	branch_tx.attrs.mode = 2
+	# Setup slope gradient
+	slope_selector = create_slope_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix)
 
 	# Setup scope
-	scope_tx = ix.cmds.CreateObject(surface_name + MOISTURE_SCOPE_SUFFIX, "TextureScope", "Global", str(ctx))
-	scope_obj = ix.cmds.CreateObject(surface_name + MOISTURE_SCOPE_OBJ_SUFFIX, "Scope", "Global", str(ctx))
-	ix.cmds.AddValues([str(scope_tx) + ".scopes"], [str(scope_obj)])
+	scope_selector = create_scope_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix)
+
+	# Setup triplanar
+	triplanar_selector = create_triplanar_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix)
 
 	# Setup AO
-	ao_tx = ix.cmds.CreateObject(surface_name + MOISTURE_AO_SUFFIX, "TextureOcclusion", "Global", str(ctx))
-	ao_tx.attrs.color[0] = 0.0
-	ao_tx.attrs.color[1] = 0.0
-	ao_tx.attrs.color[2] = 0.0
-	ao_tx.attrs.occlusion_color[0] = 1.0
-	ao_tx.attrs.occlusion_color[1] = 1.0
-	ao_tx.attrs.occlusion_color[2] = 1.0
-	ao_tx.attrs.quality = 10
-	ao_remap_tx = ix.cmds.CreateObject(surface_name + MOISTURE_AO_REMAP_SUFFIX, "TextureRemap", "Global", str(ctx))
-	ix.cmds.SetTexture([str(ao_remap_tx) + ".input"], str(ao_tx))
+	ao_selector = create_ao_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix)
 
-	# Connect textures to multiblend
+	# Setup height blend
+	height_selector = create_height_selector(ctx, surface_name, MOISTURE_SUFFIX, ix=ix, invert=True)
+
+	disp_selector = None
+	# Setup displacement blend
+	if disp and disp_tx:
+		disp_selector = create_displacement_selector(disp_tx, ctx, surface_name, "_moisture", ix=ix)
+
 	multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
-	# Attach ao blend
+	# Attach Ambient Occlusion blend
 	multi_blend_tx.attrs.enable_layer_2 = True
 	multi_blend_tx.attrs.layer_2_mode = 1
-	multi_blend_tx.attrs.layer_2_label[0] = "AO Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_remap_tx))
+	multi_blend_tx.attrs.layer_2_label[0] = "Ambient Occlusion Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_selector))
 	if not ao_blend: multi_blend_tx.attrs.enable_layer_2 = False
-	# Attach height blend
-	multi_blend_tx.attrs.enable_layer_3 = True
-	multi_blend_tx.attrs.layer_3_label[0] = "Height Blend"
-	multi_blend_tx.attrs.layer_3_mode = 1
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(height_gradient_tx))
-	if not height_blend: multi_blend_tx.attrs.enable_layer_3 = False
-	# Attach fractal blend
-	multi_blend_tx.attrs.enable_layer_8 = True
-	multi_blend_tx.attrs.layer_8_mode = 4 if True in [ao_blend, height_blend, scope_blend] else 1
-	multi_blend_tx.attrs.layer_8_label[0] = "Fractal Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_remap_tx))
-	if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
 	# Attach displacement blend
+	if disp_selector:
+		multi_blend_tx.attrs.enable_layer_3 = True
+		multi_blend_tx.attrs.layer_3_label[0] = "Displacement Blend"
+		multi_blend_tx.attrs.layer_3_mode = 1
+		ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(disp_selector))
+		if not displacement_blend: multi_blend_tx.attrs.enable_layer_3 = False
+	# Attach height blend
 	multi_blend_tx.attrs.enable_layer_4 = True
-	multi_blend_tx.attrs.layer_4_label[0] = "Displacement Blend"
 	multi_blend_tx.attrs.layer_4_mode = 1
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(branch_tx))
-	if not displacement_blend: multi_blend_tx.attrs.enable_layer_4 = False
-	# Attach scope blend
+	multi_blend_tx.attrs.layer_4_label[0] = "Height Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(height_selector))
+	if not height_blend: multi_blend_tx.attrs.enable_layer_4 = False
+	# Attach slope blend
 	multi_blend_tx.attrs.enable_layer_5 = True
 	multi_blend_tx.attrs.layer_5_mode = 1
-	multi_blend_tx.attrs.layer_5_label[0] = "Scope Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(scope_tx))
-	if not scope_blend: multi_blend_tx.attrs.enable_layer_5 = False
+	multi_blend_tx.attrs.layer_5_label[0] = "Slope Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(slope_selector))
+	if not slope_blend: multi_blend_tx.attrs.enable_layer_5 = False
+	# Attach triplanar blend
+	multi_blend_tx.attrs.enable_layer_6 = True
+	multi_blend_tx.attrs.layer_6_mode = 1
+	multi_blend_tx.attrs.layer_6_label[0] = "Triplanar Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_6_color"], str(triplanar_selector))
+	if not triplanar_blend: multi_blend_tx.attrs.enable_layer_6 = False
+	# Attach scope blend
+	multi_blend_tx.attrs.enable_layer_7 = True
+	multi_blend_tx.attrs.layer_7_mode = 1
+	multi_blend_tx.attrs.layer_7_label[0] = "Scope Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_7_color"], str(scope_selector))
+	if not scope_blend: multi_blend_tx.attrs.enable_layer_7 = False
+	# Attach fractal blend
+	multi_blend_tx.attrs.enable_layer_8 = True
+	multi_blend_tx.attrs.layer_8_label[0] = "Fractal Blend"
+	multi_blend_tx.attrs.layer_8_mode = 4 if True in [ao_blend, height_blend, slope_blend, scope_blend] else 1
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_selector))
+	if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
 
 	# Setup diffuse blend
 	diffuse_blend_tx = ix.cmds.CreateObject(surface_name + MOISTURE_DIFFUSE_BLEND_SUFFIX, "TextureBlend", "Global",
@@ -1074,7 +1034,7 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
 				 target_context=None, displacement_blend=True, height_blend=False,
 				 ao_blend=False, fractal_blend=True, triplanar_blend=True,
-				 slope_blend=True, scope_blend=True, invert_slope=False, **kwargs):
+				 slope_blend=True, scope_blend=True, **kwargs):
 	"""Mixes 2 surfaces with each other."""
 	ix = get_ix(kwargs.get("ix"))
 	if not target_context:
@@ -1082,160 +1042,92 @@ def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
 	if not check_context(target_context, ix=ix):
 		return None
 	print "Mixing surfaces"
-	material1 = get_mtl_from_context(ctx1, ix=ix)
-	displacement1 = get_disp_from_context(ctx1, ix=ix)
-	material2 = get_mtl_from_context(ctx2, ix=ix)
-	displacement2 = get_disp_from_context(ctx2, ix=ix)
-	has_displacement = displacement1 and displacement2
+	mtl1 = get_mtl_from_context(ctx1, ix=ix)
+	disp1 = get_disp_from_context(ctx1, ix=ix)
+	mtl2 = get_mtl_from_context(ctx2, ix=ix)
+	disp2 = get_disp_from_context(ctx2, ix=ix)
+	has_displacement = disp1 and disp2
 	surface1_name = ctx1.get_name()
 	surface2_name = ctx2.get_name()
 
 	ctx = ix.cmds.CreateContext(mix_surface_name, "Global", str(target_context))
 
-	displacement1_blend_offset_tx = None
-	displacement2_blend_offset_tx = None
-	displacement1_offset_tx = None
-	displacement2_offset_tx = None
+	disp1_offset_tx = None
+	disp2_offset_tx = None
+	disp_branch_selector = None
 
 	if has_displacement:
 		# Setup displacements for height blending.
 		# Surface 1
 		print "Setting up surface 1"
-		surface1_height = displacement1.attrs.front_value[0]
+		surface1_height = disp1.attrs.front_value[0]
 		print "Surface 1 height: " + str(surface1_height)
-		displacement1_tx_front_value = ix.get_item(str(displacement1) + ".front_value")
-		displacement1_tx = displacement1_tx_front_value.get_texture()
-		displacement1_height_scale_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-															 "TextureMultiply",
-															 "Global",
-															 str(ctx))
-		ix.cmds.SetTexture([str(displacement1_height_scale_tx) + ".input1"], str(displacement1_tx))
+		disp1_tx_front_value = ix.get_item(str(disp1) + ".front_value")
+		disp1_tx = disp1_tx_front_value.get_texture()
+		disp1_height_scale_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+													 "TextureMultiply", "Global", str(ctx))
+		ix.cmds.SetTexture([str(disp1_height_scale_tx) + ".input1"], str(disp1_tx))
 
-		displacement1_height_scale_tx.attrs.input2[0] = surface1_height
-		displacement1_height_scale_tx.attrs.input2[1] = surface1_height
-		displacement1_height_scale_tx.attrs.input2[2] = surface1_height
-		displacement1_blend_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-															 "TextureAdd",
-															 "Global",
-															 str(ctx))
-		ix.cmds.SetTexture([str(displacement1_blend_offset_tx) + ".input1"], str(displacement1_height_scale_tx))
-		displacement1_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-													   "Global",
-													   str(ctx))
-		displacement1_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
-		displacement1_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
-		displacement1_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
-		ix.cmds.SetTexture([str(displacement1_offset_tx) + ".input1"], str(displacement1_height_scale_tx))
+		disp1_height_scale_tx.attrs.input2[0] = surface1_height
+		disp1_height_scale_tx.attrs.input2[1] = surface1_height
+		disp1_height_scale_tx.attrs.input2[2] = surface1_height
+		disp1_blend_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
+													 "TextureAdd", "Global", str(ctx))
+		ix.cmds.SetTexture([str(disp1_blend_offset_tx) + ".input1"], str(disp1_height_scale_tx))
+		disp1_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+											   "Global", str(ctx))
+		disp1_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
+		disp1_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
+		disp1_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
+		ix.cmds.SetTexture([str(disp1_offset_tx) + ".input1"], str(disp1_height_scale_tx))
 
 		# Surface 2
 		print "Setting up surface 2"
-		surface2_height = displacement2.attrs.front_value[0]
+		surface2_height = disp2.attrs.front_value[0]
 		print "Surface 2 height: " + str(surface2_height)
-		displacement2_tx_front_value = ix.get_item(str(displacement2) + ".front_value")
-		displacement2_tx = displacement2_tx_front_value.get_texture()
-		displacement2_height_scale_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-															 "TextureMultiply",
-															 "Global",
-															 str(ctx))
-		ix.cmds.SetTexture([str(displacement2_height_scale_tx) + ".input1"], str(displacement2_tx))
-		displacement2_height_scale_tx.attrs.input2[0] = surface2_height
-		displacement2_height_scale_tx.attrs.input2[1] = surface2_height
-		displacement2_height_scale_tx.attrs.input2[2] = surface2_height
-		displacement2_blend_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-															 "TextureAdd",
-															 "Global",
-															 str(ctx))
-		ix.cmds.SetTexture([str(displacement2_blend_offset_tx) + ".input1"], str(displacement2_height_scale_tx))
-		displacement2_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-													   "Global",
-													   str(ctx))
-		displacement2_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
-		displacement2_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
-		displacement2_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
-		ix.cmds.SetTexture([str(displacement2_offset_tx) + ".input1"], str(displacement2_height_scale_tx))
+		disp2_tx_front_value = ix.get_item(str(disp2) + ".front_value")
+		disp2_tx = disp2_tx_front_value.get_texture()
+		disp2_height_scale_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+													 "TextureMultiply", "Global", str(ctx))
+		ix.cmds.SetTexture([str(disp2_height_scale_tx) + ".input1"], str(disp2_tx))
+		disp2_height_scale_tx.attrs.input2[0] = surface2_height
+		disp2_height_scale_tx.attrs.input2[1] = surface2_height
+		disp2_height_scale_tx.attrs.input2[2] = surface2_height
+		disp2_blend_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
+													 "TextureAdd", "Global", str(ctx))
+		ix.cmds.SetTexture([str(disp2_blend_offset_tx) + ".input1"], str(disp2_height_scale_tx))
+		disp2_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+											   "Global", str(ctx))
+		disp2_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
+		disp2_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
+		disp2_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
+		ix.cmds.SetTexture([str(disp2_offset_tx) + ".input1"], str(disp2_height_scale_tx))
+
+		disp_branch_selector = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch",
+													"Global",
+													str(ctx))
+
+		ix.cmds.SetTexture([str(disp_branch_selector) + ".input_a"], str(disp1_blend_offset_tx))
+		ix.cmds.SetTexture([str(disp_branch_selector) + ".input_b"], str(disp2_blend_offset_tx))
+		disp_branch_selector.attrs.mode = 2
 
 	# Setup fractal noise
-	fractal_tx = ix.cmds.CreateObject(mix_surface_name + FRACTAL_BLEND_SUFFIX, "TextureFractalNoise", "Global",
-									  str(ctx))
-	fractal_tx.attrs.color1[0] = 1.0
-	fractal_tx.attrs.color1[1] = 1.0
-	fractal_tx.attrs.color1[2] = 1.0
-	fractal_tx.attrs.contrast = .5
-	fractal_tx.attrs.projection = 0
-	fractal_tx.attrs.axis = 1
-	random_offset = random.randrange(-123456, 123456)
-	fractal_tx.attrs.uv_translate[0] = random_offset
-	fractal_tx.attrs.uv_translate[1] = random_offset
-	fractal_tx.attrs.uv_translate[2] = random_offset
-
-	fractal_tx.attrs.uv_scale[0] = .5
-	fractal_tx.attrs.uv_scale[1] = .5
-	fractal_tx.attrs.uv_scale[2] = .5
-	# Let's balance the noise a bit
-	fractal_tx.attrs.turbulent = False
-	fractal_tx.attrs.normalize = False
-	fractal_clamp_tx = ix.cmds.CreateObject(mix_surface_name + FRACTAL_BLEND_CLAMP_SUFFIX, "TextureClamp", "Global",
-											str(ctx))
-	ix.cmds.SetTexture([str(fractal_clamp_tx) + ".input"], str(fractal_tx))
-	fractal_remap_tx = ix.cmds.CreateObject(mix_surface_name + FRACTAL_BLEND_REMAP_SUFFIX, "TextureRemap", "Global",
-											str(ctx))
-	ix.cmds.SetTexture([str(fractal_remap_tx) + ".input"], str(fractal_clamp_tx))
+	fractal_selector = create_fractal_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Setup slope gradient
-	slope_tx = ix.cmds.CreateObject(mix_surface_name + SLOPE_BLEND_SUFFIX, "TextureGradient", "Global", str(ctx))
-	slope_start_color = 0
-	slope_end_color = 1
-	if invert_slope:
-		slope_start_color = 1
-		slope_end_color = 0
-	add_gradient_key(str(slope_tx) + ".output", 0.80, [slope_start_color, slope_start_color, slope_start_color], ix=ix)
-	add_gradient_key(str(slope_tx) + ".output", 0.85, [slope_end_color, slope_end_color, slope_end_color], ix=ix)
-	ix.cmds.RemoveCurveValue([str(slope_tx) + ".output"], [1, 1, 1, 1, 1, 1, 1, 1])
-	slope_tx.attrs.mode = 2
+	slope_selector = create_slope_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Setup scope
-	scope_tx = ix.cmds.CreateObject(mix_surface_name + SCOPE_BLEND_SUFFIX, "TextureScope", "Global", str(ctx))
-	scope_obj = ix.cmds.CreateObject(mix_surface_name + SCOPE_OBJ_BLEND_SUFFIX, "Scope", "Global", str(ctx))
-	ix.cmds.AddValues([str(scope_tx) + ".scopes"], [str(scope_obj)])
+	scope_selector = create_scope_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Setup triplanar
-	triplanar_tx = ix.cmds.CreateObject(mix_surface_name + TRIPLANAR_BLEND_SUFFIX, "TextureTriplanar", "Global",
-										str(ctx))
-	ix.cmds.SetValues([str(triplanar_tx) + ".right"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".left"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".top"], ["1", "1", "1"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".bottom"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".front"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".back"], ["0", "0", "0"])
-	triplanar_tx.attrs.object_space = 2
-	triplanar_tx.attrs.blend = 0.5
+	triplanar_selector = create_triplanar_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Setup AO
-	ao_tx = ix.cmds.CreateObject(mix_surface_name + AO_BLEND_SUFFIX, "TextureOcclusion", "Global", str(ctx))
-	ao_tx.attrs.color[0] = 0.0
-	ao_tx.attrs.color[1] = 0.0
-	ao_tx.attrs.color[2] = 0.0
-	ao_tx.attrs.occlusion_color[0] = 1.0
-	ao_tx.attrs.occlusion_color[1] = 1.0
-	ao_tx.attrs.occlusion_color[2] = 1.0
-	ao_tx.attrs.quality = 10
-	ao_remap_tx = ix.cmds.CreateObject(mix_surface_name + AO_BLEND_REMAP_SUFFIX, "TextureRemap", "Global", str(ctx))
-	ix.cmds.SetTexture([str(ao_remap_tx) + ".input"], str(ao_tx))
+	ao_selector = create_ao_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Setup height blend
-	world_position_tx = ix.cmds.CreateObject(mix_surface_name + WORLD_POSITION_SUFFIX, "TextureUtility", "Global",
-											 str(ctx))
-	world_position_reorder_tx = ix.cmds.CreateObject(mix_surface_name + WORLD_POSITION_REORDER_SUFFIX, "TextureReorder",
-													 "Global", str(ctx))
-	world_position_reorder_tx.attrs.channel_order[0] = "ggga"
-	ix.cmds.SetTexture([str(world_position_reorder_tx) + ".input"], str(world_position_tx))
-
-	height_gradient_tx = ix.cmds.CreateObject(mix_surface_name + HEIGHT_GRADIENT_SUFFIX, "TextureGradient", "Global",
-											  str(ctx))
-	add_gradient_key(str(height_gradient_tx) + ".output", 0.45, [0, 0, 0], ix=ix)
-	add_gradient_key(str(height_gradient_tx) + ".output", 0.55, [1, 1, 1], ix=ix)
-	ix.cmds.RemoveCurveValue([str(height_gradient_tx) + ".output"], [1, 1, 1, 1, 1, 1, 1, 1])
-	ix.cmds.SetTexture([str(height_gradient_tx) + ".input"], str(world_position_reorder_tx))
+	height_selector = create_height_selector(ctx, mix_surface_name, "_mix", ix=ix)
 
 	# Put all selectors in a TextureMultiBlend
 	multi_blend_tx = ix.cmds.CreateObject(mix_surface_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
@@ -1245,32 +1137,26 @@ def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
 	multi_blend_tx.attrs.enable_layer_2 = True
 	multi_blend_tx.attrs.layer_2_mode = 1
 	multi_blend_tx.attrs.layer_2_label[0] = "Ambient Occlusion Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_remap_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_selector))
 	if not ao_blend: multi_blend_tx.attrs.enable_layer_2 = False
 	# Attach displacement blend
 	multi_blend_tx.attrs.enable_layer_3 = True
 	multi_blend_tx.attrs.layer_3_label[0] = "Displacement Blend"
 	multi_blend_tx.attrs.layer_3_mode = 1
-	if has_displacement:
-		branch_tx = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch", "Global",
-										 str(ctx))
-
-		ix.cmds.SetTexture([str(branch_tx) + ".input_a"], str(displacement1_blend_offset_tx))
-		ix.cmds.SetTexture([str(branch_tx) + ".input_b"], str(displacement2_blend_offset_tx))
-		branch_tx.attrs.mode = 2
-		ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(branch_tx))
+	if disp_branch_selector:
+		ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(disp_branch_selector))
 		if not displacement_blend: multi_blend_tx.attrs.enable_layer_3 = False
 		# Finalize new Displacement map
 		disp_multi_blend_tx = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_BLEND_SUFFIX, "TextureMultiBlend",
 												   "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_1_color"], str(displacement1_offset_tx))
+		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_1_color"], str(disp1_offset_tx))
 		disp_multi_blend_tx.attrs.enable_layer_2 = True
 		disp_multi_blend_tx.attrs.layer_2_label[0] = "Mix mode"
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_color"], str(displacement2_offset_tx))
+		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_color"], str(disp2_offset_tx))
 		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_mix"], str(multi_blend_tx))
 		disp_multi_blend_tx.attrs.enable_layer_3 = True
 		disp_multi_blend_tx.attrs.layer_3_label[0] = "Add mode"
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_color"], str(displacement2_offset_tx))
+		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_color"], str(disp2_offset_tx))
 		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_mix"], str(multi_blend_tx))
 		disp_multi_blend_tx.attrs.layer_3_mode = 6
 		disp_multi_blend_tx.attrs.enable_layer_3 = False
@@ -1286,38 +1172,38 @@ def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
 	multi_blend_tx.attrs.enable_layer_4 = True
 	multi_blend_tx.attrs.layer_4_mode = 1
 	multi_blend_tx.attrs.layer_4_label[0] = "Height Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(height_gradient_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(height_selector))
 	if not height_blend: multi_blend_tx.attrs.enable_layer_4 = False
 	# Attach slope blend
 	multi_blend_tx.attrs.enable_layer_5 = True
 	multi_blend_tx.attrs.layer_5_mode = 1
 	multi_blend_tx.attrs.layer_5_label[0] = "Slope Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(slope_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(slope_selector))
 	if not slope_blend: multi_blend_tx.attrs.enable_layer_5 = False
 	# Attach triplanar blend
 	multi_blend_tx.attrs.enable_layer_6 = True
 	multi_blend_tx.attrs.layer_6_mode = 1
 	multi_blend_tx.attrs.layer_6_label[0] = "Triplanar Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_6_color"], str(triplanar_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_6_color"], str(triplanar_selector))
 	if not triplanar_blend: multi_blend_tx.attrs.enable_layer_6 = False
 	# Attach scope blend
 	multi_blend_tx.attrs.enable_layer_7 = True
 	multi_blend_tx.attrs.layer_7_mode = 1
 	multi_blend_tx.attrs.layer_7_label[0] = "Scope Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_7_color"], str(scope_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_7_color"], str(scope_selector))
 	if not scope_blend: multi_blend_tx.attrs.enable_layer_7 = False
 	# Attach fractal blend
 	multi_blend_tx.attrs.enable_layer_8 = True
 	multi_blend_tx.attrs.layer_8_label[0] = "Fractal Blend"
 	multi_blend_tx.attrs.layer_8_mode = 4 if True in [ao_blend, height_blend, slope_blend, scope_blend] else 1
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_remap_tx))
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_selector))
 	if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
 
 	# Blend materials
 	blend_mtl = ix.cmds.CreateObject(mix_surface_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global", str(ctx))
 	ix.cmds.SetTexture([str(blend_mtl) + ".mix"], str(multi_blend_tx))
-	ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(material1)])
-	ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(material2)])
+	ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(mtl1)])
+	ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(mtl2)])
 	return blend_mtl
 
 
@@ -1435,6 +1321,105 @@ def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
 	return blur
 
 
+def generate_decimated_pointcloud(geometry, ctx=None,
+								  pc_type="GeometryPointCloud",
+								  use_density=False,
+								  density=.1,
+								  point_count=10000,
+								  height_blend=False,
+								  fractal_blend=False,
+								  scope_blend=False,
+								  slope_blend=True,
+								  triplanar_blend=False,
+								  ao_blend=False,
+								  **kwargs):
+	"""Moistens the selected material."""
+	ix = get_ix(kwargs.get("ix"))
+	if not ctx:
+		ctx = ix.application.get_working_context()
+	if not check_context(ctx, ix=ix):
+		return None
+
+	geo_name = geometry.get_contextual_name()
+	pc = ix.cmds.CreateObject(geo_name + POINTCLOUD_SUFFIX, pc_type, "Global", str(ctx))
+	if pc_type == "GeometryPointCloud":
+		if use_density:
+			pc.attrs.use_density = True
+			pc.attrs.density = density
+		else:
+			pc.attrs.point_count = int(point_count)
+	else:
+		pc.attrs.point_count = int(point_count)
+
+	multi_blend_tx = ix.cmds.CreateObject(geo_name + DECIMATE_SUFFIX + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+										  "Global", str(ctx))
+	# Setup fractal noise
+	fractal_selector = create_fractal_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
+
+	# Setup slope gradient
+	slope_selector = create_slope_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix, invert=True)
+
+	# Setup scope
+	scope_selector = create_scope_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
+
+	# Setup triplanar
+	triplanar_selector = create_triplanar_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
+
+	# Setup AO
+	ao_selector = create_ao_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
+
+	# Setup height blend
+	height_selector = create_height_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix, invert=True)
+
+	multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
+	# Attach Ambient Occlusion blend
+	multi_blend_tx.attrs.enable_layer_2 = True
+	multi_blend_tx.attrs.layer_2_mode = 1
+	multi_blend_tx.attrs.layer_2_label[0] = "Ambient Occlusion Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_selector))
+	if not ao_blend: multi_blend_tx.attrs.enable_layer_2 = False
+	# Attach height blend
+	multi_blend_tx.attrs.enable_layer_4 = True
+	multi_blend_tx.attrs.layer_4_mode = 1
+	multi_blend_tx.attrs.layer_4_label[0] = "Height Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(height_selector))
+	if not height_blend: multi_blend_tx.attrs.enable_layer_4 = False
+	# Attach slope blend
+	multi_blend_tx.attrs.enable_layer_5 = True
+	multi_blend_tx.attrs.layer_5_mode = 1
+	multi_blend_tx.attrs.layer_5_label[0] = "Slope Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(slope_selector))
+	if not slope_blend: multi_blend_tx.attrs.enable_layer_5 = False
+	# Attach triplanar blend
+	multi_blend_tx.attrs.enable_layer_6 = True
+	multi_blend_tx.attrs.layer_6_mode = 1
+	multi_blend_tx.attrs.layer_6_label[0] = "Triplanar Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_6_color"], str(triplanar_selector))
+	if not triplanar_blend: multi_blend_tx.attrs.enable_layer_6 = False
+	# Attach scope blend
+	multi_blend_tx.attrs.enable_layer_7 = True
+	multi_blend_tx.attrs.layer_7_mode = 1
+	multi_blend_tx.attrs.layer_7_label[0] = "Scope Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_7_color"], str(scope_selector))
+	if not scope_blend: multi_blend_tx.attrs.enable_layer_7 = False
+	# Attach fractal blend
+	multi_blend_tx.attrs.enable_layer_8 = True
+	multi_blend_tx.attrs.layer_8_label[0] = "Fractal Blend"
+	multi_blend_tx.attrs.layer_8_mode = 4 if True in [ao_blend, height_blend, slope_blend, scope_blend] else 1
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_selector))
+	if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
+
+	if pc_type == "GeometryPointCloud":
+		ix.cmds.SetValue(str(pc) + ".decimate_texture", [str(multi_blend_tx)])
+	else:
+		ix.cmds.SetValue(str(multi_blend_tx) + ".invert", [str(1)])
+		ix.cmds.SetValue(str(pc) + ".texture", [str(multi_blend_tx)])
+		# Refresh bug!
+
+	ix.cmds.SetValue(str(pc) + ".geometry", [str(geometry)])
+	return pc
+
+
 def get_mtl_from_context(ctx, **kwargs):
 	""""Returns the material from the context."""
 	ix = get_ix(kwargs.get("ix"))
@@ -1545,44 +1530,6 @@ def check_selection(selection, is_kindof=[""], max_num=0, min_num=1):
 		return False
 	elif max_num and num > max_num:
 		return False
-	return True
-
-
-def add_gradient_key(attr, position, color, **kwargs):
-	"""
-	Create a key in the specified gradient attribute with the given position and color.
-	If the given color is an array of 3 elements, a 4th is added to have the alpha chanel set to 1.0
-
-	:param attr: The attribute of the gradient for example: <!-- m --><a class="postlink" href="project://gradient.output">project://gradient.output</a><!-- m -->
-	:type attr: string or PyOfObject
-
-	:param position: The position of the key you want to set
-	:type position: float
-
-	:param color: The color you want to set on the point for example [1, 0, 0] for red
-	:type color: list of int
-
-	:return: True or false depending on the sucess of the function.
-	"""
-	ix = get_ix(kwargs.get("ix"))
-	if isinstance(attr, str):
-		attr = ix.item_exists(attr)
-	if not attr:
-		ix.log_warning("The specified attribute doesn't exists.")
-		return False
-
-	data = []
-	if len(color) == 3:
-		color.append(1)
-
-	for i in range(len(color)):
-		data.append(1.0)
-		data.append(0.0)
-		data.append(position)
-		data.append(float(color[i]))
-
-	ix.cmds.AddCurveValue([str(attr)], data)
-
 	return True
 
 

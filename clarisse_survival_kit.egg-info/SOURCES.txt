@@ -6,12 +6,16 @@ clarisse_survival_kit/blur.png
 clarisse_survival_kit/blur.py
 clarisse_survival_kit/import_asset.png
 clarisse_survival_kit/import_asset.py
+clarisse_survival_kit/import_ms_library.png
 clarisse_survival_kit/mix.png
 clarisse_survival_kit/mix.py
 clarisse_survival_kit/moisten.png
 clarisse_survival_kit/moisten.py
 clarisse_survival_kit/replace.png
 clarisse_survival_kit/replace.py
+clarisse_survival_kit/scatter.png
+clarisse_survival_kit/scatter.py
+clarisse_survival_kit/selectors.py
 clarisse_survival_kit/settings.py
 clarisse_survival_kit/shelf.json
 clarisse_survival_kit/simplify.png
@@ -20,6 +24,7 @@ clarisse_survival_kit/tint.png
 clarisse_survival_kit/tint.py
 clarisse_survival_kit/triplanar.png
 clarisse_survival_kit/triplanar.py
+clarisse_survival_kit/utility.py
 clarisse_survival_kit.egg-info/PKG-INFO
 clarisse_survival_kit.egg-info/SOURCES.txt
 clarisse_survival_kit.egg-info/dependency_links.txt

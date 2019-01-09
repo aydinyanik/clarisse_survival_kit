@@ -74,6 +74,8 @@ GROUP_SUFFIX = "_grp"
 MEGASCANS_LIBRARY_CATEGORY_PREFIX = "megascans_"
 LIBRARY_MIXER_CTX = "mixer"
 IMPORTER_PATH_DELIMITER = "|"
+DECIMATE_SUFFIX = "_decimate"
+POINTCLOUD_SUFFIX = "_pc"
 
 # Diffuse Tint variables
 DIFFUSE_TINT_SUFFIX = "_tint_tx"
@@ -90,21 +92,9 @@ MOISTURE_DEFAULT_IOR = 2
 MOISTURE_DEFAULT_DIFFUSE_MULTIPLIER = 0.33
 MOISTURE_DEFAULT_SPECULAR_MULTIPLIER = .5
 MOISTURE_DEFAULT_ROUGHNESS_MULTIPLIER = .1
-MOISTURE_WORLD_POSITION_SUFFIX = "_moisture_world_pos_tx"
-MOISTURE_WORLD_POSITION_REORDER_SUFFIX = "_moisture_wp_reorder_tx"
-MOISTURE_HEIGHT_GRADIENT_SUFFIX = "_moisture_height_gradient_tx"
-MOISTURE_FRACTAL_SUFFIX = "_moisture_fractal_tx"
-MOISTURE_FRACTAL_CLAMP_SUFFIX = "_moisture_fractal_clamp_tx"
-MOISTURE_FRACTAL_REMAP_SUFFIX = "_moisture_fractal_remap_tx"
-MOISTURE_DISPLACEMENT_BRANCH_SUFFIX = "_moisture_displacement_branch_tx"
-MOISTURE_DISPLACEMENT_OFFSET_SUFFIX = "_moisture_displacement_offset_tx"
-MOISTURE_AO_SUFFIX = "_moisture_ao_tx"
-MOISTURE_AO_REMAP_SUFFIX = "_moisture_ao_remap_tx"
-MOISTURE_SCOPE_SUFFIX = "_moisture_scope_tx"
-MOISTURE_SCOPE_OBJ_SUFFIX = "_moisture_scope"
-MOISTURE_TX_INSTANCE_SUFFIX = "_moist"
 
 # Material blend variables
+MIX_SUFFIX = "_mix"
 DISPLACEMENT_BLEND_OFFSET_SUFFIX = "_displacement_blend_offset_tx"
 DISPLACEMENT_OFFSET_SUFFIX = "_displacement_offset_tx"
 DISPLACEMENT_HEIGHT_SCALE_SUFFIX = "_displacement_blend_height_scale_tx"
@@ -123,3 +113,5 @@ WORLD_POSITION_REORDER_SUFFIX = "_wp_reorder_tx"
 HEIGHT_GRADIENT_SUFFIX = "_height_gradient_tx"
 DISPLACEMENT_BLEND_SUFFIX = "_displacement_blend_tx"
 MULTI_BLEND_SUFFIX = "_multi_blend_tx"
+MOISTURE_SUFFIX = "_moisture"
+
