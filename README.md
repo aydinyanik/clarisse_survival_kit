@@ -53,7 +53,7 @@ The kit provides the following scripts:
    * Displacement blend: Checks which displacement map has higher elevation than the other. You can invert the selector or add both layers on top of each other.
    * Slope blend: Mixes two materials based on slope angle. 
    * Triplanar blend: Uses triplanar mapping for the mask. By default the top facing(Y+) angle is masked.
-   * Scope blend: A scope object is automatically created to quickly mask things out with a slope
+   * Scope blend: A scope object is automatically created to quickly mask things out.
    * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
    * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
 
