@@ -48,7 +48,7 @@ def generate_decimated_pointcloud_gui():
 	# Window creation
 	clarisse_win = ix.application.get_event_window()
 	window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 370)  # Parent, X position, Y position, Width, Height
-	window.set_title('Moisten surface')  # Window name
+	window.set_title('Scatter Point Cloud on Geometry')  # Window name
 
 	# Main widget creation
 	panel = ix.api.GuiPanel(window, 0, 0, window.get_width(), window.get_height())

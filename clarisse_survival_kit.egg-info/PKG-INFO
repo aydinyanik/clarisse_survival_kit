@@ -83,9 +83,12 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         ### Blur Selected Texture(s)
         Blurs the selected texture with a custom radius.
         
+        ### Generate Decimated Pointcloud on Geometry
+        Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object. Has several masking options for decimating the point cloud.
+        
+        
         # TODO
         - Mix Multiple Surfaces. Handy for covering multiple materials simultaneously with one material.
-        - Scatter point cloud on selected geo. The point cloud will be decimated with the same selectors as used in the Mix Surfaces command except Displacement.
         - Import Megascans library GUI. The function is already done and works. It just needs a GUI. You can run it from the script editor if needed.
         ```python
         from clarisse_survival_kit.app import *
