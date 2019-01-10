@@ -1357,7 +1357,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 	fractal_selector = create_fractal_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
 
 	# Setup slope gradient
-	slope_selector = create_slope_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix, invert=True)
+	slope_selector = create_slope_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
 
 	# Setup scope
 	scope_selector = create_scope_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
@@ -1369,7 +1369,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 	ao_selector = create_ao_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
 
 	# Setup height blend
-	height_selector = create_height_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix, invert=True)
+	height_selector = create_height_selector(ctx, geo_name, DECIMATE_SUFFIX, ix=ix)
 
 	multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
 	# Attach Ambient Occlusion blend
@@ -1411,8 +1411,8 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 
 	if pc_type == "GeometryPointCloud":
 		ix.cmds.SetValue(str(pc) + ".decimate_texture", [str(multi_blend_tx)])
-	else:
 		ix.cmds.SetValue(str(multi_blend_tx) + ".invert", [str(1)])
+	else:
 		ix.cmds.SetValue(str(pc) + ".texture", [str(multi_blend_tx)])
 		# Refresh bug!
 

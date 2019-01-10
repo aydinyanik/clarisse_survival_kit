@@ -77,17 +77,22 @@ def create_ao_selector(ctx, name, name_suffix, ix):
 	return ao_remap_tx
 
 
-def create_triplanar_selector(ctx, name, name_suffix, ix):
+def create_triplanar_selector(ctx, name, name_suffix, ix, invert=False, blend_ratio=0.5):
 	triplanar_tx = ix.cmds.CreateObject(name + name_suffix + TRIPLANAR_BLEND_SUFFIX, "TextureTriplanar",
 										"Global", str(ctx))
-	ix.cmds.SetValues([str(triplanar_tx) + ".right"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".left"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".top"], ["1", "1", "1"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".bottom"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".front"], ["0", "0", "0"])
-	ix.cmds.SetValues([str(triplanar_tx) + ".back"], ["0", "0", "0"])
+	start_color = str(0)
+	end_color = str(1)
+	if invert:
+		start_color = str(1)
+		end_color = str(0)
+	ix.cmds.SetValues([str(triplanar_tx) + ".right"], [start_color, start_color, start_color])
+	ix.cmds.SetValues([str(triplanar_tx) + ".left"], [start_color, start_color, start_color])
+	ix.cmds.SetValues([str(triplanar_tx) + ".top"], [end_color, end_color, end_color])
+	ix.cmds.SetValues([str(triplanar_tx) + ".bottom"], [start_color, start_color, start_color])
+	ix.cmds.SetValues([str(triplanar_tx) + ".front"], [start_color, start_color, start_color])
+	ix.cmds.SetValues([str(triplanar_tx) + ".back"], [start_color, start_color, start_color])
 	triplanar_tx.attrs.object_space = 2
-	triplanar_tx.attrs.blend = 0.5
+	triplanar_tx.attrs.blend = blend_ratio
 	return triplanar_tx
 
 
