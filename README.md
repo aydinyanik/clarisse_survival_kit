@@ -78,21 +78,12 @@ Blurs the selected texture with a custom radius.
 ### Generate Decimated Pointcloud on Geometry
 Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object. Has several masking options for decimating the point cloud.
 
+### Import Megascans Library
+Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
+
 
 # TODO
 - Mix Multiple Surfaces. Handy for covering multiple materials simultaneously with one material.
-- Import Megascans library GUI. The function is already done and works. It just needs a GUI. You can run it from the script editor if needed.
-```python
-from clarisse_survival_kit.app import *
-
-import_ms_library("PATH TO THE DOWNLOADED FOLDER", skip_categories=[], ix=ix)
-```
-
-if you want to exclude categories you can run the following command. "surfaces" is the name of the custom mixer surfaces.
-```python
-from clarisse_survival_kit.app import *
-import_ms_library("PATH TO THE DOWNLOADED FOLDER", skip_categories=["3d", "3dplant", "atlas", "surface", "surfaces"], ix=ix)
-```
 
 Got any ideas? Did I miss anything important? Let me know.
 
