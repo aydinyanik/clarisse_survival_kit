@@ -1,5 +1,5 @@
-from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.app import *
+from clarisse_survival_kit.utility import get_mtl_from_context, check_selection
 
 
 def mix_surface_gui():

@@ -1,6 +1,7 @@
-from clarisse_survival_kit.settings import *
-from clarisse_survival_kit.app import *
 import sys
+
+from clarisse_survival_kit.app import *
+from clarisse_survival_kit.utility import check_selection
 
 
 def replace_surface_gui():

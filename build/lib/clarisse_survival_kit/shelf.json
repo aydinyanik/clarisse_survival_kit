@@ -50,10 +50,16 @@
       "icon_filename": "tint.png"
     },
     {
-      "title": "Blur textures",
+      "title": "Blur Textures",
       "description": "Blurs the selected texture.",
       "script_filename": "blur.py",
       "icon_filename": "blur.png"
+    },
+    {
+      "title": "Import Megascans Library",
+      "description": "Imports the whole or selected categories of the Megascans Library. Already existing items will be ignored.",
+      "script_filename": "import_ms_library.py",
+      "icon_filename": "import_ms_library.png"
     }
   ]
 }

@@ -7,6 +7,7 @@ clarisse_survival_kit/blur.py
 clarisse_survival_kit/import_asset.png
 clarisse_survival_kit/import_asset.py
 clarisse_survival_kit/import_ms_library.png
+clarisse_survival_kit/import_ms_library.py
 clarisse_survival_kit/mix.png
 clarisse_survival_kit/mix.py
 clarisse_survival_kit/moisten.png

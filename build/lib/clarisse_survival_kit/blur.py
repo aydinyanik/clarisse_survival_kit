@@ -1,5 +1,5 @@
-from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.app import *
+from clarisse_survival_kit.utility import check_selection
 
 
 def blur_textures_gui():
