@@ -4,29 +4,29 @@ from clarisse_survival_kit.utility import get_mtl_from_context, check_selection
 
 def mix_surface_gui():
 	class EventRewire(ix.api.EventObject):
-		def material1_picker_refresh(self, sender, evtid):
+		def srf1_picker_refresh(self, sender, evtid):
 			if check_selection(ix.selection,
-							   is_kindof=["MaterialPhysicalStandard", "MaterialPhysicalBlend", "OfContext"], max_num=1):
-				if ix.selection[0].is_context():
-					ctx = ix.selection[0]
-				else:
-					ctx = ix.selection[0].get_context()
+							   is_kindof=["MaterialPhysicalStandard", "MaterialPhysicalBlend", "OfContext"], min_num=1):
+				ctxs = []
+				for selection in ix.selection:
+					if selection.is_context():
+						ctx = selection
+					else:
+						ctx = selection.get_context()
 
-				if not get_mtl_from_context(ctx, ix=ix):
-					return None
+					if not get_mtl_from_context(ctx, ix=ix):
+						return None
 
-				mtl1_txt.set_text(str(ctx))
-
-				ctx1_name = ctx.get_name()
-				if mtl2_txt.get_text():
-					ctx2 = ix.get_item(mtl2_txt.get_text())
-					if ctx2 and ctx2.is_context():
-						name_txt.set_text(ctx1_name + "_" + ctx2.get_name())
+					ctxs.append(str(ctx))
+				if srf2_txt.get_text():
+					ctx2 = ix.get_item(srf2_txt.get_text())
+					name_txt.set_text(ctx2.get_name() + MIX_SUFFIX)
+				srf1_txt.set_text(str(IMPORTER_PATH_DELIMITER.join(ctxs)))
 			else:
 				ix.log_warning("Please select a valid material.\n")
-				mtl1_txt.set_text("")
+				srf1_txt.set_text("")
 
-		def material2_picker_refresh(self, sender, evtid):
+		def srf2_picker_refresh(self, sender, evtid):
 			if check_selection(ix.selection,
 							   is_kindof=["MaterialPhysicalStandard", "MaterialPhysicalBlend", "OfContext"], max_num=1):
 				if ix.selection[0].is_context():
@@ -37,33 +37,34 @@ def mix_surface_gui():
 				if not get_mtl_from_context(ctx, ix=ix):
 					return None
 
-				mtl2_txt.set_text(str(ctx))
+				srf2_txt.set_text(str(ctx))
 
 				ctx2_name = ctx.get_name()
-				if mtl1_txt.get_text():
-					ctx1 = ix.get_item(mtl1_txt.get_text())
-					if ctx1 and ctx1.is_context():
-						name_txt.set_text(ctx1.get_name() + "_" + ctx2_name)
+				name_txt.set_text(ctx2_name + MIX_SUFFIX)
 			else:
-				ix.log_warning("Please select a valid material.\n")
-				mtl2_txt.set_text("")
+				ix.log_warning("Please select a valid cover material.\n")
+				srf2_txt.set_text("")
 
 		def cancel(self, sender, evtid):
 			sender.get_window().hide()
 
 		def run(self, sender, evtid):
 			try:
-				ctx1 = ix.get_item(mtl1_txt.get_text())
-				ctx2 = ix.get_item(mtl2_txt.get_text())
-				if not (ctx1.is_context() and ctx2.is_context()):
+				ctxs = []
+				for ctx_name in srf1_txt.get_text().split(IMPORTER_PATH_DELIMITER):
+					ctx = ix.get_item(ctx_name)
+					ctxs.append(ctx)
+					if not ctx.is_context():
+						raise ValueError
+				ctx2 = ix.get_item(srf2_txt.get_text())
+				if not ctx2.is_context():
 					raise ValueError
 			except BaseException as e:
 				ix.log_warning("Couldn't find material: %s" % str(e))
 			else:
 				ix.begin_command_batch("Mix surfaces")
-				surface_name = name_txt.get_text()
-				blend_mtl = mix_surfaces(ctx1, ctx2,
-										 mix_surface_name=surface_name,
+				mix_ctx = mix_surfaces(ctxs, ctx2,
+										 mix_name=name_txt.get_text(),
 										 slope_blend=slope_blend_checkbox.get_value(),
 										 scope_blend=scope_blend_checkbox.get_value(),
 										 triplanar_blend=triplanar_blend_checkbox.get_value(),
@@ -72,9 +73,9 @@ def mix_surface_gui():
 										 fractal_blend=fractal_blend_checkbox.get_value(),
 										 ao_blend=ao_blend_checkbox.get_value(),
 										 ix=ix)
-				if blend_mtl:
+				if mix_ctx:
 					ix.selection.deselect_all()
-					ix.selection.add(blend_mtl)
+					ix.selection.add(mix_ctx)
 				ix.end_command_batch()
 				sender.get_window().hide()
 
@@ -89,19 +90,15 @@ def mix_surface_gui():
 						  ix.api.GuiWidget.CONSTRAINT_RIGHT, ix.api.GuiWidget.CONSTRAINT_BOTTOM)
 
 	# Form generation
-	mt1_label = ix.api.GuiLabel(panel, 10, 10, 380, 22, "Material 1:")
-	# mtl1_disp_label = ix.api.GuiLabel(panel, 205, 10, 380, 22, "Displacement 1:")
-	mtl1_txt = ix.api.GuiLineEdit(panel, 10, 40, 385, 22)
-	# mtl1_disp_txt = ix.api.GuiLineEdit(panel, 205, 40, 185, 22)
-	mtl1_btn = ix.api.GuiPushButton(panel, 10, 70, 380, 22, "Add selected material")
+	srf1_label = ix.api.GuiLabel(panel, 10, 10, 380, 22, "Base Surface(s):")
+	srf1_txt = ix.api.GuiLineEdit(panel, 10, 40, 385, 22)
+	srf1_btn = ix.api.GuiPushButton(panel, 10, 70, 380, 22, "Add selected material(s)")
 
-	mtl2_label = ix.api.GuiLabel(panel, 10, 100, 380, 22, "Material 2:")
-	# mtl2_disp_label = ix.api.GuiLabel(panel, 205, 100, 380, 22, "Displacement 2:")
-	mtl2_txt = ix.api.GuiLineEdit(panel, 10, 130, 385, 22)
-	# mtl2_disp_txt = ix.api.GuiLineEdit(panel, 205, 130, 185, 22)
-	mtl2_btn = ix.api.GuiPushButton(panel, 10, 160, 380, 22, "Add selected material")
+	srf2_label = ix.api.GuiLabel(panel, 10, 100, 380, 22, "Cover Surface:")
+	srf2_txt = ix.api.GuiLineEdit(panel, 10, 130, 385, 22)
+	srf2_btn = ix.api.GuiPushButton(panel, 10, 160, 380, 22, "Add selected material")
 
-	name_label = ix.api.GuiLabel(panel, 10, 190, 150, 22, "Surface name:")
+	name_label = ix.api.GuiLabel(panel, 10, 190, 150, 22, "Mix name or suffix:")
 	name_txt = ix.api.GuiLineEdit(panel, 100, 190, 290, 22)
 	displacement_blend_label = ix.api.GuiLabel(panel, 10, 220, 150, 22,
 											   "Displacement blend: ")
@@ -133,14 +130,14 @@ def mix_surface_gui():
 
 	# Connect to function
 	event_rewire = EventRewire()  # init the class
-	event_rewire.connect(mtl1_txt, 'EVT_ID_LINE_EDIT_CHANGED',
-						 event_rewire.material1_picker_refresh)
-	event_rewire.connect(mtl2_txt, 'EVT_ID_LINE_EDIT_CHANGED',
-						 event_rewire.material2_picker_refresh)
-	event_rewire.connect(mtl1_btn, 'EVT_ID_PUSH_BUTTON_CLICK',
-						 event_rewire.material1_picker_refresh)
-	event_rewire.connect(mtl2_btn, 'EVT_ID_PUSH_BUTTON_CLICK',
-						 event_rewire.material2_picker_refresh)
+	event_rewire.connect(srf1_txt, 'EVT_ID_LINE_EDIT_CHANGED',
+						 event_rewire.srf1_picker_refresh)
+	event_rewire.connect(srf2_txt, 'EVT_ID_LINE_EDIT_CHANGED',
+						 event_rewire.srf2_picker_refresh)
+	event_rewire.connect(srf1_btn, 'EVT_ID_PUSH_BUTTON_CLICK',
+						 event_rewire.srf1_picker_refresh)
+	event_rewire.connect(srf2_btn, 'EVT_ID_PUSH_BUTTON_CLICK',
+						 event_rewire.srf2_picker_refresh)
 	event_rewire.connect(cancel_btn, 'EVT_ID_PUSH_BUTTON_CLICK',
 						 event_rewire.cancel)
 	event_rewire.connect(run_btn, 'EVT_ID_PUSH_BUTTON_CLICK',

@@ -83,7 +83,6 @@ DEFAULT_TINT_STRENGTH = 0.5
 DEFAULT_TINT_COLOR = (156, 126, 82)
 
 # Moisture variables
-MOISTURE_MULTI_BLEND_SUFFIX = "_moisture_multi_blend_tx"
 MOISTURE_DIFFUSE_BLEND_SUFFIX = "_moisture_diffuse_blend_tx"
 MOISTURE_SPECULAR_BLEND_SUFFIX = "_moisture_specular_blend_tx"
 MOISTURE_ROUGHNESS_BLEND_SUFFIX = "_moisture_roughness_blend_tx"
@@ -95,6 +94,7 @@ MOISTURE_DEFAULT_ROUGHNESS_MULTIPLIER = .1
 
 # Material blend variables
 MIX_SUFFIX = "_mix"
+MIX_SELECTORS_NAME = "selectors"
 DISPLACEMENT_BLEND_OFFSET_SUFFIX = "_displacement_blend_offset_tx"
 DISPLACEMENT_OFFSET_SUFFIX = "_displacement_offset_tx"
 DISPLACEMENT_HEIGHT_SCALE_SUFFIX = "_displacement_blend_height_scale_tx"

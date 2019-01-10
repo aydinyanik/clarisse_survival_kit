@@ -987,143 +987,57 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 	return surface
 
 
-def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
+def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 				 target_context=None, displacement_blend=True, height_blend=False,
 				 ao_blend=False, fractal_blend=True, triplanar_blend=True,
 				 slope_blend=True, scope_blend=True, **kwargs):
-	"""Mixes 2 surfaces with each other."""
+	"""Mixes one or multiple surfaces with a cover surface."""
 	ix = get_ix(kwargs.get("ix"))
 	if not target_context:
 		target_context = ix.application.get_working_context()
 	if not check_context(target_context, ix=ix):
 		return None
 	print "Mixing surfaces"
-	mtl1 = get_mtl_from_context(ctx1, ix=ix)
-	disp1 = get_disp_from_context(ctx1, ix=ix)
-	mtl2 = get_mtl_from_context(ctx2, ix=ix)
-	disp2 = get_disp_from_context(ctx2, ix=ix)
-	has_displacement = disp1 and disp2
-	surface1_name = ctx1.get_name()
-	surface2_name = ctx2.get_name()
 
-	ctx = ix.cmds.CreateContext(mix_surface_name, "Global", str(target_context))
+	root_ctx = ix.cmds.CreateContext(mix_name, "Global", str(target_context))
+	selectors_ctx = ix.cmds.CreateContext(MIX_SELECTORS_NAME, "Global", str(root_ctx))
 
-	disp1_offset_tx = None
-	disp2_offset_tx = None
-	disp_branch_selector = None
-
-	if has_displacement:
-		# Setup displacements for height blending.
-		# Surface 1
-		print "Setting up surface 1"
-		surface1_height = disp1.attrs.front_value[0]
-		print "Surface 1 height: " + str(surface1_height)
-		disp1_tx_front_value = ix.get_item(str(disp1) + ".front_value")
-		disp1_tx = disp1_tx_front_value.get_texture()
-		disp1_height_scale_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-													 "TextureMultiply", "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp1_height_scale_tx) + ".input1"], str(disp1_tx))
-
-		disp1_height_scale_tx.attrs.input2[0] = surface1_height
-		disp1_height_scale_tx.attrs.input2[1] = surface1_height
-		disp1_height_scale_tx.attrs.input2[2] = surface1_height
-		disp1_blend_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-													 "TextureAdd", "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp1_blend_offset_tx) + ".input1"], str(disp1_height_scale_tx))
-		disp1_offset_tx = ix.cmds.CreateObject(surface1_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-											   "Global", str(ctx))
-		disp1_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
-		disp1_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
-		disp1_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
-		ix.cmds.SetTexture([str(disp1_offset_tx) + ".input1"], str(disp1_height_scale_tx))
-
-		# Surface 2
-		print "Setting up surface 2"
-		surface2_height = disp2.attrs.front_value[0]
-		print "Surface 2 height: " + str(surface2_height)
-		disp2_tx_front_value = ix.get_item(str(disp2) + ".front_value")
-		disp2_tx = disp2_tx_front_value.get_texture()
-		disp2_height_scale_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-													 "TextureMultiply", "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp2_height_scale_tx) + ".input1"], str(disp2_tx))
-		disp2_height_scale_tx.attrs.input2[0] = surface2_height
-		disp2_height_scale_tx.attrs.input2[1] = surface2_height
-		disp2_height_scale_tx.attrs.input2[2] = surface2_height
-		disp2_blend_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-													 "TextureAdd", "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp2_blend_offset_tx) + ".input1"], str(disp2_height_scale_tx))
-		disp2_offset_tx = ix.cmds.CreateObject(surface2_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-											   "Global", str(ctx))
-		disp2_offset_tx.attrs.input2[0] = (surface1_height / 2) * -1
-		disp2_offset_tx.attrs.input2[1] = (surface1_height / 2) * -1
-		disp2_offset_tx.attrs.input2[2] = (surface1_height / 2) * -1
-		ix.cmds.SetTexture([str(disp2_offset_tx) + ".input1"], str(disp2_height_scale_tx))
-
-		disp_branch_selector = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch",
-													"Global",
-													str(ctx))
-
-		ix.cmds.SetTexture([str(disp_branch_selector) + ".input_a"], str(disp1_blend_offset_tx))
-		ix.cmds.SetTexture([str(disp_branch_selector) + ".input_b"], str(disp2_blend_offset_tx))
-		disp_branch_selector.attrs.mode = 2
-
+	cover_mtl = get_mtl_from_context(cover_ctx, ix=ix)
+	cover_disp = get_disp_from_context(cover_ctx, ix=ix)
+	cover_name = cover_ctx.get_name()
+	# Setup all common selectors
 	# Setup fractal noise
-	fractal_selector = create_fractal_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	fractal_selector = create_fractal_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Setup slope gradient
-	slope_selector = create_slope_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	slope_selector = create_slope_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Setup scope
-	scope_selector = create_scope_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	scope_selector = create_scope_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Setup triplanar
-	triplanar_selector = create_triplanar_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	triplanar_selector = create_triplanar_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Setup AO
-	ao_selector = create_ao_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	ao_selector = create_ao_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Setup height blend
-	height_selector = create_height_selector(ctx, mix_surface_name, "_mix", ix=ix)
+	height_selector = create_height_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
 
 	# Put all selectors in a TextureMultiBlend
-	multi_blend_tx = ix.cmds.CreateObject(mix_surface_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
-										  "Global", str(ctx))
+	multi_blend_tx = ix.cmds.CreateObject(mix_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+										  "Global", str(selectors_ctx))
 	multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
-	# Attach Ambient Occlusion blend
-	multi_blend_tx.attrs.enable_layer_2 = True
-	multi_blend_tx.attrs.layer_2_mode = 1
-	multi_blend_tx.attrs.layer_2_label[0] = "Ambient Occlusion Blend"
-	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_selector))
-	if not ao_blend: multi_blend_tx.attrs.enable_layer_2 = False
 	# Attach displacement blend
+	multi_blend_tx.attrs.enable_layer_2 = True
+	multi_blend_tx.attrs.layer_2_label[0] = "Displacement Blend"
+	multi_blend_tx.attrs.layer_2_mode = 1
+	# Attach Ambient Occlusion blend
 	multi_blend_tx.attrs.enable_layer_3 = True
-	multi_blend_tx.attrs.layer_3_label[0] = "Displacement Blend"
 	multi_blend_tx.attrs.layer_3_mode = 1
-	if disp_branch_selector:
-		ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(disp_branch_selector))
-		if not displacement_blend: multi_blend_tx.attrs.enable_layer_3 = False
-		# Finalize new Displacement map
-		disp_multi_blend_tx = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_BLEND_SUFFIX, "TextureMultiBlend",
-												   "Global", str(ctx))
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_1_color"], str(disp1_offset_tx))
-		disp_multi_blend_tx.attrs.enable_layer_2 = True
-		disp_multi_blend_tx.attrs.layer_2_label[0] = "Mix mode"
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_color"], str(disp2_offset_tx))
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_mix"], str(multi_blend_tx))
-		disp_multi_blend_tx.attrs.enable_layer_3 = True
-		disp_multi_blend_tx.attrs.layer_3_label[0] = "Add mode"
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_color"], str(disp2_offset_tx))
-		ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_mix"], str(multi_blend_tx))
-		disp_multi_blend_tx.attrs.layer_3_mode = 6
-		disp_multi_blend_tx.attrs.enable_layer_3 = False
-
-		displacement_map = ix.cmds.CreateObject(mix_surface_name + DISPLACEMENT_MAP_SUFFIX, "Displacement", "Global",
-												str(ctx))
-		displacement_map.attrs.bound[0] = 1
-		displacement_map.attrs.bound[1] = 1
-		displacement_map.attrs.bound[2] = 1
-		displacement_map.attrs.front_value = 1
-		ix.cmds.SetTexture([str(displacement_map) + ".front_value"], str(disp_multi_blend_tx))
+	multi_blend_tx.attrs.layer_3_label[0] = "Ambient Occlusion Blend"
+	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_3_color"], str(ao_selector))
+	if not ao_blend: multi_blend_tx.attrs.enable_layer_3 = False
 	# Attach height blend
 	multi_blend_tx.attrs.enable_layer_4 = True
 	multi_blend_tx.attrs.layer_4_mode = 1
@@ -1155,12 +1069,111 @@ def mix_surfaces(ctx1, ctx2, mix_surface_name="mix" + MATERIAL_SUFFIX,
 	ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_selector))
 	if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
 
-	# Blend materials
-	blend_mtl = ix.cmds.CreateObject(mix_surface_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global", str(ctx))
-	ix.cmds.SetTexture([str(blend_mtl) + ".mix"], str(multi_blend_tx))
-	ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(mtl1)])
-	ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(mtl2)])
-	return blend_mtl
+	# Set up each surface mix
+	for srf_ctx in srf_ctxs:
+		mix_srf_name = srf_ctx.get_name()
+
+		mix_ctx = ix.cmds.CreateContext(mix_srf_name, "Global", str(root_ctx))
+		mix_selectors_ctx = ix.cmds.CreateContext("selectors", "Global", str(mix_ctx))
+
+		base_mtl = get_mtl_from_context(srf_ctx, ix=ix)
+		base_disp = get_disp_from_context(srf_ctx, ix=ix)
+
+		has_displacement = base_disp and cover_disp
+
+		mix_multi_blend_tx = ix.cmds.Instantiate([str(multi_blend_tx)])[0]
+		ix.cmds.MoveItemsTo([str(mix_multi_blend_tx)], mix_selectors_ctx)
+		# Blend materials
+		blend_mtl = ix.cmds.CreateObject(mix_srf_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
+										 str(mix_ctx))
+		ix.cmds.SetTexture([str(blend_mtl) + ".mix"], str(mix_multi_blend_tx))
+		ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(base_mtl)])
+		ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(cover_mtl)])
+
+		if has_displacement:
+			ix.cmds.LocalizeAttributes([str(mix_multi_blend_tx) + ".layer_2_color",
+										str(mix_multi_blend_tx) + ".enable_layer_2"], True)
+			# Setup displacements for height blending.
+			# Base surface
+			print "Setting up surface 1"
+			base_srf_height = base_disp.attrs.front_value[0]
+			print "Base surface height: " + str(base_srf_height)
+			base_disp_tx_front_value = ix.get_item(str(base_disp) + ".front_value")
+			base_disp_tx = base_disp_tx_front_value.get_texture()
+			base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+														 "TextureMultiply", "Global", str(mix_selectors_ctx))
+			ix.cmds.SetTexture([str(base_disp_height_scale_tx) + ".input1"], str(base_disp_tx))
+
+			base_disp_height_scale_tx.attrs.input2[0] = base_srf_height
+			base_disp_height_scale_tx.attrs.input2[1] = base_srf_height
+			base_disp_height_scale_tx.attrs.input2[2] = base_srf_height
+			base_disp_blend_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
+														 "TextureAdd", "Global", str(mix_selectors_ctx))
+			ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+			base_disp_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+												   "Global", str(mix_selectors_ctx))
+			base_disp_offset_tx.attrs.input2[0] = (base_srf_height / 2) * -1
+			base_disp_offset_tx.attrs.input2[1] = (base_srf_height / 2) * -1
+			base_disp_offset_tx.attrs.input2[2] = (base_srf_height / 2) * -1
+			ix.cmds.SetTexture([str(base_disp_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+
+			# Surface 2
+			print "Setting up surface 2"
+			cover_srf_height = cover_disp.attrs.front_value[0]
+			print "Surface 2 height: " + str(cover_srf_height)
+			cover_disp_tx_front_value = ix.get_item(str(cover_disp) + ".front_value")
+			cover_disp_tx = cover_disp_tx_front_value.get_texture()
+			cover_disp_height_scale_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+														 "TextureMultiply", "Global", str(mix_selectors_ctx))
+			ix.cmds.SetTexture([str(cover_disp_height_scale_tx) + ".input1"], str(cover_disp_tx))
+			cover_disp_height_scale_tx.attrs.input2[0] = cover_srf_height
+			cover_disp_height_scale_tx.attrs.input2[1] = cover_srf_height
+			cover_disp_height_scale_tx.attrs.input2[2] = cover_srf_height
+			cover_disp_blend_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
+														 "TextureAdd", "Global", str(mix_selectors_ctx))
+			ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+			cover_disp_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+												   "Global", str(mix_selectors_ctx))
+			cover_disp_offset_tx.attrs.input2[0] = (base_srf_height / 2) * -1
+			cover_disp_offset_tx.attrs.input2[1] = (base_srf_height / 2) * -1
+			cover_disp_offset_tx.attrs.input2[2] = (base_srf_height / 2) * -1
+			ix.cmds.SetTexture([str(cover_disp_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+
+			disp_branch_selector = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch",
+														"Global", str(mix_selectors_ctx))
+
+			ix.cmds.SetTexture([str(disp_branch_selector) + ".input_a"], str(base_disp_blend_offset_tx))
+			ix.cmds.SetTexture([str(disp_branch_selector) + ".input_b"], str(cover_disp_blend_offset_tx))
+			disp_branch_selector.attrs.mode = 2
+
+			# Hook to multiblend instance
+			ix.cmds.SetTexture([str(mix_multi_blend_tx) + ".layer_2_color"], str(disp_branch_selector))
+			if not displacement_blend: mix_multi_blend_tx.attrs.enable_layer_2 = False
+			# Finalize new Displacement map
+			disp_multi_blend_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BLEND_SUFFIX,
+													   "TextureMultiBlend", "Global", str(mix_selectors_ctx))
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_1_color"], str(base_disp_offset_tx))
+			disp_multi_blend_tx.attrs.enable_layer_2 = True
+			disp_multi_blend_tx.attrs.layer_2_label[0] = "Mix mode"
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_color"], str(cover_disp_offset_tx))
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_mix"], str(multi_blend_tx))
+			disp_multi_blend_tx.attrs.enable_layer_3 = True
+			disp_multi_blend_tx.attrs.layer_3_label[0] = "Add mode"
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_color"], str(cover_disp_offset_tx))
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_mix"], str(multi_blend_tx))
+			disp_multi_blend_tx.attrs.layer_3_mode = 6
+			disp_multi_blend_tx.attrs.enable_layer_3 = False
+
+			displacement_map = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
+													"Global",
+													str(mix_ctx))
+			displacement_map.attrs.bound[0] = 1
+			displacement_map.attrs.bound[1] = 1
+			displacement_map.attrs.bound[2] = 1
+			displacement_map.attrs.front_value = 1
+			ix.cmds.SetTexture([str(displacement_map) + ".front_value"], str(disp_multi_blend_tx))
+
+	return root_ctx
 
 
 def toggle_surface_complexity(ctx, **kwargs):
