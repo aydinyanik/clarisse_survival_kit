@@ -78,6 +78,8 @@ Blurs the selected texture with a custom radius.
 ### Generate Decimated Pointcloud on Geometry
 Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object. Has several masking options for decimating the point cloud.
 
+[Check out the video on Vimeo](https://vimeo.com/310524037)
+
 ### Import Megascans Library
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
