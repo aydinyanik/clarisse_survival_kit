@@ -1298,6 +1298,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 
 	geo_name = geometry.get_contextual_name()
 	pc = ix.cmds.CreateObject(geo_name + POINTCLOUD_SUFFIX, pc_type, "Global", str(ctx))
+	ix.application.check_for_events()
 	if pc_type == "GeometryPointCloud":
 		if use_density:
 			pc.attrs.use_density = True
@@ -1370,7 +1371,6 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 		ix.cmds.SetValue(str(multi_blend_tx) + ".invert", [str(1)])
 	else:
 		ix.cmds.SetValue(str(pc) + ".texture", [str(multi_blend_tx)])
-		# Refresh bug!
 
 	ix.cmds.SetValue(str(pc) + ".geometry", [str(geometry)])
 	return pc
