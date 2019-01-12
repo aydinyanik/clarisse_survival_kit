@@ -88,6 +88,19 @@ def get_textures_from_directory(directory):
 	return textures
 
 
+def get_stream_map_files(textures):
+	""""Returns the files that should be loaded as TextureStreamedMapFile."""
+	stream_map_files = []
+	for index, texture in textures.iteritems():
+		filename, extension = os.path.splitext(texture)
+		extension = extension.lower().lstrip('.')
+
+		udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", filename)
+		if udim_match or extension == "tx":
+			stream_map_files.append(index)
+	return stream_map_files
+
+
 def get_mtl_from_context(ctx, **kwargs):
 	""""Returns the material from the context."""
 	ix = get_ix(kwargs.get("ix"))

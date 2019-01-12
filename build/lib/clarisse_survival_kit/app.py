@@ -23,6 +23,7 @@ class Surface:
 		self.triplanar_blend = kwargs.get('triplanar_blend', 0.5)
 		self.tile = kwargs.get('tile', True)
 		self.textures = {}
+		self.streamed_maps = []
 
 	def create_mtl(self, name, target_ctx):
 		"""Creates a new PhysicalStandard material and context."""
@@ -34,52 +35,61 @@ class Surface:
 		self.mtl = mtl
 		return mtl
 
-	def create_textures(self, textures, srgb, clip_opacity=True):
+	def create_textures(self, textures, srgb, streamed_maps=(), clip_opacity=True):
 		"""Creates all textures from a dict. Indices that are in the srgb list will be set to srgb else linear."""
 		if 'diffuse' in textures:
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
-										connection="diffuse_front_color", srgb=('diffuse' in srgb))
+										connection="diffuse_front_color", srgb=('diffuse' in srgb),
+										streamed_map='diffuse' in streamed_maps)
 		if 'displacement' in textures:
 			displacement_tx = self.create_tx(index='displacement', filename=textures.get('displacement'),
 											 suffix=DISPLACEMENT_SUFFIX,
-											 srgb=('displacement' in srgb), single_channel=True)
+											 srgb=('displacement' in srgb), single_channel=True,
+											 streamed_map='displacement' in streamed_maps)
 			self.create_displacement_map()
 		if 'specular' in textures:
 			specular_tx = self.create_tx(index='specular', filename=textures.get('specular'),
 										 suffix=SPECULAR_COLOR_SUFFIX,
-										 srgb=('specular' in srgb), connection="specular_1_color")
+										 srgb=('specular' in srgb), connection="specular_1_color",
+										 streamed_map='specular' in streamed_maps)
 		if 'roughness' in textures or 'gloss' in textures:
 			roughness_tx = self.create_tx(index='roughness', filename=textures.get('roughness', textures.get('gloss')),
 										  suffix=SPECULAR_ROUGHNESS_SUFFIX,
 										  srgb=('roughness' in srgb), single_channel=True,
-										  invert=('roughness' not in textures),
-										  connection="specular_1_roughness")
+										  invert=('roughness' not in textures), connection="specular_1_roughness",
+										  streamed_map='roughness' in streamed_maps)
 		if 'normal' in textures:
 			normal_tx = self.create_tx(index='normal', filename=textures.get('normal'),
-									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb))
+									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb),
+									   streamed_map='normal' in streamed_maps)
 			self.create_normal_map()
 		elif 'bump' in textures:
 			bump_tx = self.create_tx(index='bump', filename=textures.get('bump'),
-									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True)
+									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True,
+									 streamed_map='bump' in streamed_maps)
 			self.create_bump_map()
 		if 'opacity' in textures:
 			opacity_tx = self.create_tx(index='opacity', filename=textures.get('opacity'),
 										suffix=OPACITY_SUFFIX,
 										srgb=('opacity' in srgb), single_channel=True,
-										connection=None if clip_opacity else "opacity")
+										connection=None if clip_opacity else "opacity",
+										streamed_map='opacity' in streamed_maps)
 		if 'translucency' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
 			translucency_tx = self.create_tx(index='translucency', filename=textures.get('translucency'),
 											 suffix=TRANSLUCENCY_SUFFIX, srgb=('translucency' in srgb),
-											 connection="diffuse_back_color")
+											 connection="diffuse_back_color",
+											 streamed_map='translucency' in streamed_maps)
 		if 'emissive' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
 			emissive_tx = self.create_tx(index='emissive', filename=textures.get('emissive'),
 										 suffix=EMISSIVE_SUFFIX, srgb=('emissive' in srgb),
-										 connection="emission_color")
+										 connection="emission_color",
+										 streamed_map='emissive' in streamed_maps)
 		if 'ior' in textures:
 			ior_tx = self.create_tx(index='ior', filename=textures.get('ior'),
-									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True)
+									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True,
+									streamed_map='ior' in streamed_maps)
 			self.create_ior_divide_tx()
 
 	def update_textures(self, textures, srgb):
@@ -210,13 +220,24 @@ class Surface:
 		self.uv_scale = uv_scale
 		self.triplanar_blend = triplanar_blend
 
-	def create_tx(self, index, filename, suffix, srgb=True, single_channel=False, invert=False,
+	def create_tx(self, index, filename, suffix, srgb=True, streamed_map=False, single_channel=False, invert=False,
 				  connection=None):
 		"""Creates a new TextureMapFile and if projection is set to triplanar it will be mapped that way."""
 		triplanar_tx = None
+		reorder_tx = None
 		color_space = 'Clarisse|sRGB' if srgb else 'linear'
-
-		tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureMapFile", "Global", str(self.ctx))
+		print index + " - " + color_space
+		if streamed_map:
+			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureStreamedMapFile", "Global", str(self.ctx))
+			filename = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", filename, count=1)
+			self.streamed_maps.append(index)
+			if single_channel:
+				reorder_tx = self.ix.cmds.CreateObject(self.name + suffix + SINGLE_CHANNEL_SUFFIX, "TextureReorder", "Global", self.ctx)
+				self.ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+				self.ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(tx))
+				self.textures[index + '_reorder'] = reorder_tx
+		else:
+			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureMapFile", "Global", str(self.ctx))
 		if self.projection != 'uv':
 			attrs = self.ix.api.CoreStringArray(6)
 			attrs[0] = str(tx) + ".projection"
@@ -237,37 +258,41 @@ class Surface:
 		if self.projection == "triplanar":
 			triplanar_tx = self.ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar",
 													 "Global", str(self.ctx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".right"], str(tx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".left"], str(tx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".top"], str(tx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".bottom"], str(tx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".front"], str(tx))
-			self.ix.cmds.SetTexture([str(triplanar_tx) + ".back"], str(tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".right"], str(reorder_tx if reorder_tx else tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".left"], str(reorder_tx if reorder_tx else tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".top"], str(reorder_tx if reorder_tx else tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".bottom"], str(reorder_tx if reorder_tx else tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".front"], str(reorder_tx if reorder_tx else tx))
+			self.ix.cmds.SetTexture([str(triplanar_tx) + ".back"], str(reorder_tx if reorder_tx else tx))
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".blend", [str(self.triplanar_blend)])
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".object_space", [str(self.object_space)])
 			self.textures[index + '_triplanar'] = triplanar_tx
-		attrs = self.ix.api.CoreStringArray(7)
+		attrs = self.ix.api.CoreStringArray(6 if streamed_map else 7)
 		attrs[0] = str(tx) + ".color_space_auto_detect"
 		attrs[1] = str(tx) + ".file_color_space"
-		attrs[2] = str(tx) + ".single_channel_file_behavior"
-		attrs[3] = str(tx) + ".filename"
-		attrs[4] = str(tx) + ".invert"
-		attrs[5] = str(tx) + ".u_repeat_mode"
-		attrs[6] = str(tx) + ".v_repeat_mode"
-		values = self.ix.api.CoreStringArray(7)
+		attrs[2] = str(tx) + ".filename"
+		attrs[3] = str(tx) + ".invert"
+		attrs[4] = str(tx) + ".u_repeat_mode"
+		attrs[5] = str(tx) + ".v_repeat_mode"
+		values = self.ix.api.CoreStringArray(6 if streamed_map else 7)
 		values[0] = '0'
-		values[1] = str(color_space)
-		values[2] = str((1 if single_channel else 0))
-		values[3] = str(filename)
+		values[1] = color_space
+		values[2] = str(filename)
+		values[3] = str(1 if invert else 0)
 		values[4] = str((2 if not self.tile else 0))
 		values[5] = str((2 if not self.tile else 0))
+		if not streamed_map:
+			attrs[6] = str(tx) + ".single_channel_file_behavior"
+			values[6] = str((1 if single_channel else 0))
 		self.ix.cmds.SetValues(attrs, values)
 		self.textures[index] = tx
 		if connection:
 			if self.projection == "triplanar":
-				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection], str(triplanar_tx))
+				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection],
+										str(triplanar_tx))
 			else:
-				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection], str(tx))
+				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection],
+										str(reorder_tx if reorder_tx else tx))
 		return tx
 
 	def create_displacement_map(self):
@@ -278,7 +303,10 @@ class Surface:
 		if self.projection == 'triplanar':
 			disp_tx = self.get('displacement_triplanar')
 		else:
-			disp_tx = self.get('displacement')
+			if self.get('displacement_reorder'):
+				disp_tx = self.get('displacement_reorder')
+			else:
+				disp_tx = self.get('displacement')
 		disp = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
 										 "Global", str(self.ctx))
 		attrs = self.ix.api.CoreStringArray(5)
@@ -322,7 +350,10 @@ class Surface:
 		if self.projection == 'triplanar':
 			bump_tx = self.get('bump_triplanar')
 		else:
-			bump_tx = self.get('bump')
+			if self.get('bump_reorder'):
+				bump_tx = self.get('bump_reorder')
+			else:
+				bump_tx = self.get('bump')
 		bump_map = self.ix.cmds.CreateObject(self.name + BUMP_MAP_SUFFIX, "TextureBumpMap",
 											 "Global", str(self.ctx))
 		self.ix.cmds.SetTexture([str(bump_map) + ".input"], str(bump_tx))
@@ -338,7 +369,10 @@ class Surface:
 		if self.projection == 'triplanar':
 			ior_tx = self.get('ior_triplanar')
 		else:
-			ior_tx = self.get('ior')
+			if self.get('ior_reorder'):
+				ior_tx = self.get('ior_reorder')
+			else:
+				ior_tx = self.get('ior')
 		ior_divide_tx = self.ix.cmds.CreateObject(self.name + IOR_DIVIDE_SUFFIX, "TextureDivide",
 												  "Global", str(self.ctx))
 		ior_divide_tx.attrs.input1[0] = 1.0
@@ -587,13 +621,14 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 	else:
 		# All assets except 3dplant have the material in the root directory of the asset.
 		textures = get_textures_from_directory(asset_directory)
+		streamed_maps = get_stream_map_files(textures)
 		if not textures:
 			return ix.log_warning("No textures found in directory.")
 
 		surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=surface_height, tile=tileable,
 						  object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		mtl = surface.create_mtl(asset_name, target_ctx)
-		surface.create_textures(textures, srgb, clip_opacity=clip_opacity)
+		surface.create_textures(textures, srgb, streamed_maps, clip_opacity=clip_opacity)
 		ctx = surface.ctx
 
 		if asset_type == '3d':
@@ -1102,17 +1137,17 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 			base_disp_tx_front_value = ix.get_item(str(base_disp) + ".front_value")
 			base_disp_tx = base_disp_tx_front_value.get_texture()
 			base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-														 "TextureMultiply", "Global", str(mix_selectors_ctx))
+															 "TextureMultiply", "Global", str(mix_selectors_ctx))
 			ix.cmds.SetTexture([str(base_disp_height_scale_tx) + ".input1"], str(base_disp_tx))
 
 			base_disp_height_scale_tx.attrs.input2[0] = base_srf_height
 			base_disp_height_scale_tx.attrs.input2[1] = base_srf_height
 			base_disp_height_scale_tx.attrs.input2[2] = base_srf_height
 			base_disp_blend_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-														 "TextureAdd", "Global", str(mix_selectors_ctx))
+															 "TextureAdd", "Global", str(mix_selectors_ctx))
 			ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
 			base_disp_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-												   "Global", str(mix_selectors_ctx))
+													   "Global", str(mix_selectors_ctx))
 			base_disp_offset_tx.attrs.input2[0] = (base_srf_height / 2) * -1
 			base_disp_offset_tx.attrs.input2[1] = (base_srf_height / 2) * -1
 			base_disp_offset_tx.attrs.input2[2] = (base_srf_height / 2) * -1
@@ -1125,16 +1160,16 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 			cover_disp_tx_front_value = ix.get_item(str(cover_disp) + ".front_value")
 			cover_disp_tx = cover_disp_tx_front_value.get_texture()
 			cover_disp_height_scale_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-														 "TextureMultiply", "Global", str(mix_selectors_ctx))
+															  "TextureMultiply", "Global", str(mix_selectors_ctx))
 			ix.cmds.SetTexture([str(cover_disp_height_scale_tx) + ".input1"], str(cover_disp_tx))
 			cover_disp_height_scale_tx.attrs.input2[0] = cover_srf_height
 			cover_disp_height_scale_tx.attrs.input2[1] = cover_srf_height
 			cover_disp_height_scale_tx.attrs.input2[2] = cover_srf_height
 			cover_disp_blend_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
-														 "TextureAdd", "Global", str(mix_selectors_ctx))
+															  "TextureAdd", "Global", str(mix_selectors_ctx))
 			ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
 			cover_disp_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-												   "Global", str(mix_selectors_ctx))
+														"Global", str(mix_selectors_ctx))
 			cover_disp_offset_tx.attrs.input2[0] = (base_srf_height / 2) * -1
 			cover_disp_offset_tx.attrs.input2[1] = (base_srf_height / 2) * -1
 			cover_disp_offset_tx.attrs.input2[2] = (base_srf_height / 2) * -1
