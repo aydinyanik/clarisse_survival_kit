@@ -46,8 +46,8 @@ The kit provides the following scripts:
   - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
   - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file.
 
-### Mix Surface
- - Creates a PhysicalBlend material from two specified materials(PhysicalStandard or PhysicalBlend). 
+### Mix Multiple Surfaces
+ - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
  - Masking features:
    * Height blend: Mixes the materials based on Y elevation. Handy for shore lines.
    * Displacement blend: Checks which displacement map has higher elevation than the other. You can invert the selector or add both layers on top of each other.
@@ -83,9 +83,15 @@ Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object.
 ### Import Megascans Library
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
+# Changelog
+
+**12-01-19** Added multi mix feature.
+
 
 # TODO
-- Mix Multiple Surfaces. Handy for covering multiple materials simultaneously with one material.
+- Add a new surface to an existing multi mix.
+- Streaming map file and udim support.
+- Preview file import.
 
 Got any ideas? Did I miss anything important? Let me know.
 
