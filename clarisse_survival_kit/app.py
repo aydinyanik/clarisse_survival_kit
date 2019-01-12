@@ -1074,7 +1074,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 		mix_srf_name = srf_ctx.get_name()
 
 		mix_ctx = ix.cmds.CreateContext(mix_srf_name, "Global", str(root_ctx))
-		mix_selectors_ctx = ix.cmds.CreateContext("selectors", "Global", str(mix_ctx))
+		mix_selectors_ctx = ix.cmds.CreateContext("custom_selectors", "Global", str(mix_ctx))
 
 		base_mtl = get_mtl_from_context(srf_ctx, ix=ix)
 		base_disp = get_disp_from_context(srf_ctx, ix=ix)
@@ -1083,6 +1083,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 
 		mix_multi_blend_tx = ix.cmds.Instantiate([str(multi_blend_tx)])[0]
 		ix.cmds.MoveItemsTo([str(mix_multi_blend_tx)], mix_selectors_ctx)
+		ix.cmds.RenameItem(str(mix_multi_blend_tx), mix_srf_name + MULTI_BLEND_SUFFIX)
 		# Blend materials
 		blend_mtl = ix.cmds.CreateObject(mix_srf_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
 										 str(mix_ctx))
@@ -1156,11 +1157,11 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 			disp_multi_blend_tx.attrs.enable_layer_2 = True
 			disp_multi_blend_tx.attrs.layer_2_label[0] = "Mix mode"
 			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_color"], str(cover_disp_offset_tx))
-			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_mix"], str(multi_blend_tx))
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_2_mix"], str(mix_multi_blend_tx))
 			disp_multi_blend_tx.attrs.enable_layer_3 = True
 			disp_multi_blend_tx.attrs.layer_3_label[0] = "Add mode"
 			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_color"], str(cover_disp_offset_tx))
-			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_mix"], str(multi_blend_tx))
+			ix.cmds.SetTexture([str(disp_multi_blend_tx) + ".layer_3_mix"], str(mix_multi_blend_tx))
 			disp_multi_blend_tx.attrs.layer_3_mode = 6
 			disp_multi_blend_tx.attrs.enable_layer_3 = False
 
