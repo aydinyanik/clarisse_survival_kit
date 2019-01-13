@@ -1049,7 +1049,7 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 				 target_context=None, displacement_blend=True, height_blend=False,
 				 ao_blend=False, fractal_blend=True, triplanar_blend=True,
-				 slope_blend=True, scope_blend=True, **kwargs):
+				 slope_blend=True, scope_blend=True, assign_mtls=True, **kwargs):
 	"""Mixes one or multiple surfaces with a cover surface."""
 	ix = get_ix(kwargs.get("ix"))
 	if not target_context:
@@ -1085,7 +1085,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 
 	# Put all selectors in a TextureMultiBlend
 	multi_blend_tx = ix.cmds.CreateObject(mix_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
-										  "Global", str(selectors_ctx))
+										  "Global", str(root_ctx))
 	multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
 	# Attach displacement blend
 	multi_blend_tx.attrs.enable_layer_2 = True
@@ -1132,7 +1132,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 	for srf_ctx in srf_ctxs:
 		mix_srf_name = srf_ctx.get_name()
 
-		mix_ctx = ix.cmds.CreateContext(mix_srf_name, "Global", str(root_ctx))
+		mix_ctx = ix.cmds.CreateContext(mix_srf_name + MIX_SUFFIX, "Global", str(root_ctx))
 		mix_selectors_ctx = ix.cmds.CreateContext("custom_selectors", "Global", str(mix_ctx))
 
 		base_mtl = get_mtl_from_context(srf_ctx, ix=ix)
@@ -1144,11 +1144,11 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 		ix.cmds.MoveItemsTo([str(mix_multi_blend_tx)], mix_selectors_ctx)
 		ix.cmds.RenameItem(str(mix_multi_blend_tx), mix_srf_name + MULTI_BLEND_SUFFIX)
 		# Blend materials
-		blend_mtl = ix.cmds.CreateObject(mix_srf_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
-										 str(mix_ctx))
-		ix.cmds.SetTexture([str(blend_mtl) + ".mix"], str(mix_multi_blend_tx))
-		ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(base_mtl)])
-		ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(cover_mtl)])
+		mix_mtl = ix.cmds.CreateObject(mix_srf_name + MIX_SUFFIX + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
+									   str(mix_ctx))
+		ix.cmds.SetTexture([str(mix_mtl) + ".mix"], str(mix_multi_blend_tx))
+		ix.cmds.SetValue(str(mix_mtl) + ".input2", [str(base_mtl)])
+		ix.cmds.SetValue(str(mix_mtl) + ".input1", [str(cover_mtl)])
 
 		if has_displacement:
 			ix.cmds.LocalizeAttributes([str(mix_multi_blend_tx) + ".layer_2_color",
@@ -1232,7 +1232,22 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 			displacement_map.attrs.bound[2] = 1
 			displacement_map.attrs.front_value = 1
 			ix.cmds.SetTexture([str(displacement_map) + ".front_value"], str(disp_multi_blend_tx))
-
+		if assign_mtls:
+			ix.selection.deselect_all()
+			ix.application.check_for_events()
+			ix.selection.select(base_mtl)
+			ix.application.select_next_outputs()
+			selection = [i for i in ix.selection]
+			for sel in selection:
+				if sel.is_kindof("Geometry"):
+					shading_group = sel.get_module().get_geometry().get_shading_group_names()
+					count = shading_group.get_count()
+					for j in range(count):
+						shaders = sel.attrs.materials[j]
+						if shaders == base_mtl:
+							ix.cmds.SetValues([str(sel) + ".materials" + str([j])], [str(mix_mtl)])
+			ix.selection.deselect_all()
+			ix.application.check_for_events()
 	return root_ctx
 
 
