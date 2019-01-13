@@ -83,17 +83,28 @@ Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object.
 ### Import Megascans Library
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
+### Custom Settings
+Locate the python package inside your site-packages folder. On windows the default path is:
+> C:\Python27\Lib\site-packages\clarisse_survival_kit
+
+You can manually make a folder inside that folder called ***user*** and create a **\_\_init\_\_.py** file and **user_settings.py** inside the user folder.
+
+**OR** 
+
+If you don't want to do that run the script once by clicking any of the buttons in the shelf and this folder and files are automatically generated for you.
+
+All variables from the settings.py file can be copied over to and customized within the user_settings.py file inside your user folder. **Don't overwrite the settings.py file**. This file will be overwritten once you reinstall or upgrade.
+
 # Changelog
 
-**13-01-19** Added logging.
-**13-01-19** Added user_settings.py for overriding settings. 
-**13-01-19** Fixed many bugs and tweaked usability.
-**12-01-19** Added multi mix feature.
+- **13-01-19** Added logging.
+- **13-01-19** Added user_settings.py for overriding settings. 
+- **13-01-19** Fixed many bugs and tweaked usability.
+- **12-01-19** Added multi mix feature.
 
 
 # TODO
 - Add a new surface to an existing multi mix.
-- Streaming map file and udim support.
 - Preview file import.
 
 Got any ideas? Did I miss anything important? Let me know.
