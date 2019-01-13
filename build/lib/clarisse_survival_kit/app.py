@@ -152,7 +152,6 @@ class Surface:
 				self.uv_scale = [ctx_member.attrs.uv_scale[0], ctx_member.attrs.uv_scale[2]]
 			if ctx_member.is_kindof("MaterialPhysicalStandard"):
 				if ctx_member.is_local() or not mtl:
-					print "MTL FOUND: " + str(ctx_member)
 					mtl = ctx_member
 			for key, suffix in SUFFIXES.iteritems():
 				if ctx_member.get_contextual_name().endswith(suffix):
@@ -164,6 +163,10 @@ class Surface:
 				for key, suffix in SUFFIXES.iteritems():
 					if ctx_member.get_contextual_name().endswith(suffix + TRIPLANAR_SUFFIX):
 						textures[key + '_triplanar'] = ctx_member
+			if ctx_member.get_contextual_name().endswith(SINGLE_CHANNEL_SUFFIX):
+				for key, suffix in SUFFIXES.iteritems():
+					if ctx_member.get_contextual_name().endswith(suffix + SINGLE_CHANNEL_SUFFIX):
+						textures[key + '_reorder'] = ctx_member
 		if not mtl or not textures:
 			self.ix.log_warning("No valid material found.")
 			return None
@@ -226,7 +229,6 @@ class Surface:
 		triplanar_tx = None
 		reorder_tx = None
 		color_space = 'Clarisse|sRGB' if srgb else 'linear'
-		print index + " - " + color_space
 		if streamed_map:
 			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureStreamedMapFile", "Global", str(self.ctx))
 			filename = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", filename, count=1)
@@ -267,24 +269,24 @@ class Surface:
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".blend", [str(self.triplanar_blend)])
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".object_space", [str(self.object_space)])
 			self.textures[index + '_triplanar'] = triplanar_tx
-		attrs = self.ix.api.CoreStringArray(6 if streamed_map else 7)
+		attrs = self.ix.api.CoreStringArray(5 if streamed_map else 6)
 		attrs[0] = str(tx) + ".color_space_auto_detect"
-		attrs[1] = str(tx) + ".file_color_space"
-		attrs[2] = str(tx) + ".filename"
-		attrs[3] = str(tx) + ".invert"
-		attrs[4] = str(tx) + ".u_repeat_mode"
-		attrs[5] = str(tx) + ".v_repeat_mode"
-		values = self.ix.api.CoreStringArray(6 if streamed_map else 7)
+		attrs[1] = str(tx) + ".filename"
+		attrs[2] = str(tx) + ".invert"
+		attrs[3] = str(tx) + ".u_repeat_mode"
+		attrs[4] = str(tx) + ".v_repeat_mode"
+		values = self.ix.api.CoreStringArray(5 if streamed_map else 6)
 		values[0] = '0'
-		values[1] = color_space
-		values[2] = str(filename)
-		values[3] = str(1 if invert else 0)
+		values[1] = str(filename)
+		values[2] = str(1 if invert else 0)
+		values[3] = str((2 if not self.tile else 0))
 		values[4] = str((2 if not self.tile else 0))
-		values[5] = str((2 if not self.tile else 0))
 		if not streamed_map:
-			attrs[6] = str(tx) + ".single_channel_file_behavior"
-			values[6] = str((1 if single_channel else 0))
+			attrs[5] = str(tx) + ".single_channel_file_behavior"
+			values[5] = str((1 if single_channel else 0))
 		self.ix.cmds.SetValues(attrs, values)
+		self.ix.application.check_for_events()
+		self.ix.cmds.SetValue(str(tx) + ".file_color_space", [str(color_space)])
 		self.textures[index] = tx
 		if connection:
 			if self.projection == "triplanar":
@@ -462,6 +464,9 @@ class Surface:
 			self.destroy_tx('bump_map')
 		elif index == 'ior':
 			self.destroy_tx('ior_divide')
+
+		if self.get(index + '_reorder'):
+			self.destroy_tx(index + '_reorder')
 		# Remove triplanar pair. If texture is triplanar avoid infinite recursion.
 		if self.projection == 'triplanar' and not index.endswith('_triplanar'):
 			self.destroy_tx(index + "_triplanar")

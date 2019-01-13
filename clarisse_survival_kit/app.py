@@ -40,94 +40,99 @@ class Surface:
 		if 'diffuse' in textures:
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
 										connection="diffuse_front_color", srgb=('diffuse' in srgb),
-										streamed_map='diffuse' in streamed_maps)
+										streamed='diffuse' in streamed_maps)
 		if 'displacement' in textures:
 			displacement_tx = self.create_tx(index='displacement', filename=textures.get('displacement'),
 											 suffix=DISPLACEMENT_SUFFIX,
 											 srgb=('displacement' in srgb), single_channel=True,
-											 streamed_map='displacement' in streamed_maps)
+											 streamed='displacement' in streamed_maps)
 			self.create_displacement_map()
 		if 'specular' in textures:
 			specular_tx = self.create_tx(index='specular', filename=textures.get('specular'),
 										 suffix=SPECULAR_COLOR_SUFFIX,
 										 srgb=('specular' in srgb), connection="specular_1_color",
-										 streamed_map='specular' in streamed_maps)
+										 streamed='specular' in streamed_maps)
 		if 'roughness' in textures or 'gloss' in textures:
 			roughness_tx = self.create_tx(index='roughness', filename=textures.get('roughness', textures.get('gloss')),
 										  suffix=SPECULAR_ROUGHNESS_SUFFIX,
 										  srgb=('roughness' in srgb), single_channel=True,
 										  invert=('roughness' not in textures), connection="specular_1_roughness",
-										  streamed_map='roughness' in streamed_maps)
+										  streamed='roughness' in streamed_maps)
 		if 'normal' in textures:
 			normal_tx = self.create_tx(index='normal', filename=textures.get('normal'),
 									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb),
-									   streamed_map='normal' in streamed_maps)
+									   streamed='normal' in streamed_maps)
 			self.create_normal_map()
 		elif 'bump' in textures:
 			bump_tx = self.create_tx(index='bump', filename=textures.get('bump'),
 									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True,
-									 streamed_map='bump' in streamed_maps)
+									 streamed='bump' in streamed_maps)
 			self.create_bump_map()
 		if 'opacity' in textures:
 			opacity_tx = self.create_tx(index='opacity', filename=textures.get('opacity'),
 										suffix=OPACITY_SUFFIX,
 										srgb=('opacity' in srgb), single_channel=True,
 										connection=None if clip_opacity else "opacity",
-										streamed_map='opacity' in streamed_maps)
+										streamed='opacity' in streamed_maps)
 		if 'translucency' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
 			translucency_tx = self.create_tx(index='translucency', filename=textures.get('translucency'),
 											 suffix=TRANSLUCENCY_SUFFIX, srgb=('translucency' in srgb),
 											 connection="diffuse_back_color",
-											 streamed_map='translucency' in streamed_maps)
+											 streamed='translucency' in streamed_maps)
 		if 'emissive' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
 			emissive_tx = self.create_tx(index='emissive', filename=textures.get('emissive'),
 										 suffix=EMISSIVE_SUFFIX, srgb=('emissive' in srgb),
 										 connection="emission_color",
-										 streamed_map='emissive' in streamed_maps)
+										 streamed='emissive' in streamed_maps)
 		if 'ior' in textures:
 			ior_tx = self.create_tx(index='ior', filename=textures.get('ior'),
 									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True,
-									streamed_map='ior' in streamed_maps)
+									streamed='ior' in streamed_maps)
 			self.create_ior_divide_tx()
 
-	def update_textures(self, textures, srgb):
+	def update_textures(self, textures, srgb, streamed_maps=()):
 		if 'diffuse' in textures:
 			diffuse_tx = self.update_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
-										srgb=('diffuse' in srgb))
+										srgb=('diffuse' in srgb), streamed='diffuse' in streamed_maps)
 		if 'displacement' in textures:
 			displacement_tx = self.update_tx(index='displacement', filename=textures.get('displacement'),
-											 suffix=DISPLACEMENT_SUFFIX,
+											 suffix=DISPLACEMENT_SUFFIX, streamed='displacement' in streamed_maps,
 											 srgb=('displacement' in srgb), single_channel=True)
 		if 'specular' in textures:
 			specular_tx = self.update_tx(index='specular', filename=textures.get('specular'),
-										 suffix=SPECULAR_COLOR_SUFFIX, srgb=('specular' in srgb))
+										 suffix=SPECULAR_COLOR_SUFFIX, srgb=('specular' in srgb),
+										 streamed='specular' in streamed_maps)
 		if 'roughness' in textures or 'gloss' in textures:
 			roughness_tx = self.update_tx(index='roughness', filename=textures.get('roughness', textures.get('gloss')),
-										  suffix=SPECULAR_ROUGHNESS_SUFFIX,
+										  suffix=SPECULAR_ROUGHNESS_SUFFIX, streamed='roughness' in streamed_maps,
 										  srgb=('roughness' in srgb), single_channel=True,
 										  invert=('roughness' not in textures))
 		if 'normal' in textures:
 			normal_tx = self.update_tx(index='normal', filename=textures.get('normal'),
-									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb))
+									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb),
+									   streamed='normal' in streamed_maps)
 		elif 'bump' in textures:
 			bump_tx = self.update_tx(index='bump', filename=textures.get('bump'),
-									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True)
+									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True,
+									 streamed='bump' in streamed_maps)
 		if 'opacity' in textures:
 			opacity_tx = self.update_tx(index='opacity', filename=textures.get('opacity'),
-										suffix=OPACITY_SUFFIX,
+										suffix=OPACITY_SUFFIX, streamed='opacity' in streamed_maps,
 										srgb=('opacity' in srgb), single_channel=True)
 		if 'translucency' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
 			translucency_tx = self.update_tx(index='translucency', filename=textures.get('translucency'),
-											 suffix=TRANSLUCENCY_SUFFIX, srgb=('translucency' in srgb))
+											 suffix=TRANSLUCENCY_SUFFIX, srgb=('translucency' in srgb),
+											 streamed='translucency' in streamed_maps)
 		if 'emissive' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
 			emissive_tx = self.update_tx(index='emissive', filename=textures.get('emissive'),
-										 suffix=EMISSIVE_SUFFIX, srgb=('emissive' in srgb))
+										 suffix=EMISSIVE_SUFFIX, srgb=('emissive' in srgb),
+										 streamed='emissive' in streamed_maps)
 		if 'ior' in textures:
-			ior_tx = self.update_tx(index='ior', filename=textures.get('ior'),
+			ior_tx = self.update_tx(index='ior', filename=textures.get('ior'), streamed='ior' in streamed_maps,
 									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True)
 
 	def load(self, ctx):
@@ -146,13 +151,13 @@ class Surface:
 		for ctx_member in objects_array:
 			if ctx_member.is_context():
 				continue
-			if ctx_member.is_kindof("TextureMapFile") and ctx_member.is_local():
+			if (ctx_member.is_kindof("TextureMapFile") or ctx_member.is_kindof("TextureMapFile")) \
+					and ctx_member.is_local():
 				self.projection = PROJECTIONS[ctx_member.attrs.projection[0]]
 				self.object_space = ctx_member.attrs.object_space[0]
 				self.uv_scale = [ctx_member.attrs.uv_scale[0], ctx_member.attrs.uv_scale[2]]
 			if ctx_member.is_kindof("MaterialPhysicalStandard"):
 				if ctx_member.is_local() or not mtl:
-					print "MTL FOUND: " + str(ctx_member)
 					mtl = ctx_member
 			for key, suffix in SUFFIXES.iteritems():
 				if ctx_member.get_contextual_name().endswith(suffix):
@@ -164,6 +169,11 @@ class Surface:
 				for key, suffix in SUFFIXES.iteritems():
 					if ctx_member.get_contextual_name().endswith(suffix + TRIPLANAR_SUFFIX):
 						textures[key + '_triplanar'] = ctx_member
+			if ctx_member.get_contextual_name().endswith(SINGLE_CHANNEL_SUFFIX):
+				for key, suffix in SUFFIXES.iteritems():
+					if ctx_member.get_contextual_name().endswith(suffix + SINGLE_CHANNEL_SUFFIX):
+						textures[key + '_reorder'] = ctx_member
+						self.streamed_maps.append(key)
 		if not mtl or not textures:
 			self.ix.log_warning("No valid material found.")
 			return None
@@ -220,19 +230,19 @@ class Surface:
 		self.uv_scale = uv_scale
 		self.triplanar_blend = triplanar_blend
 
-	def create_tx(self, index, filename, suffix, srgb=True, streamed_map=False, single_channel=False, invert=False,
+	def create_tx(self, index, filename, suffix, srgb=True, streamed=False, single_channel=False, invert=False,
 				  connection=None):
-		"""Creates a new TextureMapFile and if projection is set to triplanar it will be mapped that way."""
+		"""Creates a new map or streaming file and if projection is set to triplanar it will be mapped that way."""
 		triplanar_tx = None
 		reorder_tx = None
 		color_space = 'Clarisse|sRGB' if srgb else 'linear'
-		print index + " - " + color_space
-		if streamed_map:
+		if streamed:
 			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureStreamedMapFile", "Global", str(self.ctx))
 			filename = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", filename, count=1)
 			self.streamed_maps.append(index)
 			if single_channel:
-				reorder_tx = self.ix.cmds.CreateObject(self.name + suffix + SINGLE_CHANNEL_SUFFIX, "TextureReorder", "Global", self.ctx)
+				reorder_tx = self.ix.cmds.CreateObject(self.name + suffix + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
+													   "Global", self.ctx)
 				self.ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
 				self.ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(tx))
 				self.textures[index + '_reorder'] = reorder_tx
@@ -267,24 +277,24 @@ class Surface:
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".blend", [str(self.triplanar_blend)])
 			self.ix.cmds.SetValue(str(triplanar_tx) + ".object_space", [str(self.object_space)])
 			self.textures[index + '_triplanar'] = triplanar_tx
-		attrs = self.ix.api.CoreStringArray(6 if streamed_map else 7)
+		attrs = self.ix.api.CoreStringArray(5 if streamed else 6)
 		attrs[0] = str(tx) + ".color_space_auto_detect"
-		attrs[1] = str(tx) + ".file_color_space"
-		attrs[2] = str(tx) + ".filename"
-		attrs[3] = str(tx) + ".invert"
-		attrs[4] = str(tx) + ".u_repeat_mode"
-		attrs[5] = str(tx) + ".v_repeat_mode"
-		values = self.ix.api.CoreStringArray(6 if streamed_map else 7)
+		attrs[1] = str(tx) + ".filename"
+		attrs[2] = str(tx) + ".invert"
+		attrs[3] = str(tx) + ".u_repeat_mode"
+		attrs[4] = str(tx) + ".v_repeat_mode"
+		values = self.ix.api.CoreStringArray(5 if streamed else 6)
 		values[0] = '0'
-		values[1] = color_space
-		values[2] = str(filename)
-		values[3] = str(1 if invert else 0)
+		values[1] = str(filename)
+		values[2] = str(1 if invert else 0)
+		values[3] = str((2 if not self.tile else 0))
 		values[4] = str((2 if not self.tile else 0))
-		values[5] = str((2 if not self.tile else 0))
-		if not streamed_map:
-			attrs[6] = str(tx) + ".single_channel_file_behavior"
-			values[6] = str((1 if single_channel else 0))
+		if not streamed:
+			attrs[5] = str(tx) + ".single_channel_file_behavior"
+			values[5] = str((1 if single_channel else 0))
 		self.ix.cmds.SetValues(attrs, values)
+		self.ix.application.check_for_events()
+		self.ix.cmds.SetValue(str(tx) + ".file_color_space", [str(color_space)])
 		self.textures[index] = tx
 		if connection:
 			if self.projection == "triplanar":
@@ -387,13 +397,17 @@ class Surface:
 		Make sure floats have 1 precision. 1.6 will work, but 1.65 will crash Clarisse.
 		"""
 		if self.mtl.get_attribute('specular_1_index_of_refraction').is_editable():
-			print "IOR MTL: " + str(self.mtl)
 			self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_index_of_refraction", [str(ior)])
 			self.ior = ior
 
-	def update_tx(self, index, filename, suffix, srgb=True, single_channel=False, invert=False):
+	def update_tx(self, index, filename, suffix, srgb=True, streamed=False, single_channel=False, invert=False):
 		"""Updates a texture by changing the filename or color space settings."""
 		tx = self.get(index)
+		if bool(self.get(index + "_reorder")) != streamed:
+			# TODO: get output ports.
+			self.destroy_tx(tx)
+			self.create_tx(index, filename, suffix, srgb, streamed, single_channel, invert)
+
 		if srgb:
 			color_space = 'Clarisse|sRGB'
 		else:
@@ -462,6 +476,9 @@ class Surface:
 			self.destroy_tx('bump_map')
 		elif index == 'ior':
 			self.destroy_tx('ior_divide')
+
+		if self.get(index + '_reorder'):
+			self.destroy_tx(index + '_reorder')
 		# Remove triplanar pair. If texture is triplanar avoid infinite recursion.
 		if self.projection == 'triplanar' and not index.endswith('_triplanar'):
 			self.destroy_tx(index + "_triplanar")
