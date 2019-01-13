@@ -57,7 +57,7 @@ def setup_shelf(shelf_path, slot=0):
 		logging.debug("Found slot block:")
 		logging.debug(slot_search.group(0))
 		logging.debug("Searching for category string")
-		category_search = re.search(r'category "' + shelf_title + '" {(.*?)(?<!\s)\s{9}(?!\s)}', shelf_file,
+		category_search = re.search(r'category "' + shelf_title + '" {(.*?)(?<! ) {8}(?! )}', shelf_file,
 									re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 	existing_items = []
@@ -67,10 +67,13 @@ def setup_shelf(shelf_path, slot=0):
 		logging.debug("Found category block:")
 		logging.debug(unicode(shelf_file[category_search.start():category_search.end()]))
 		write_index = category_search.end()
-		shelf_item_search = re.finditer(r"\s{12}shelf_item {(.*?)(?<!\s)\s{13}(?!\s)}",
+		shelf_item_search = re.finditer(r"\s{12}shelf_item {(.*?)(?<! ) {12}(?! )}",
 										shelf_file[category_search.start():category_search.end()],
 										re.MULTILINE | re.DOTALL)
 		for shelf_item in shelf_item_search:
+			logging.debug("Found shelf item block:")
+			logging.debug(unicode(shelf_file[category_search.start():category_search.end()][
+												shelf_item.start():shelf_item.end()]))
 			shelf_attributes_search = re.search(r"\s{16}title \"(?P<title>.*?)\".*"
 												r"\s{16}description \"(?P<description>.*?)\".*"
 												r"\s{16}script_filename \"(?P<script_filename>.*?)\".*"
