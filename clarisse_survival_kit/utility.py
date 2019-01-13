@@ -91,13 +91,11 @@ def get_textures_from_directory(directory):
 def get_stream_map_files(textures):
 	""""Returns the files that should be loaded as TextureStreamedMapFile."""
 	stream_map_files = []
-	print "CHECKING THESE TEXTURES FOR UDIM/TX FILES"
-	print textures
 	if not textures:
 		return []
 	for index, texture in textures.iteritems():
 		if type(texture) == list:
-			items = get_stream_map_files(textures)
+			items = get_stream_map_files({str(i): texture[i] for i in range(0, len(texture))})
 			for item in items:
 				stream_map_files.append(item)
 		else:

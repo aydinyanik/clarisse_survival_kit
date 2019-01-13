@@ -570,22 +570,24 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 			ix.log_warning("No textures found in directory.")
 			return None
 
+		streamed_maps = get_stream_map_files(atlas_textures)
+
 		atlas_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=DEFAULT_PLANT_DISPLACEMENT_HEIGHT,
 								tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		plant_root_ctx = ix.cmds.CreateContext(asset_name, "Global", str(target_ctx))
 		atlas_mtl = atlas_surface.create_mtl(ATLAS_CTX, plant_root_ctx)
-		atlas_surface.create_textures(atlas_textures, srgb, clip_opacity=clip_opacity)
+		atlas_surface.create_textures(atlas_textures, srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 		atlas_ctx = atlas_surface.ctx
 		# Find the textures of the Billboard and create the material.
 		billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'))
 		if not billboard_textures:
 			ix.log_warning("No textures found in directory.")
 			return None
-
+		streamed_maps = get_stream_map_files(billboard_textures)
 		billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=surface_height,
 									tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
-		billboard_surface.create_textures(billboard_textures, srgb, clip_opacity=clip_opacity)
+		billboard_surface.create_textures(billboard_textures, srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 		billboard_ctx = billboard_surface.ctx
 
 		for dir_name in os.listdir(asset_directory):
@@ -644,9 +646,9 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 	else:
 		# All assets except 3dplant have the material in the root directory of the asset.
 		textures = get_textures_from_directory(asset_directory)
-		streamed_maps = get_stream_map_files(textures)
 		if not textures:
 			return ix.log_warning("No textures found in directory.")
+		streamed_maps = get_stream_map_files(textures)
 
 		surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=surface_height, tile=tileable,
 						  object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
@@ -1144,8 +1146,8 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
 		ix.cmds.MoveItemsTo([str(mix_multi_blend_tx)], mix_selectors_ctx)
 		ix.cmds.RenameItem(str(mix_multi_blend_tx), mix_srf_name + MULTI_BLEND_SUFFIX)
 		# Blend materials
-		mix_mtl = ix.cmds.CreateObject(mix_srf_name + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
-										 str(mix_ctx))
+		mix_mtl = ix.cmds.CreateObject(mix_srf_name + MIX_SUFFIX + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",
+									   str(mix_ctx))
 		ix.cmds.SetTexture([str(mix_mtl) + ".mix"], str(mix_multi_blend_tx))
 		ix.cmds.SetValue(str(mix_mtl) + ".input2", [str(base_mtl)])
 		ix.cmds.SetValue(str(mix_mtl) + ".input1", [str(cover_mtl)])
@@ -1473,6 +1475,8 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 		target_ctx = ix.application.get_working_context()
 	if not check_context(target_ctx, ix=ix):
 		return None
+	if not os.path.isdir(library_dir):
+		return None
 	if os.path.isdir(os.path.join(library_dir, "Downloaded")):
 		library_dir = os.path.join(library_dir, "Downloaded")
 
@@ -1496,6 +1500,6 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 						if not ix.item_exists(str(ctx) + "/" + asset_directory_name):
 							print "Importing asset: " + asset_directory_path
 							import_asset(asset_directory_path, target_ctx=ctx, srgb=MEGASCANS_SRGB_TEXTURES, ix=ix)
-	if custom_assets:
+	if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
 		import_ms_library(os.path.join(library_dir, "My Assets"), target_ctx=target_ctx,
 						  skip_categories=skip_categories, custom_assets=False, ix=ix)
