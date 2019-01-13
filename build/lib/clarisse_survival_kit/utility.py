@@ -62,6 +62,7 @@ def get_textures_from_directory(directory):
 		extension = extension.lower().lstrip('.')
 		if extension in IMAGE_FORMATS:
 			path = os.path.join(directory, f)
+			path = os.path.normpath(path)
 			for key, pattern in FILENAME_MATCH_TEMPLATE.iteritems():
 				match = re.search(pattern, filename, re.IGNORECASE)
 				if match:
@@ -91,8 +92,6 @@ def get_textures_from_directory(directory):
 def get_stream_map_files(textures):
 	""""Returns the files that should be loaded as TextureStreamedMapFile."""
 	stream_map_files = []
-	print "CHECKING THESE TEXTURES FOR UDIM/TX FILES"
-	print textures
 	if not textures:
 		return []
 	for index, texture in textures.iteritems():

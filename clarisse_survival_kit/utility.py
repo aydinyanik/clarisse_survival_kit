@@ -62,6 +62,7 @@ def get_textures_from_directory(directory):
 		extension = extension.lower().lstrip('.')
 		if extension in IMAGE_FORMATS:
 			path = os.path.join(directory, f)
+			path = os.path.normpath(path)
 			for key, pattern in FILENAME_MATCH_TEMPLATE.iteritems():
 				match = re.search(pattern, filename, re.IGNORECASE)
 				if match:

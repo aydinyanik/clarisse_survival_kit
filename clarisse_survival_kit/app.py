@@ -548,6 +548,9 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 		target_ctx = ix.application.get_working_context()
 	if not check_context(target_ctx, ix=ix):
 		return None
+	asset_directory = os.path.normpath(asset_directory)
+	if not os.path.isdir(asset_directory):
+		return ix.log_warning("Invalid directory specified: " + asset_directory)
 
 	# Initial data
 	json_data = get_json_data_from_directory(asset_directory)
@@ -995,8 +998,12 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 	ix = get_ix(kwargs.get("ix"))
 	if not check_context(ctx, ix=ix):
 		return None
-	# Initial data
 
+	surface_directory = os.path.normpath(surface_directory)
+	if not os.path.isdir(surface_directory):
+		return ix.log_warning("Invalid directory specified: " + surface_directory)
+
+	# Initial data
 	json_data = get_json_data_from_directory(surface_directory)
 	if not json_data:
 		ix.log_warning("Could not find a Megascans JSON file. Defaulting to standard settings.")
