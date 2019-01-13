@@ -404,16 +404,14 @@ class Surface:
 	def update_tx(self, index, filename, suffix, srgb=True, streamed=False, single_channel=False, invert=False):
 		"""Updates a texture by changing the filename or color space settings."""
 		tx = self.get(index)
-		if bool(self.get(index + "_reorder")) != streamed:
+		if tx.is_kindof("TextureStreamedMapFile") != streamed:
 			connected_attrs = self.ix.api.OfAttrVector()
-			print "Found reorder node: " + str(tx)
-			print "Streamed: " + str(streamed)
 			get_attrs_connected_to_texture(tx, connected_attrs, ix=self.ix)
-			self.destroy_tx(tx)
+			self.destroy_tx(index)
 			new_tx = self.create_tx(index, filename, suffix, srgb, streamed, single_channel, invert)
 			for i in range(0, connected_attrs.get_count()):
-				print connected_attrs[i]
-				self.ix.cmds.SetValues([connected_attrs[i].get_full_name()], [str(new_tx)])
+				self.ix.cmds.SetValue(str(connected_attrs[i]), [str(new_tx)])
+			tx = new_tx
 		if srgb:
 			color_space = 'Clarisse|sRGB'
 		else:
@@ -426,11 +424,12 @@ class Surface:
 		values[0] = color_space
 		values[1] = filename
 		values[2] = str((1 if invert else 0))
-		if streamed:
+		if not streamed:
 			attrs[3] = str(tx) + ".single_channel_file_behavior"
 			values[3] = str((1 if single_channel else 0))
 		self.ix.cmds.SetValues(attrs, values)
-		self.ix.cmds.RenameItem(str(tx), self.name + suffix)
+		# self.ix.cmds.RenameItem(str(tx), self.name + suffix)
+		# self.ix.application.check_for_events()
 		return tx
 
 	def update_displacement(self, height):
@@ -1006,6 +1005,7 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 
 	# Let's find the textures
 	textures = get_textures_from_directory(surface_directory)
+	streamed_maps = get_stream_map_files(textures)
 	if not textures:
 		ix.log_warning("No textures found in directory.")
 		return False
@@ -1014,7 +1014,7 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 	surface.load(ctx)
 	update_textures = {}
 	for key, tx in surface.textures.copy().iteritems():
-		if tx.is_kindof("TextureMapFile"):
+		if tx.is_kindof('TextureMapFile') or tx.is_kindof('TextureStreamedMapFile'):
 			# Swap filename
 			if key in textures:
 				print "UPDATING FROM SURFACE: " + key
@@ -1023,10 +1023,6 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 				print "DELETING FROM SURFACE: " + key
 				surface.destroy_tx(key)
 	new_textures = {}
-	print "LOADED SURFACE TEXTURES: "
-	print surface.textures
-	print "DIRECTORY TEXTURES: "
-	print textures
 	for key, tx in textures.iteritems():
 		if key not in surface.textures:
 			if (key == 'gloss' and 'roughness' in surface.textures) or \
@@ -1038,11 +1034,11 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 			print "NOT IN SURFACE: " + key
 			new_textures[key] = tx
 
-	surface.create_textures(new_textures, srgb=srgb, clip_opacity=clip_opacity)
+	surface.create_textures(new_textures, srgb=srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 	surface.update_ior(ior)
-	surface.update_textures(update_textures, srgb)
 	surface.update_projection(projection=projection_type, uv_scale=scan_area,
 							  triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
+	surface.update_textures(update_textures, srgb, streamed_maps=streamed_maps)
 	surface.update_names(surface_name)
 	surface.update_displacement(surface_height)
 	surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
@@ -1378,9 +1374,9 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 	ix.application.check_for_events()
 	if pc_type == "GeometryPointCloud":
 		if use_density:
-			pc.attrs.use_density = True
+			ix.cmds.SetValue(str(pc) + ".use_density", [str(1)])
 			ix.application.check_for_events()
-			pc.attrs.density = density
+			ix.cmds.SetValue(str(pc) + ".density", [str(density)])
 		else:
 			pc.attrs.point_count = int(point_count)
 	else:
@@ -1469,11 +1465,11 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 
 	for category_dir_name in os.listdir(library_dir):
 		category_dir_path = os.path.join(library_dir, category_dir_name)
-		if category_dir_name in ["3d", "3dplant", "surface", "surfaces", "atlas"]:
+		if category_dir_name in ["3d", "3dplant", "surface", "surfaces", "atlas", "atlases"]:
 			if category_dir_name not in skip_categories and os.path.isdir(category_dir_path):
 				context_name = category_dir_name
-				# if os.path.basename(library_dir) == "My Assets":
-				# 	context_name = LIBRARY_MIXER_CTX
+				if os.path.basename(library_dir) == "My Assets" and category_dir_name == "surfaces":
+					context_name = LIBRARY_MIXER_CTX
 				ctx = ix.item_exists(str(target_ctx) + "/" + MEGASCANS_LIBRARY_CATEGORY_PREFIX + context_name)
 				if not ctx:
 					ctx = ix.cmds.CreateContext(MEGASCANS_LIBRARY_CATEGORY_PREFIX + context_name,
