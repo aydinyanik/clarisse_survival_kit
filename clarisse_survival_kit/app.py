@@ -590,7 +590,8 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 		billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=surface_height,
 									tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
-		billboard_surface.create_textures(billboard_textures, srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
+		billboard_surface.create_textures(billboard_textures, srgb, streamed_maps=streamed_maps,
+										  clip_opacity=clip_opacity)
 		billboard_ctx = billboard_surface.ctx
 
 		for dir_name in os.listdir(asset_directory):
@@ -604,7 +605,8 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 					if extension == ".obj":
 						filename, extension = os.path.splitext(f)
 						polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(plant_root_ctx))
-						ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.join(variation_dir, f)])
+						ix.cmds.SetValue(str(polyfile) + ".filename",
+										 [os.path.normpath(os.path.join(variation_dir, f))])
 						# Megascans .obj files are saved in cm, Clarisse imports them as meters.
 						polyfile.attrs.scale_offset[0] = .01
 						polyfile.attrs.scale_offset[1] = .01
@@ -624,7 +626,7 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 									geo.assign_displacement(atlas_surface.get('displacement_map').get_module(), i)
 					elif extension == ".abc":
 						abc_reference = ix.cmds.CreateFileReference(str(plant_root_ctx),
-																	[os.path.join(variation_dir, f)])
+																	[os.path.normpath(os.path.join(variation_dir, f))])
 
 		shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
 											 str(plant_root_ctx))
@@ -701,7 +703,7 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 					# else:
 					# instance_geo = polyfile
 					polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(ctx))
-					ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.join(asset_directory, f)])
+					ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.normpath(os.path.join(asset_directory, f))])
 					# Megascans .obj files are saved in cm, Clarisse imports them as meters.
 					polyfile.attrs.scale_offset[0] = .01
 					polyfile.attrs.scale_offset[1] = .01
@@ -715,7 +717,7 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 							geo.assign_displacement(surface.get('displacement_map').get_module(), i)
 				elif extension == ".abc":
 					abc_reference = ix.cmds.CreateFileReference(str(ctx),
-																[os.path.join(asset_directory, f)])
+																[os.path.normpath(os.path.join(asset_directory, f))])
 			shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
 												 str(ctx))
 			ix.cmds.AddShadingLayerRule(str(shading_layer), 0, ["filter", "", "is_visible", "1"])
@@ -746,7 +748,7 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 				if extension == ".obj":
 					polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global",
 													str(ctx))
-					polyfile.attrs.filename = os.path.join(asset_directory, f)
+					polyfile.attrs.filename = os.path.normpath(os.path.join(asset_directory, f))
 					geo = polyfile.get_module()
 					for i in range(geo.get_shading_group_count()):
 						geo.assign_material(mtl.get_module(), i)
@@ -755,7 +757,7 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 					polyfiles.append(polyfile)
 				elif extension == ".abc":
 					abc_reference = ix.cmds.CreateFileReference(str(ctx),
-																[os.path.join(asset_directory, f)])
+																[os.path.normpath(os.path.join(asset_directory, f))])
 			if files:
 				shading_layer = ix.cmds.CreateObject("shading_layer", "ShadingLayer", "Global",
 													 str(ctx))
