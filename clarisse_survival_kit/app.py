@@ -39,7 +39,8 @@ class Surface:
 		"""Creates all textures from a dict. Indices that are in the srgb list will be set to srgb else linear."""
 		if 'diffuse' in textures:
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
-										connection="diffuse_front_color", srgb=('diffuse' in srgb),
+										connections=[str(self.mtl) + ".diffuse_front_color"],
+										srgb=('diffuse' in srgb),
 										streamed='diffuse' in streamed_maps)
 		if 'displacement' in textures:
 			displacement_tx = self.create_tx(index='displacement', filename=textures.get('displacement'),
@@ -49,14 +50,15 @@ class Surface:
 			self.create_displacement_map()
 		if 'specular' in textures:
 			specular_tx = self.create_tx(index='specular', filename=textures.get('specular'),
-										 suffix=SPECULAR_COLOR_SUFFIX,
-										 srgb=('specular' in srgb), connection="specular_1_color",
+										 suffix=SPECULAR_COLOR_SUFFIX, srgb=('specular' in srgb),
+										 connections=[str(self.mtl) + ".specular_1_color"],
 										 streamed='specular' in streamed_maps)
 		if 'roughness' in textures or 'gloss' in textures:
 			roughness_tx = self.create_tx(index='roughness', filename=textures.get('roughness', textures.get('gloss')),
 										  suffix=SPECULAR_ROUGHNESS_SUFFIX,
 										  srgb=('roughness' in srgb), single_channel=True,
-										  invert=('roughness' not in textures), connection="specular_1_roughness",
+										  invert=('roughness' not in textures),
+										  connections=[str(self.mtl) + ".specular_1_roughness"],
 										  streamed='roughness' in streamed_maps)
 		if 'normal' in textures:
 			normal_tx = self.create_tx(index='normal', filename=textures.get('normal'),
@@ -72,19 +74,19 @@ class Surface:
 			opacity_tx = self.create_tx(index='opacity', filename=textures.get('opacity'),
 										suffix=OPACITY_SUFFIX,
 										srgb=('opacity' in srgb), single_channel=True,
-										connection=None if clip_opacity else "opacity",
+										connections=None if clip_opacity else [str(self.mtl) + ".opacity"],
 										streamed='opacity' in streamed_maps)
 		if 'translucency' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
 			translucency_tx = self.create_tx(index='translucency', filename=textures.get('translucency'),
 											 suffix=TRANSLUCENCY_SUFFIX, srgb=('translucency' in srgb),
-											 connection="diffuse_back_color",
+											 connections=[str(self.mtl) + ".diffuse_back_color"],
 											 streamed='translucency' in streamed_maps)
 		if 'emissive' in textures:
 			self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
 			emissive_tx = self.create_tx(index='emissive', filename=textures.get('emissive'),
 										 suffix=EMISSIVE_SUFFIX, srgb=('emissive' in srgb),
-										 connection="emission_color",
+										 connections=[str(self.mtl) + ".emission_color"],
 										 streamed='emissive' in streamed_maps)
 		if 'ior' in textures:
 			ior_tx = self.create_tx(index='ior', filename=textures.get('ior'),
@@ -151,7 +153,7 @@ class Surface:
 		for ctx_member in objects_array:
 			if ctx_member.is_context():
 				continue
-			if (ctx_member.is_kindof("TextureMapFile") or ctx_member.is_kindof("TextureMapFile")) \
+			if (ctx_member.is_kindof("TextureMapFile") or ctx_member.is_kindof("TextureStreamedMapFile")) \
 					and ctx_member.is_local():
 				self.projection = PROJECTIONS[ctx_member.attrs.projection[0]]
 				self.object_space = ctx_member.attrs.object_space[0]
@@ -231,7 +233,7 @@ class Surface:
 		self.triplanar_blend = triplanar_blend
 
 	def create_tx(self, index, filename, suffix, srgb=True, streamed=False, single_channel=False, invert=False,
-				  connection=None):
+				  connections=None):
 		"""Creates a new map or streaming file and if projection is set to triplanar it will be mapped that way."""
 		triplanar_tx = None
 		reorder_tx = None
@@ -296,13 +298,12 @@ class Surface:
 		self.ix.application.check_for_events()
 		self.ix.cmds.SetValue(str(tx) + ".file_color_space", [str(color_space)])
 		self.textures[index] = tx
-		if connection:
-			if self.projection == "triplanar":
-				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection],
-										str(triplanar_tx))
-			else:
-				self.ix.cmds.SetTexture([str(self.mtl) + "." + connection],
-										str(reorder_tx if reorder_tx else tx))
+		if connections:
+			for connection in connections:
+				if self.projection == "triplanar":
+					self.ix.cmds.SetTexture([connection], str(triplanar_tx))
+				else:
+					self.ix.cmds.SetTexture([connection], str(reorder_tx if reorder_tx else tx))
 		return tx
 
 	def create_displacement_map(self):
@@ -404,24 +405,30 @@ class Surface:
 		"""Updates a texture by changing the filename or color space settings."""
 		tx = self.get(index)
 		if bool(self.get(index + "_reorder")) != streamed:
-			# TODO: get output ports.
+			connected_attrs = self.ix.api.OfAttrVector()
+			print "Found reorder node: " + str(tx)
+			print "Streamed: " + str(streamed)
+			get_attrs_connected_to_texture(tx, connected_attrs, ix=self.ix)
 			self.destroy_tx(tx)
-			self.create_tx(index, filename, suffix, srgb, streamed, single_channel, invert)
-
+			new_tx = self.create_tx(index, filename, suffix, srgb, streamed, single_channel, invert)
+			for i in range(0, connected_attrs.get_count()):
+				print connected_attrs[i]
+				self.ix.cmds.SetValues([connected_attrs[i].get_full_name()], [str(new_tx)])
 		if srgb:
 			color_space = 'Clarisse|sRGB'
 		else:
 			color_space = 'linear'
-		attrs = self.ix.api.CoreStringArray(4)
+		attrs = self.ix.api.CoreStringArray(3 if streamed else 4)
 		attrs[0] = str(tx) + ".file_color_space"
-		attrs[1] = str(tx) + ".single_channel_file_behavior"
-		attrs[2] = str(tx) + ".filename"
-		attrs[3] = str(tx) + ".invert"
-		values = self.ix.api.CoreStringArray(4)
+		attrs[1] = str(tx) + ".filename"
+		attrs[2] = str(tx) + ".invert"
+		values = self.ix.api.CoreStringArray(3 if streamed else 4)
 		values[0] = color_space
-		values[1] = str((1 if single_channel else 0))
-		values[2] = filename
-		values[3] = str((1 if invert else 0))
+		values[1] = filename
+		values[2] = str((1 if invert else 0))
+		if streamed:
+			attrs[3] = str(tx) + ".single_channel_file_behavior"
+			values[3] = str((1 if single_channel else 0))
 		self.ix.cmds.SetValues(attrs, values)
 		self.ix.cmds.RenameItem(str(tx), self.name + suffix)
 		return tx
@@ -1016,6 +1023,10 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 				print "DELETING FROM SURFACE: " + key
 				surface.destroy_tx(key)
 	new_textures = {}
+	print "LOADED SURFACE TEXTURES: "
+	print surface.textures
+	print "DIRECTORY TEXTURES: "
+	print textures
 	for key, tx in textures.iteritems():
 		if key not in surface.textures:
 			if (key == 'gloss' and 'roughness' in surface.textures) or \
@@ -1029,9 +1040,9 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 
 	surface.create_textures(new_textures, srgb=srgb, clip_opacity=clip_opacity)
 	surface.update_ior(ior)
+	surface.update_textures(update_textures, srgb)
 	surface.update_projection(projection=projection_type, uv_scale=scan_area,
 							  triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
-	surface.update_textures(update_textures, srgb)
 	surface.update_names(surface_name)
 	surface.update_displacement(surface_height)
 	surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
@@ -1355,7 +1366,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 								  triplanar_blend=False,
 								  ao_blend=False,
 								  **kwargs):
-	"""Moistens the selected material."""
+	"""Generates a pointcloud from the selected geometry."""
 	ix = get_ix(kwargs.get("ix"))
 	if not ctx:
 		ctx = ix.application.get_working_context()
@@ -1368,6 +1379,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 	if pc_type == "GeometryPointCloud":
 		if use_density:
 			pc.attrs.use_density = True
+			ix.application.check_for_events()
 			pc.attrs.density = density
 		else:
 			pc.attrs.point_count = int(point_count)
@@ -1460,8 +1472,8 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 		if category_dir_name in ["3d", "3dplant", "surface", "surfaces", "atlas"]:
 			if category_dir_name not in skip_categories and os.path.isdir(category_dir_path):
 				context_name = category_dir_name
-				if category_dir_name == "surfaces":
-					context_name = LIBRARY_MIXER_CTX
+				# if os.path.basename(library_dir) == "My Assets":
+				# 	context_name = LIBRARY_MIXER_CTX
 				ctx = ix.item_exists(str(target_ctx) + "/" + MEGASCANS_LIBRARY_CATEGORY_PREFIX + context_name)
 				if not ctx:
 					ctx = ix.cmds.CreateContext(MEGASCANS_LIBRARY_CATEGORY_PREFIX + context_name,
