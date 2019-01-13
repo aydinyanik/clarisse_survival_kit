@@ -1473,6 +1473,8 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 		target_ctx = ix.application.get_working_context()
 	if not check_context(target_ctx, ix=ix):
 		return None
+	if not os.path.isdir(library_dir):
+		return None
 	if os.path.isdir(os.path.join(library_dir, "Downloaded")):
 		library_dir = os.path.join(library_dir, "Downloaded")
 
@@ -1496,6 +1498,6 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
 						if not ix.item_exists(str(ctx) + "/" + asset_directory_name):
 							print "Importing asset: " + asset_directory_path
 							import_asset(asset_directory_path, target_ctx=ctx, srgb=MEGASCANS_SRGB_TEXTURES, ix=ix)
-	if custom_assets:
+	if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
 		import_ms_library(os.path.join(library_dir, "My Assets"), target_ctx=target_ctx,
 						  skip_categories=skip_categories, custom_assets=False, ix=ix)
