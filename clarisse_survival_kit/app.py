@@ -570,22 +570,24 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 			ix.log_warning("No textures found in directory.")
 			return None
 
+		streamed_maps = get_stream_map_files(atlas_textures)
+
 		atlas_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=DEFAULT_PLANT_DISPLACEMENT_HEIGHT,
 								tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		plant_root_ctx = ix.cmds.CreateContext(asset_name, "Global", str(target_ctx))
 		atlas_mtl = atlas_surface.create_mtl(ATLAS_CTX, plant_root_ctx)
-		atlas_surface.create_textures(atlas_textures, srgb, clip_opacity=clip_opacity)
+		atlas_surface.create_textures(atlas_textures, srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 		atlas_ctx = atlas_surface.ctx
 		# Find the textures of the Billboard and create the material.
 		billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'))
 		if not billboard_textures:
 			ix.log_warning("No textures found in directory.")
 			return None
-
+		streamed_maps = get_stream_map_files(billboard_textures)
 		billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=surface_height,
 									tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
 		billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
-		billboard_surface.create_textures(billboard_textures, srgb, clip_opacity=clip_opacity)
+		billboard_surface.create_textures(billboard_textures, srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 		billboard_ctx = billboard_surface.ctx
 
 		for dir_name in os.listdir(asset_directory):
@@ -644,9 +646,9 @@ def import_asset(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_t
 	else:
 		# All assets except 3dplant have the material in the root directory of the asset.
 		textures = get_textures_from_directory(asset_directory)
-		streamed_maps = get_stream_map_files(textures)
 		if not textures:
 			return ix.log_warning("No textures found in directory.")
+		streamed_maps = get_stream_map_files(textures)
 
 		surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=surface_height, tile=tileable,
 						  object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)

@@ -91,6 +91,8 @@ def get_textures_from_directory(directory):
 def get_stream_map_files(textures):
 	""""Returns the files that should be loaded as TextureStreamedMapFile."""
 	stream_map_files = []
+	if not textures:
+		return []
 	for index, texture in textures.iteritems():
 		filename, extension = os.path.splitext(texture)
 		extension = extension.lower().lstrip('.')
