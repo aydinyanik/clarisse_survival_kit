@@ -1,8 +1,10 @@
 from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.app import *
+import logging
 
 
 def import_asset_gui(**kwargs):
+	logging.debug("Import Asset GUI started")
 	ix = get_ix(kwargs.get('ix'))
 	result = {'object_space': 0}
 
@@ -75,6 +77,7 @@ def import_asset_gui(**kwargs):
 						for index, checkbox in mapping_checkboxes.iteritems():
 							if checkbox.get_value():
 								mapping = index
+						logging.debug("Import Asset called")
 						surface = import_asset(directory,
 											   projection_type=mapping,
 											   clip_opacity=clip_opacity_checkbox.get_value(),

@@ -116,3 +116,7 @@ DISPLACEMENT_BLEND_SUFFIX = "_displacement_blend_tx"
 MULTI_BLEND_SUFFIX = "_multi_blend_tx"
 MOISTURE_SUFFIX = "_moisture"
 
+try:
+    from user.user_settings import *
+except ImportError:
+    pass
