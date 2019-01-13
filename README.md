@@ -44,7 +44,7 @@ On Mac you can find it here:
 The kit provides the following scripts:
 ### Import Asset
   - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
-  - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file.
+  - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
 
 ### Mix Multiple Surfaces
  - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -85,6 +85,9 @@ Import the whole library or specified categories. If you need individual assets 
 
 # Changelog
 
+**13-01-19** Added logging.
+**13-01-19** Added user_settings.py for overriding settings. 
+**13-01-19** Fixed many bugs and tweaked usability.
 **12-01-19** Added multi mix feature.
 
 
