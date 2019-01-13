@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 
 from clarisse_survival_kit.settings import IMAGE_FORMATS, FILENAME_MATCH_TEMPLATE, MATERIAL_SUFFIX, \
 	DISPLACEMENT_MAP_SUFFIX
@@ -55,16 +56,20 @@ def get_ix(ix_local):
 
 def get_textures_from_directory(directory):
 	"""Returns texture files which exist in the specified directory."""
+	logging.debug("Searching for textures inside: " + str(directory))
 	files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 	textures = {}
 	for f in files:
 		filename, extension = os.path.splitext(f)
 		extension = extension.lower().lstrip('.')
 		if extension in IMAGE_FORMATS:
+			logging.debug("Found image: " + str(f))
 			path = os.path.join(directory, f)
+			path = os.path.normpath(path)
 			for key, pattern in FILENAME_MATCH_TEMPLATE.iteritems():
 				match = re.search(pattern, filename, re.IGNORECASE)
 				if match:
+					logging.debug("Image matches with: " + str(key))
 					if key == 'normal_lods':
 						if type(textures.get(key)) != list:
 							textures[key] = []
@@ -85,7 +90,40 @@ def get_textures_from_directory(directory):
 								textures[key] = path
 						else:
 							textures[key] = path
+	if textures:
+		logging.debug("Textures found in directory: " + directory)
+		logging.debug(str(textures))
+	else:
+		logging.debug("No textures found in directory.")
 	return textures
+
+
+def get_stream_map_files(textures):
+	""""Returns the files that should be loaded as TextureStreamedMapFile."""
+	logging.debug("Searching for streamed map files...")
+	stream_map_files = []
+	if not textures:
+		return []
+	for index, texture in textures.iteritems():
+		logging.debug("Testing: " + str(textures))
+		if type(texture) == list:
+			items = get_stream_map_files({str(i): texture[i] for i in range(0, len(texture))})
+			for item in items:
+				stream_map_files.append(item)
+		else:
+			filename, extension = os.path.splitext(texture)
+			extension = extension.lower().lstrip('.')
+
+			udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", filename)
+			if udim_match or extension == "tx":
+				logging.debug("Streamed map file found.")
+				stream_map_files.append(index)
+	if stream_map_files:
+		logging.debug("...found these streamed map files: ")
+		logging.debug(str(stream_map_files))
+	else:
+		logging.debug("...no streamed map files found.")
+	return stream_map_files
 
 
 def get_mtl_from_context(ctx, **kwargs):
@@ -100,7 +138,9 @@ def get_mtl_from_context(ctx, **kwargs):
 			if ctx_member.is_local() and ctx_member.get_contextual_name().endswith(MATERIAL_SUFFIX) or not mtl:
 				mtl = ctx_member
 	if not mtl:
+		logging.debug("No material found in ctx: " + str(ctx))
 		return None
+	logging.debug("Found material: " + str(mtl))
 	return mtl
 
 
@@ -116,7 +156,9 @@ def get_disp_from_context(ctx, **kwargs):
 			if ctx_member.is_local() and ctx_member.get_contextual_name().endswith(DISPLACEMENT_MAP_SUFFIX) or not disp:
 				disp = ctx_member
 	if not disp:
+		logging.debug("No displacement found in ctx: " + str(ctx))
 		return None
+	logging.debug("Found displacement: " + str(disp))
 	return disp
 
 

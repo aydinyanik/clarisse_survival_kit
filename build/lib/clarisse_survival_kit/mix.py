@@ -41,6 +41,8 @@ def mix_surface_gui():
 
 				ctx2_name = ctx.get_name()
 				name_txt.set_text(ctx2_name + MIX_SUFFIX)
+				ix.selection.deselect_all()
+				ix.selection.add(ctx.get_parent())
 			else:
 				ix.log_warning("Please select a valid cover material.\n")
 				srf2_txt.set_text("")
@@ -64,15 +66,16 @@ def mix_surface_gui():
 			else:
 				ix.begin_command_batch("Mix surfaces")
 				mix_ctx = mix_surfaces(ctxs, ctx2,
-										 mix_name=name_txt.get_text(),
-										 slope_blend=slope_blend_checkbox.get_value(),
-										 scope_blend=scope_blend_checkbox.get_value(),
-										 triplanar_blend=triplanar_blend_checkbox.get_value(),
-										 displacement_blend=displacement_blend_checkbox.get_value(),
-										 height_blend=height_blend_checkbox.get_value(),
-										 fractal_blend=fractal_blend_checkbox.get_value(),
-										 ao_blend=ao_blend_checkbox.get_value(),
-										 ix=ix)
+									   mix_name=name_txt.get_text(),
+									   slope_blend=slope_blend_checkbox.get_value(),
+									   scope_blend=scope_blend_checkbox.get_value(),
+									   triplanar_blend=triplanar_blend_checkbox.get_value(),
+									   displacement_blend=displacement_blend_checkbox.get_value(),
+									   height_blend=height_blend_checkbox.get_value(),
+									   fractal_blend=fractal_blend_checkbox.get_value(),
+									   ao_blend=ao_blend_checkbox.get_value(),
+									   assign_mtls=assign_mtls_checkbox.get_value(),
+									   ix=ix)
 				if mix_ctx:
 					ix.selection.deselect_all()
 					ix.selection.add(mix_ctx)
@@ -81,7 +84,7 @@ def mix_surface_gui():
 
 	# Window creation
 	clarisse_win = ix.application.get_event_window()
-	window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 470)  # Parent, X position, Y position, Width, Height
+	window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 530)  # Parent, X position, Y position, Width, Height
 	window.set_title('Material mixer')  # Window name
 
 	# Main widget creation
@@ -122,11 +125,17 @@ def mix_surface_gui():
 	height_blend_label = ix.api.GuiLabel(panel, 10, 400, 150, 22,
 										 "Height blend: ")
 	height_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 400, "")
-	cancel_btn = ix.api.GuiPushButton(panel, 10, 430, 100, 22, "Close")  # The cancel button (destroy the script window)
-	run_btn = ix.api.GuiPushButton(panel, 130, 430, 250, 22, "Mix materials")  # The run button to run your script
+
+	assign_mtls_label = ix.api.GuiLabel(panel, 10, 460, 150, 22,
+										"Assign new materials: ")
+	assign_mtls_checkbox = ix.api.GuiCheckbox(panel, 205, 460, "")
+
+	cancel_btn = ix.api.GuiPushButton(panel, 10, 490, 100, 22, "Close")  # The cancel button (destroy the script window)
+	run_btn = ix.api.GuiPushButton(panel, 130, 490, 250, 22, "Mix materials")  # The run button to run your script
 
 	# init values
 	fractal_blend_checkbox.set_value(True)
+	assign_mtls_checkbox.set_value(True)
 
 	# Connect to function
 	event_rewire = EventRewire()  # init the class
