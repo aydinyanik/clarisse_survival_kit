@@ -7,20 +7,40 @@
 
 ## Installation
 
-CSK requires Python 2.7 to be installed.
-
 **Make sure Clarisse is not running while installing the kit**
+
+CSK requires Python 2.7 to be installed.
+Make sure pip is installed which comes with the Python installation. To be sure you can download Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure pip is checked.
+
+The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
+
+### Step 1: First update pip:
+```sh
+pip install -U pip
+```
+### Step 2: Then install setuptools:
+```sh
+pip install setuptools
+```
+### Step 3: The next step is to install the kit:
+
+With pip you can download the installation files automatically by passing a link to the tarball or by downloading the tarball yourself and refer it locally:
+
+**Option 1: Online**
+```sh
+pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-0.0.1.tar.gz
+```
+**Option 2: Local**
+```sh
+pip install .\clarisse_survival_kit-0.0.1.tar.gz
+```
+**Option 3: Setup.py**
 
 **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
 
 Download the zip by clicking the big green button, extract the files and run the following command via the command line:
 ```sh
-$ python setup.py install
-```
-
-Or if you have pip installed you can download or link directly to the tarball in the dist folder and use the following command to set it up:
-```sh
-$ pip install .\clarisse_survival_kit-0.0.1.tar.gz
+python setup.py install
 ```
 
 The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
@@ -31,7 +51,7 @@ On Windows you can find the shelf_installation.log file here:
 
 On Linux you can find it here:
 
->/home/**YOUR_USERNAME**/.isotropix/**VERSION**
+>/home/**YOUR_USERNAME**/.isotropix/clarisse/**VERSION**
 
 On Mac you can find it here:
 
@@ -83,9 +103,20 @@ Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object.
 ### Import Megascans Library
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
-### Custom Settings
-Locate the python package inside your site-packages folder. On windows the default path is:
-> C:\Python27\Lib\site-packages\clarisse_survival_kit
+### Custom Settings & Logging
+You can locate the config and log in the following locations:
+
+On Windows you can find it here:
+
+>C:/Users/**YOUR_USERNAME**/AppData/Roaming/Isotropix/.csk
+
+On Linux you can find it here:
+
+>/home/**YOUR_USERNAME**/.isotropix/.csk
+
+On Mac you can find it here:
+
+>/Users/**YOUR_USERNAME**/Library/Preferences/Isotropix/.csk
 
 You can manually make a folder inside that folder called ***user*** and create a **\_\_init\_\_.py** file and **user_settings.py** inside the user folder.
 
