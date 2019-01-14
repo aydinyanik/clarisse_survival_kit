@@ -3,17 +3,30 @@ import os
 import logging
 import datetime
 import site
+import platform
 
 sys.dont_write_bytecode = True
 
 logging_filename = 'clarisse_survival_kit.log'
 settings_filename = 'user_settings.py'
 
+
+def get_isotropix_user_path():
+	clarisse_dir = None
+	if platform.system().lower() == "windows":
+		clarisse_dir = os.path.join(os.getenv('APPDATA'), "Isotropix\\")
+	elif platform.system().lower().startswith("linux"):
+		clarisse_dir = os.path.join(os.path.expanduser("~"), ".isotropix/")
+	elif platform.system().lower() == "darwin":
+		homedir = os.path.expanduser('~')
+		clarisse_dir = homedir + '/Library/Preferences/Isotropix/'
+	return clarisse_dir
+
+
 sitepackages_folders = site.getsitepackages()
 for sitepackages_folder in sitepackages_folders:
-	package_path = os.path.join(sitepackages_folder, 'clarisse_survival_kit')
-	if os.path.isdir(package_path):
-		user_path = os.path.join(package_path, "user")
+	user_path = os.path.join(get_isotropix_user_path(), '.csk')
+	if user_path:
 		if not os.path.exists(user_path):
 			os.makedirs(user_path)
 		init_path = os.path.join(user_path, '__init__.py')
@@ -27,9 +40,12 @@ for sitepackages_folder in sitepackages_folders:
 
 		log_path = os.path.join(user_path, logging_filename)
 		if os.path.isfile(log_path):
-			os.remove(log_path)
+			with open(log_path, "w") as log_file:
+				log_file.truncate()
 
 		logging.basicConfig(filename=log_path, level=logging.DEBUG, format='%(message)s')
 		log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 		logging.debug("--------------------------------------")
 		logging.debug("Log start: " + log_start)
+	else:
+		print "Could not generate log or user settings!!!"
