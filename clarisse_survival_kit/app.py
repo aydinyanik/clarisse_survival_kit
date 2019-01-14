@@ -19,6 +19,7 @@ class Surface:
 		self.uv_scale = kwargs.get('uv_scale')
 		self.object_space = kwargs.get('object_space', 0)
 		self.ior = kwargs.get('ior', DEFAULT_IOR)
+		self.specular_strength = kwargs.get('specular_strength', DEFAULT_SPECULAR_STRENGTH)
 		self.height = kwargs.get('height', DEFAULT_DISPLACEMENT_HEIGHT)
 		self.triplanar_blend = kwargs.get('triplanar_blend', 0.5)
 		self.tile = kwargs.get('tile', True)
@@ -33,6 +34,7 @@ class Surface:
 		self.ctx = ctx
 		mtl = self.ix.cmds.CreateObject(name + MATERIAL_SUFFIX, "MaterialPhysicalStandard", "Global", str(ctx))
 		self.ix.cmds.SetValue(str(mtl) + ".specular_1_index_of_refraction", [str(self.ior)])
+		self.ix.cmds.SetValue(str(mtl) + ".specular_1_strength", [str(self.specular_strength)])
 		self.mtl = mtl
 		logging.debug("...done creating material")
 		return mtl
@@ -41,8 +43,15 @@ class Surface:
 		"""Creates all textures from a dict. Indices that are in the srgb list will be set to srgb else linear."""
 		logging.debug("Creating textures...")
 		if 'diffuse' in textures:
+			ao_blend_tx = None
+			if 'ao' in textures:
+				ao_tx = self.create_tx(index='ao', filename=textures.get('ao'), suffix=OCCLUSION_SUFFIX,
+									   srgb='ao' in srgb,
+									   streamed='ao' in streamed_maps)
+				ao_blend_tx = self.create_ao_blend()
+			connect_to = str(ao_blend_tx) + ".input1" if ao_blend_tx else str(self.mtl) + ".diffuse_front_color"
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
-										connections=[str(self.mtl) + ".diffuse_front_color"],
+										connections=[connect_to],
 										srgb=('diffuse' in srgb),
 										streamed='diffuse' in streamed_maps)
 		if 'displacement' in textures:
@@ -379,6 +388,28 @@ class Surface:
 		self.textures['normal_map'] = normal_map
 		return normal_map
 
+	def create_ao_blend(self):
+		"""Creates a AO blend texture if it doesn't exist."""
+		logging.debug("Creating ao blend texture...")
+		if not self.get('ao'):
+			self.ix.log_warning("No ao texture was found.")
+			return None
+		if self.projection == 'triplanar':
+			ao_tx = self.get('ao_triplanar')
+		else:
+			if self.get('ao_reorder'):
+				ao_tx = self.get('ao_reorder')
+			else:
+				ao_tx = self.get('ao')
+
+		ao_blend_tx = self.ix.cmds.CreateObject(self.name + AO_BLEND_SUFFIX, "TextureBlend", "Global", str(self.ctx))
+		self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(ao_tx))
+		self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
+		self.ix.cmds.SetValue(str(ao_blend_tx) + ".mix", [str(DEFAULT_AO_BLEND_STRENGTH)])
+		self.textures["ao_blend"] = ao_blend_tx
+		self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(ao_blend_tx))
+		return ao_blend_tx
+
 	def create_bump_map(self):
 		"""Creates a Bump map if it doesn't exist."""
 		logging.debug("Creating bump map...")
@@ -412,15 +443,18 @@ class Surface:
 				ior_tx = self.get('ior_reorder')
 			else:
 				ior_tx = self.get('ior')
+
+		logging.debug("Using following texture as input2 for divide: " + str(ior_tx))
 		ior_divide_tx = self.ix.cmds.CreateObject(self.name + IOR_DIVIDE_SUFFIX, "TextureDivide",
 												  "Global", str(self.ctx))
 		ior_divide_tx.attrs.input1[0] = 1.0
 		ior_divide_tx.attrs.input1[1] = 1.0
 		ior_divide_tx.attrs.input1[2] = 1.0
-		self.ix.cmds.SetTexture([str(ior_tx) + ".input2"], str(ior_tx))
+		self.ix.cmds.SetTexture([str(ior_divide_tx) + ".input2"], str(ior_tx))
+		self.ix.application.check_for_events()
 		self.textures['ior_divide'] = ior_divide_tx
 		if self.mtl.get_attribute('specular_1_index_of_refraction').is_editable():
-			self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_index_of_refraction", [str(ior_divide_tx)])
+			self.ix.cmds.SetTexture([str(self.mtl) + ".specular_1_index_of_refraction"], str(ior_divide_tx))
 			self.ix.application.check_for_events()
 			self.ior = ior_tx
 		else:
@@ -433,7 +467,7 @@ class Surface:
 		"""
 		logging.debug("Updating IOR...")
 		if self.mtl.get_attribute('specular_1_index_of_refraction').is_editable():
-			self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_index_of_refraction", [str(ior)])
+			self.ix.cmds.SetTexture([str(self.mtl) + ".specular_1_index_of_refraction"], str(ior))
 			self.ix.application.check_for_events()
 			self.ior = ior
 		else:
@@ -528,6 +562,8 @@ class Surface:
 			self.destroy_tx('bump_map')
 		elif index == 'ior':
 			self.destroy_tx('ior_divide')
+		elif index == 'ao':
+			self.destroy_tx('ao_blend')
 
 		if self.get(index + '_reorder'):
 			self.destroy_tx(index + '_reorder')

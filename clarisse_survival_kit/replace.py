@@ -207,6 +207,10 @@ def replace_surface_gui():
 											"Refraction: ")
 	refraction_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 460, "")
 
+	ao_srgb_label = ix.api.GuiLabel(panel, 220, 460, 150, 22,
+											"AO: ")
+	ao_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 460, "")
+
 	color_space_checkboxes = {
 		'diffuse': diffuse_srgb_checkbox,
 		'specular': specular_srgb_checkbox,
@@ -218,7 +222,8 @@ def replace_surface_gui():
 		'ior': ior_srgb_checkbox,
 		'refraction': refraction_srgb_checkbox,
 		'translucency': translucency_srgb_checkbox,
-		'opacity': opacity_srgb_checkbox
+		'opacity': opacity_srgb_checkbox,
+		'ao': ao_srgb_checkbox
 	}
 
 	separator_label4 = ix.api.GuiLabel(panel, 10, 520, 380, 22, "[ MESH OPTIONS ]")

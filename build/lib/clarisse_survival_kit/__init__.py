@@ -9,6 +9,7 @@ sys.dont_write_bytecode = True
 
 logging_filename = 'clarisse_survival_kit.log'
 settings_filename = 'user_settings.py'
+settings_path = ''
 
 
 def get_isotropix_user_path():
@@ -27,6 +28,7 @@ sitepackages_folders = site.getsitepackages()
 for sitepackages_folder in sitepackages_folders:
 	user_path = os.path.join(get_isotropix_user_path(), '.csk')
 	if user_path:
+		sys.path.append(os.path.normpath(user_path))
 		if not os.path.exists(user_path):
 			os.makedirs(user_path)
 		init_path = os.path.join(user_path, '__init__.py')

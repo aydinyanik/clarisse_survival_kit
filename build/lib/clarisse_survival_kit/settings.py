@@ -1,18 +1,20 @@
+import logging
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
 IMAGE_FORMATS = ('tx', 'exr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
-FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse$|_Albedo$|_baseColor$|_color$|^albedo$|^diffuse$|^color$)',
-						   'specular': r'(?:_Specular$|_spec$|_Reflection$|^specular$|^reflection$)',
-						   'roughness': r'(?:_Roughness$|^roughness$)',
-						   'refraction': r'(?:_refraction$|^refraction$)',
-						   'gloss': r'(?:_Gloss$|_glossiness$|^glossiness$)',
-						   'normal': r'(?:_Normal$|_NormalBump$|^normal$)',
-						   'bump': r'(?:_bump$|^bump$)',
+FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
+						   'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
+						   'roughness': r'(?:_Roughness|^roughness$)',
+						   'refraction': r'(?:_refraction|^refraction$)',
+						   'gloss': r'(?:_Gloss|_glossiness|^glossiness$)',
+						   'normal': r'(?:_Normal|_NormalBump$|^normal$)',
+						   'bump': r'(?:_bump|^bump$)',
 						   'normal_lods': r'_Normal_LOD[0-9]$',
-						   'opacity': r'(?:_Opacity$|_transparency$|^opacity$|^transparency$)',
-						   'translucency': r'_Translucency$',
-						   'emissive': r'(?:_Emissive$|^emissive$|^luminance$|^luminosity$)',
-						   'ior': r'(?:_ior$|^ior$)',
-						   'displacement': r'(?:_Displacement$|_height$|^displacement$|^height$)'}
+						   'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
+						   'translucency': r'_Translucency',
+						   'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
+						   'ior': r'(?:_ior|^ior$)',
+						   'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
+						   'ao': r'(?:_ao|^ao$|_occlusion)',}
 
 MEGASCANS_SRGB_TEXTURES = ['diffuse', 'translucency']
 SUBSTANCE_SRGB_TEXTURES = ['diffuse', 'specular', 'emissive', 'translucency']
@@ -39,11 +41,15 @@ NORMAL_MAP_LOD_SUFFIX = '_normal_lod%i_map'
 TRIPLANAR_SUFFIX = "_triplanar"
 DISPLACEMENT_SUFFIX = "_displacement_tx"
 DISPLACEMENT_MAP_SUFFIX = "_displacement_map"
+OCCLUSION_SUFFIX = "_ao_tx"
+OCCLUSION_BLEND_SUFFIX = "ao_blend_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
 DEFAULT_PLANT_DISPLACEMENT_HEIGHT = 0.01
 DEFAULT_UV_SCALE = (1, 1)
 DEFAULT_IOR = 1.5
+DEFAULT_SPECULAR_STRENGTH = .2
+DEFAULT_AO_BLEND_STRENGTH = .85
 
 SUFFIXES = {
 	'diffuse': DIFFUSE_SUFFIX,
@@ -60,7 +66,9 @@ SUFFIXES = {
 	'normal': NORMAL_SUFFIX,
 	'normal_map': NORMAL_MAP_SUFFIX,
 	'displacement': DISPLACEMENT_SUFFIX,
-	'displacement_map': DISPLACEMENT_MAP_SUFFIX
+	'displacement_map': DISPLACEMENT_MAP_SUFFIX,
+	'ao': OCCLUSION_SUFFIX,
+	'ao_blend': OCCLUSION_BLEND_SUFFIX
 }
 
 # Other Suffixes & Variables
@@ -117,6 +125,7 @@ MULTI_BLEND_SUFFIX = "_multi_blend_tx"
 MOISTURE_SUFFIX = "_moisture"
 
 try:
-    from user.user_settings import *
+	from user_settings import *
+	logging.debug("CUSTOM SETTINGS FOUND")
 except ImportError:
-    pass
+	logging.debug("NO CUSTOM SETTINGS FOUND")
