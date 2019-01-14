@@ -128,6 +128,7 @@ All variables from the settings.py file can be copied over to and customized wit
 
 # Changelog
 
+- **14-01-19** Added AO files support.
 - **14-01-19** Added preview file import.
 - **13-01-19** Added logging.
 - **13-01-19** Added user_settings.py for overriding settings. 
