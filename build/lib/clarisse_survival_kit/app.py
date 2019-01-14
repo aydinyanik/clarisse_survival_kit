@@ -48,7 +48,7 @@ class Surface:
 				ao_tx = self.create_tx(index='ao', filename=textures.get('ao'), suffix=OCCLUSION_SUFFIX,
 									   srgb='ao' in srgb,
 									   streamed='ao' in streamed_maps)
-				ao_blend_tx = self.create_ao_blend()
+				ao_blend_tx = self.get("ao_blend")
 			connect_to = str(ao_blend_tx) + ".input1" if ao_blend_tx else str(self.mtl) + ".diffuse_front_color"
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
 										connections=[connect_to],
@@ -59,7 +59,6 @@ class Surface:
 											 suffix=DISPLACEMENT_SUFFIX,
 											 srgb=('displacement' in srgb), single_channel=True,
 											 streamed='displacement' in streamed_maps)
-			self.create_displacement_map()
 		if 'specular' in textures:
 			specular_tx = self.create_tx(index='specular', filename=textures.get('specular'),
 										 suffix=SPECULAR_COLOR_SUFFIX, srgb=('specular' in srgb),
@@ -76,12 +75,10 @@ class Surface:
 			normal_tx = self.create_tx(index='normal', filename=textures.get('normal'),
 									   suffix=NORMAL_SUFFIX, srgb=('normal' in srgb),
 									   streamed='normal' in streamed_maps)
-			self.create_normal_map()
 		elif 'bump' in textures:
 			bump_tx = self.create_tx(index='bump', filename=textures.get('bump'),
 									 suffix=BUMP_SUFFIX, srgb=('bump' in srgb), single_channel=True,
 									 streamed='bump' in streamed_maps)
-			self.create_bump_map()
 		if 'opacity' in textures:
 			opacity_tx = self.create_tx(index='opacity', filename=textures.get('opacity'),
 										suffix=OPACITY_SUFFIX,
@@ -104,7 +101,9 @@ class Surface:
 			ior_tx = self.create_tx(index='ior', filename=textures.get('ior'),
 									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True,
 									streamed='ior' in streamed_maps)
-			self.create_ior_divide_tx()
+		if 'preview' in textures:
+			preview_tx = self.create_tx(index='preview', filename=textures.get('preview'),
+									suffix=PREVIEW_SUFFIX, srgb=True)
 		logging.debug("...done creating textures")
 
 	def update_textures(self, textures, srgb, streamed_maps=()):
@@ -150,6 +149,9 @@ class Surface:
 		if 'ior' in textures:
 			ior_tx = self.update_tx(index='ior', filename=textures.get('ior'), streamed='ior' in streamed_maps,
 									suffix=IOR_SUFFIX, srgb=('ior' in srgb), single_channel=True)
+		if 'preview' in textures:
+			preview_tx = self.update_tx(index='preview', filename=textures.get('preview'),
+										suffix=PREVIEW_SUFFIX, srgb=True)
 		logging.debug("...done updating textures")
 
 	def load(self, ctx):
@@ -215,6 +217,8 @@ class Surface:
 		logging.debug("Projection set to:" + projection)
 		for key, tx in self.textures.iteritems():
 			if (tx.is_kindof("TextureMapFile") or tx.is_kindof("TextureStreamedMapFile")) and tx.is_local():
+				if key == "preview":
+					continue
 				if projection == "uv":
 					self.ix.cmds.SetValue(str(tx) + ".projection", [str(PROJECTIONS.index('uv'))])
 				else:
@@ -265,7 +269,7 @@ class Surface:
 		reorder_tx = None
 		color_space = 'Clarisse|sRGB' if srgb else 'linear'
 		logging.debug("create_tx called with arguments:" +
-					  "\n".join([index, filename, suffix, str(srgb), str(streamed), str(single_channel)]))
+					  "\n".join([index, filename, suffix, str(srgb), str(streamed), str(single_channel), str(connections)]))
 		if streamed:
 			logging.debug("Setting up TextureStreamedMapFile...")
 			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureStreamedMapFile", "Global", str(self.ctx))
@@ -281,6 +285,11 @@ class Surface:
 		else:
 			logging.debug("Setting up TextureMapFile...")
 			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureMapFile", "Global", str(self.ctx))
+			if index == 'preview':
+				logging.debug("Done creating preview tx: " + str(tx))
+				self.ix.cmds.SetValue(str(tx) + ".filename", [filename])
+				self.textures[index] = tx
+				return tx
 		if self.projection != 'uv':
 			attrs = self.ix.api.CoreStringArray(6)
 			attrs[0] = str(tx) + ".projection"
@@ -336,8 +345,26 @@ class Surface:
 					self.ix.cmds.SetTexture([connection], str(triplanar_tx))
 				else:
 					self.ix.cmds.SetTexture([connection], str(reorder_tx if reorder_tx else tx))
+		self.post_create_tx(index, tx)
 		logging.debug("Done creating tx: " + str(tx))
 		return tx
+
+	def post_create_tx(self, index, tx):
+		"""Creates certain files at the end of the create_tx function call."""
+		logging.debug("Post create function called for: " + index)
+		post_tx = None
+		if index == "ao":
+			post_tx = self.create_ao_blend()
+		elif index == "displacement":
+			post_tx = self.create_displacement_map()
+		elif index == "normal":
+			post_tx = self.create_normal_map()
+		elif index == "bump":
+			post_tx = self.create_bump_map()
+		elif index == "ior":
+			post_tx = self.create_ior_divide_tx()
+		logging.debug("Post texture: " + str(post_tx))
+		return post_tx
 
 	def create_displacement_map(self):
 		"""Creates a Displacement map if it doesn't exist."""
@@ -480,13 +507,15 @@ class Surface:
 		tx = self.get(index)
 		if tx.is_kindof("TextureStreamedMapFile") != streamed:
 			logging.debug("Map is no longer Map file or Stream Map. Switch in progress...")
-			connected_attrs = self.ix.api.OfAttrVector()
-			get_attrs_connected_to_texture(tx, connected_attrs, ix=self.ix)
+			# connected_attrs = self.ix.api.OfAttrVector()
+			# get_attrs_connected_to_texture(tx, connected_attrs, ix=self.ix)
+			# attrs = [str(attr) for attr in connected_attrs]
 			self.destroy_tx(index)
-			new_tx = self.create_tx(index, filename, suffix, srgb, streamed, single_channel, invert)
-			for i in range(0, connected_attrs.get_count()):
-				self.ix.cmds.SetValue(str(connected_attrs[i]), [str(new_tx)])
-			tx = new_tx
+			self.create_textures({index: filename}, [index] if srgb else [], [index] if streamed else [])
+			tx = self.get(index)
+			# for i in range(0, len(attrs)):
+			# 	logging.debug("Texture was used in: " + str(attrs[i]))
+			# 	self.ix.cmds.SetTexture([str(attrs[i])], str(new_tx))
 		if srgb:
 			color_space = 'Clarisse|sRGB'
 		else:
@@ -1203,12 +1232,12 @@ def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="tr
 
 	surface.create_textures(new_textures, srgb=srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
 	surface.update_ior(ior)
-	surface.update_projection(projection=projection_type, uv_scale=scan_area,
-							  triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
 	surface.update_textures(update_textures, srgb, streamed_maps=streamed_maps)
 	surface.update_names(surface_name)
 	surface.update_displacement(surface_height)
 	surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
+	surface.update_projection(projection=projection_type, uv_scale=scan_area,
+							  triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
 	surface.clean()
 	return surface
 

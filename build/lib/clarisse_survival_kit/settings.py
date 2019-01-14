@@ -14,7 +14,8 @@ FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|al
 						   'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
 						   'ior': r'(?:_ior|^ior$)',
 						   'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
-						   'ao': r'(?:_ao|^ao$|_occlusion)',}
+						   'ao': r'(?:_ao|^ao$|_occlusion)',
+						   'preview': r'(?:_preview|^preview$|_render)'}
 
 MEGASCANS_SRGB_TEXTURES = ['diffuse', 'translucency']
 SUBSTANCE_SRGB_TEXTURES = ['diffuse', 'specular', 'emissive', 'translucency']
@@ -44,6 +45,7 @@ DISPLACEMENT_MAP_SUFFIX = "_displacement_map"
 OCCLUSION_SUFFIX = "_ao_tx"
 OCCLUSION_BLEND_SUFFIX = "ao_blend_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
+PREVIEW_SUFFIX = "_preview"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
 DEFAULT_PLANT_DISPLACEMENT_HEIGHT = 0.01
 DEFAULT_UV_SCALE = (1, 1)
@@ -68,7 +70,8 @@ SUFFIXES = {
 	'displacement': DISPLACEMENT_SUFFIX,
 	'displacement_map': DISPLACEMENT_MAP_SUFFIX,
 	'ao': OCCLUSION_SUFFIX,
-	'ao_blend': OCCLUSION_BLEND_SUFFIX
+	'ao_blend': OCCLUSION_BLEND_SUFFIX,
+	'preview': PREVIEW_SUFFIX
 }
 
 # Other Suffixes & Variables
