@@ -419,6 +419,12 @@ class Surface:
 		ior_divide_tx.attrs.input1[2] = 1.0
 		self.ix.cmds.SetTexture([str(ior_tx) + ".input2"], str(ior_tx))
 		self.textures['ior_divide'] = ior_divide_tx
+		if self.mtl.get_attribute('specular_1_index_of_refraction').is_editable():
+			self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_index_of_refraction", [str(ior_divide_tx)])
+			self.ix.application.check_for_events()
+			self.ior = ior_tx
+		else:
+			logging.debug("IOR was locked")
 		return ior_divide_tx
 
 	def update_ior(self, ior):
