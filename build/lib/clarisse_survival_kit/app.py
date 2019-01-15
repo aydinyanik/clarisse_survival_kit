@@ -43,17 +43,13 @@ class Surface:
 		"""Creates all textures from a dict. Indices that are in the srgb list will be set to srgb else linear."""
 		logging.debug("Creating textures...")
 		if 'diffuse' in textures:
-			ao_blend_tx = None
-			if 'ao' in textures:
-				ao_tx = self.create_tx(index='ao', filename=textures.get('ao'), suffix=OCCLUSION_SUFFIX,
-									   srgb='ao' in srgb,
-									   streamed='ao' in streamed_maps)
-				ao_blend_tx = self.get("ao_blend")
-			connect_to = str(ao_blend_tx) + ".input1" if ao_blend_tx else str(self.mtl) + ".diffuse_front_color"
 			diffuse_tx = self.create_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
-										connections=[connect_to],
+										connections=[str(self.mtl) + ".diffuse_front_color"],
 										srgb=('diffuse' in srgb),
 										streamed='diffuse' in streamed_maps)
+		if 'ao' in textures:
+			ao_tx = self.create_tx(index='ao', filename=textures.get('ao'), suffix=OCCLUSION_SUFFIX,
+								   srgb='ao' in srgb, streamed='ao' in streamed_maps, single_channel=True)
 		if 'displacement' in textures:
 			displacement_tx = self.create_tx(index='displacement', filename=textures.get('displacement'),
 											 suffix=DISPLACEMENT_SUFFIX,
@@ -103,7 +99,7 @@ class Surface:
 									streamed='ior' in streamed_maps)
 		if 'preview' in textures:
 			preview_tx = self.create_tx(index='preview', filename=textures.get('preview'),
-									suffix=PREVIEW_SUFFIX, srgb=True)
+										suffix=PREVIEW_SUFFIX, srgb=True)
 		logging.debug("...done creating textures")
 
 	def update_textures(self, textures, srgb, streamed_maps=()):
@@ -111,6 +107,9 @@ class Surface:
 		if 'diffuse' in textures:
 			diffuse_tx = self.update_tx(index='diffuse', filename=textures.get('diffuse'), suffix=DIFFUSE_SUFFIX,
 										srgb=('diffuse' in srgb), streamed='diffuse' in streamed_maps)
+		if 'ao' in textures:
+			ao_tx = self.update_tx(index='ao', filename=textures.get('ao'), suffix=OCCLUSION_SUFFIX,
+								   srgb=('ao' in srgb), streamed='ao' in streamed_maps, single_channel=True)
 		if 'displacement' in textures:
 			displacement_tx = self.update_tx(index='displacement', filename=textures.get('displacement'),
 											 suffix=DISPLACEMENT_SUFFIX, streamed='displacement' in streamed_maps,
@@ -269,7 +268,8 @@ class Surface:
 		reorder_tx = None
 		color_space = 'Clarisse|sRGB' if srgb else 'linear'
 		logging.debug("create_tx called with arguments:" +
-					  "\n".join([index, filename, suffix, str(srgb), str(streamed), str(single_channel), str(connections)]))
+					  "\n".join(
+						  [index, filename, suffix, str(srgb), str(streamed), str(single_channel), str(connections)]))
 		if streamed:
 			logging.debug("Setting up TextureStreamedMapFile...")
 			tx = self.ix.cmds.CreateObject(self.name + suffix, "TextureStreamedMapFile", "Global", str(self.ctx))
@@ -430,6 +430,7 @@ class Surface:
 				ao_tx = self.get('ao')
 
 		ao_blend_tx = self.ix.cmds.CreateObject(self.name + AO_BLEND_SUFFIX, "TextureBlend", "Global", str(self.ctx))
+		self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(self.get('diffuse')))
 		self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(ao_tx))
 		self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
 		self.ix.cmds.SetValue(str(ao_blend_tx) + ".mix", [str(DEFAULT_AO_BLEND_STRENGTH)])
@@ -512,10 +513,11 @@ class Surface:
 			# attrs = [str(attr) for attr in connected_attrs]
 			self.destroy_tx(index)
 			self.create_textures({index: filename}, [index] if srgb else [], [index] if streamed else [])
+			logging.debug("Texture recreated as: " + str(self.get(index)))
 			tx = self.get(index)
-			# for i in range(0, len(attrs)):
-			# 	logging.debug("Texture was used in: " + str(attrs[i]))
-			# 	self.ix.cmds.SetTexture([str(attrs[i])], str(new_tx))
+		# for i in range(0, len(attrs)):
+		# 	logging.debug("Texture was used in: " + str(attrs[i]))
+		# 	self.ix.cmds.SetTexture([str(attrs[i])], str(new_tx))
 		if srgb:
 			color_space = 'Clarisse|sRGB'
 		else:
@@ -576,7 +578,9 @@ class Surface:
 		ctx.get_all_objects(objects_array, flags, False)
 
 		for ctx_member in objects_array:
-			logging.debug("Updating name from " + str(ctx_member) + " to " + ctx_member.get_contextual_name().replace(self.name, name))
+			logging.debug(
+				"Updating name from " + str(ctx_member) + " to " + ctx_member.get_contextual_name().replace(self.name,
+																											name))
 			self.ix.cmds.RenameItem(str(ctx_member), ctx_member.get_contextual_name().replace(self.name, name))
 		self.name = name
 

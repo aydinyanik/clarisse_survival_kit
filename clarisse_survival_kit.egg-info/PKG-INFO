@@ -136,6 +136,8 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         
         # Changelog
         
+        - **14-01-19** Added AO files support.
+        - **14-01-19** Added preview file import.
         - **13-01-19** Added logging.
         - **13-01-19** Added user_settings.py for overriding settings. 
         - **13-01-19** Fixed many bugs and tweaked usability.
@@ -144,7 +146,6 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         
         # TODO
         - Add a new surface to an existing multi mix.
-        - Preview file import.
         
         Got any ideas? Did I miss anything important? Let me know.
         
