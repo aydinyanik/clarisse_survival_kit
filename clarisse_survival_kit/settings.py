@@ -36,6 +36,8 @@ TRANSLUCENCY_SUFFIX = "_translucency_tx"
 EMISSIVE_SUFFIX = "_emissive_tx"
 IOR_SUFFIX = "_ior_tx"
 IOR_DIVIDE_SUFFIX = "_ior_divide_tx"
+F0_SUFFIX = "_f0_tx"
+METALLIC_SUFFIX = "_metallic_tx"
 BUMP_SUFFIX = "_bump_tx"
 BUMP_MAP_SUFFIX = "_bump_map"
 NORMAL_SUFFIX = "_normal_tx"
@@ -66,6 +68,8 @@ SUFFIXES = {
     'emissive': EMISSIVE_SUFFIX,
     'ior': IOR_SUFFIX,
     'ior_divide': IOR_DIVIDE_SUFFIX,
+    'f0': F0_SUFFIX,
+    'metallic': METALLIC_SUFFIX,
     'bump': BUMP_SUFFIX,
     'bump_map': BUMP_MAP_SUFFIX,
     'normal': NORMAL_SUFFIX,
@@ -87,7 +91,7 @@ TEXTURE_CONTEXTS = {
     'normal': ['normal', 'normal_map'],
     'bump': ['bump', 'bump_map'],
     'translucency': ['translucency'],
-    'emissive': ['emissive'],
+    'emissive': ['emissive']
 }
 
 TEXTURE_SETTINGS = collections.OrderedDict()
