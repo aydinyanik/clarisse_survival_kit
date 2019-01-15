@@ -124,7 +124,7 @@ You can manually make a folder inside that folder called ***user*** and create a
 
 If you don't want to do that run the script once by clicking any of the buttons in the shelf and this folder and files are automatically generated for you.
 
-All variables from the settings.py file can be copied over to and customized within the user_settings.py file inside your user folder. **Don't overwrite the settings.py file**. This file will be overwritten once you reinstall or upgrade.
+All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/build/lib/clarisse_survival_kit/settings.py) from the [settings.py](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/build/lib/clarisse_survival_kit/settings.py) file can be copied over to and customized within the user_settings.py file inside your user folder. **Don't overwrite the settings.py file**. This file will be overwritten once you reinstall or upgrade.
 
 # Changelog
 
