@@ -104,7 +104,7 @@ Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object.
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
 ### Custom Settings & Logging
-You can locate the config and log in the following locations:
+You can locate the custom settings and log in the following locations:
 
 On Windows you can find it here:
 
@@ -118,7 +118,7 @@ On Mac you can find it here:
 
 >/Users/**YOUR_USERNAME**/Library/Preferences/Isotropix/.csk
 
-You can manually make a folder inside that folder called ***user*** and create a **\_\_init\_\_.py** file and **user_settings.py** inside the user folder.
+You can manually make that folder if it doesn't exist and create a **\_\_init\_\_.py** file and **user_settings.py** inside the .csk.
 
 **OR** 
 
