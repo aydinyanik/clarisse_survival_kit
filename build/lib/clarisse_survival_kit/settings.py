@@ -1,24 +1,57 @@
 import logging
+import collections
+
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
 IMAGE_FORMATS = ('tx', 'exr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
 FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
-						   'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
-						   'roughness': r'(?:_Roughness|^roughness$)',
-						   'refraction': r'(?:_refraction|^refraction$)',
-						   'gloss': r'(?:_Gloss|_glossiness|^glossiness$)',
-						   'normal': r'(?:_Normal|_NormalBump$|^normal$)',
-						   'bump': r'(?:_bump|^bump$)',
-						   'normal_lods': r'_Normal_LOD[0-9]$',
-						   'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
-						   'translucency': r'_Translucency',
-						   'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
-						   'ior': r'(?:_ior|^ior$)',
-						   'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
-						   'ao': r'(?:_ao|^ao$|_occlusion)',
-						   'preview': r'(?:_preview|^preview$|_render)'}
+                           'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
+                           'roughness': r'(?:_Roughness|^roughness$)',
+                           'refraction': r'(?:_refraction|^refraction$)',
+                           'gloss': r'(?:_Gloss|_glossiness|^glossiness$)',
+                           'normal': r'(?:_Normal|_NormalBump$|^normal$)',
+                           'bump': r'(?:_bump|^bump$)',
+                           'normal_lods': r'_Normal_LOD[0-9]$',
+                           'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
+                           'translucency': r'_Translucency',
+                           'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
+                           'ior': r'(?:_ior|^ior$)',
+                           'f0': r'(?:_f0|^f0$)',
+                           'metallic': r'(?:_metallic|^metallic$|_metalness|^metalness$)',
+                           'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
+                           'ao': r'(?:_ao|^ao$|_occlusion)',
+                           'preview': r'(?:_preview|^preview$|_render)'}
 
-MEGASCANS_SRGB_TEXTURES = ['diffuse', 'translucency']
-SUBSTANCE_SRGB_TEXTURES = ['diffuse', 'specular', 'emissive', 'translucency']
+PROVIDERS = ['megascans', 'generic']
+
+SRGB_COLOR_SPACES = ['sRGB', 'Utility - sRGB - Texture']
+LINEAR_COLOR_SPACES = ['linear', 'Utility - Linear - sRGB']
+
+DEFAULT_COLOR_SPACES = collections.OrderedDict()
+DEFAULT_COLOR_SPACES['diffuse'] = SRGB_COLOR_SPACES
+DEFAULT_COLOR_SPACES['specular'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['roughness'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['gloss'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['refraction'] = SRGB_COLOR_SPACES
+DEFAULT_COLOR_SPACES['bump'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['ior'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['f0'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['metallic'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['ao'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['translucency'] = SRGB_COLOR_SPACES
+DEFAULT_COLOR_SPACES['opacity'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['emissive'] = SRGB_COLOR_SPACES
+DEFAULT_COLOR_SPACES['preview'] = SRGB_COLOR_SPACES
+
+MEGASCANS_COLOR_SPACES = {'diffuse': SRGB_COLOR_SPACES,
+                          'translucency': SRGB_COLOR_SPACES}
+SUBSTANCE_COLOR_SPACES = {'diffuse': SRGB_COLOR_SPACES,
+                          'specular': SRGB_COLOR_SPACES,
+                          'emissive': SRGB_COLOR_SPACES,
+                          'translucency': SRGB_COLOR_SPACES}
+
+COLOR_SPACE_PRESETS = collections.OrderedDict()
+COLOR_SPACE_PRESETS['megascans'] = MEGASCANS_COLOR_SPACES
+COLOR_SPACE_PRESETS['substance'] = SUBSTANCE_COLOR_SPACES
 
 # Default material variables
 MATERIAL_SUFFIX = "_mtl"
@@ -33,6 +66,9 @@ TRANSLUCENCY_SUFFIX = "_translucency_tx"
 EMISSIVE_SUFFIX = "_emissive_tx"
 IOR_SUFFIX = "_ior_tx"
 IOR_DIVIDE_SUFFIX = "_ior_divide_tx"
+F0_SUFFIX = "_f0_tx"
+METALLIC_SUFFIX = "_metallic_tx"
+METALLIC_BLEND_SUFFIX = "_metallic_blend_tx"
 BUMP_SUFFIX = "_bump_tx"
 BUMP_MAP_SUFFIX = "_bump_map"
 NORMAL_SUFFIX = "_normal_tx"
@@ -50,29 +86,75 @@ DEFAULT_DISPLACEMENT_HEIGHT = .1
 DEFAULT_PLANT_DISPLACEMENT_HEIGHT = 0.01
 DEFAULT_UV_SCALE = (1, 1)
 DEFAULT_IOR = 1.5
+DEFAULT_METALLIC_IOR = 5
 DEFAULT_SPECULAR_STRENGTH = .2
 DEFAULT_AO_BLEND_STRENGTH = .85
 
 SUFFIXES = {
-	'diffuse': DIFFUSE_SUFFIX,
-	'specular': SPECULAR_COLOR_SUFFIX,
-	'roughness': SPECULAR_ROUGHNESS_SUFFIX,
-	'opacity': OPACITY_SUFFIX,
-	'refraction': REFRACTION_SUFFIX,
-	'translucency': TRANSLUCENCY_SUFFIX,
-	'emissive': EMISSIVE_SUFFIX,
-	'ior': IOR_SUFFIX,
-	'ior_divide': IOR_DIVIDE_SUFFIX,
-	'bump': BUMP_SUFFIX,
-	'bump_map': BUMP_MAP_SUFFIX,
-	'normal': NORMAL_SUFFIX,
-	'normal_map': NORMAL_MAP_SUFFIX,
-	'displacement': DISPLACEMENT_SUFFIX,
-	'displacement_map': DISPLACEMENT_MAP_SUFFIX,
-	'ao': OCCLUSION_SUFFIX,
-	'ao_blend': OCCLUSION_BLEND_SUFFIX,
-	'preview': PREVIEW_SUFFIX
+    'diffuse': DIFFUSE_SUFFIX,
+    'specular': SPECULAR_COLOR_SUFFIX,
+    'roughness': SPECULAR_ROUGHNESS_SUFFIX,
+    'opacity': OPACITY_SUFFIX,
+    'refraction': REFRACTION_SUFFIX,
+    'translucency': TRANSLUCENCY_SUFFIX,
+    'emissive': EMISSIVE_SUFFIX,
+    'ior': IOR_SUFFIX,
+    'ior_divide': IOR_DIVIDE_SUFFIX,
+    'f0': F0_SUFFIX,
+    'metallic': METALLIC_SUFFIX,
+    'bump': BUMP_SUFFIX,
+    'bump_map': BUMP_MAP_SUFFIX,
+    'normal': NORMAL_SUFFIX,
+    'normal_map': NORMAL_MAP_SUFFIX,
+    'displacement': DISPLACEMENT_SUFFIX,
+    'displacement_map': DISPLACEMENT_MAP_SUFFIX,
+    'ao': OCCLUSION_SUFFIX,
+    'ao_blend': OCCLUSION_BLEND_SUFFIX,
+    'preview': PREVIEW_SUFFIX
 }
+
+TEXTURE_CONTEXTS = {
+    'diffuse': ['diffuse', 'ao', 'ao_blend'],
+    'specular': ['specular'],
+    'roughness': ['roughness', 'gloss'],
+    'refraction': ['refraction'],
+    'ior': ['ior', 'ior_divide', 'f0', 'metallic'],
+    'displacement': ['displacement'],
+    'normal': ['normal', 'normal_map'],
+    'bump': ['bump', 'bump_map'],
+    'translucency': ['translucency'],
+    'opacity': ['opacity'],
+    'emissive': ['emissive']
+}
+
+# WARNING: Changing order may cause conflicts. The order is used for creating textures.
+TEXTURE_SETTINGS = collections.OrderedDict()
+TEXTURE_SETTINGS['diffuse'] = {'single_channel': False, 'suffix': DIFFUSE_SUFFIX,
+                               'connection': '.diffuse_front_color'}
+TEXTURE_SETTINGS['ao'] = {'single_channel': True, 'suffix': OCCLUSION_SUFFIX}
+TEXTURE_SETTINGS['specular'] = {'single_channel': False, 'suffix': SPECULAR_COLOR_SUFFIX,
+                                'connection': '.specular_1_color'}
+TEXTURE_SETTINGS['roughness'] = {'single_channel': True, 'suffix': SPECULAR_ROUGHNESS_SUFFIX,
+                                 'connection': '.specular_1_roughness'}
+TEXTURE_SETTINGS['gloss'] = {'single_channel': True, 'suffix': SPECULAR_ROUGHNESS_SUFFIX,
+                             'connection': '.specular_1_roughness', 'invert': True}
+TEXTURE_SETTINGS['refraction'] = {'single_channel': False, 'suffix': REFRACTION_SUFFIX,
+                                  'connection': '.transmission_color'}
+TEXTURE_SETTINGS['ior'] = {'single_channel': False, 'suffix': IOR_SUFFIX,
+                           'connection': '.specular_1_index_of_refraction'}
+TEXTURE_SETTINGS['f0'] = {'single_channel': False, 'suffix': F0_SUFFIX,
+                          'connection': '.specular_1_fresnel_reflectivity'}
+TEXTURE_SETTINGS['opacity'] = {'single_channel': True, 'suffix': OPACITY_SUFFIX,
+                               'connection': '.opacity'}
+TEXTURE_SETTINGS['metallic'] = {'single_channel': True, 'suffix': METALLIC_SUFFIX}
+TEXTURE_SETTINGS['displacement'] = {'single_channel': True, 'suffix': DISPLACEMENT_SUFFIX}
+TEXTURE_SETTINGS['normal'] = {'single_channel': False, 'suffix': NORMAL_SUFFIX}
+TEXTURE_SETTINGS['bump'] = {'single_channel': True, 'suffix': BUMP_SUFFIX}
+TEXTURE_SETTINGS['translucency'] = {'single_channel': False, 'suffix': TRANSLUCENCY_SUFFIX,
+                                    'connection': '.diffuse_back_color'}
+TEXTURE_SETTINGS['emissive'] = {'single_channel': False, 'suffix': EMISSIVE_SUFFIX,
+                                'connection': '.emission_color'}
+TEXTURE_SETTINGS['preview'] = {'single_channel': False, 'suffix': PREVIEW_SUFFIX}
 
 # Other Suffixes & Variables
 BLUR_SUFFIX = "_blur"
@@ -88,6 +170,7 @@ LIBRARY_MIXER_CTX = "mixer"
 IMPORTER_PATH_DELIMITER = "|"
 DECIMATE_SUFFIX = "_decimate"
 POINTCLOUD_SUFFIX = "_pc"
+POINTCLOUD_CTX = "point_cloud"
 
 # Diffuse Tint variables
 DIFFUSE_TINT_SUFFIX = "_tint_tx"
@@ -126,9 +209,11 @@ HEIGHT_GRADIENT_SUFFIX = "_height_gradient_tx"
 DISPLACEMENT_BLEND_SUFFIX = "_displacement_blend_tx"
 MULTI_BLEND_SUFFIX = "_multi_blend_tx"
 MOISTURE_SUFFIX = "_moisture"
+MOISTURE_CTX = "moisture"
 
 try:
-	from user_settings import *
-	logging.debug("CUSTOM SETTINGS FOUND")
+    from user_settings import *
+
+    logging.debug("CUSTOM SETTINGS FOUND")
 except ImportError:
-	logging.debug("NO CUSTOM SETTINGS FOUND")
+    logging.debug("NO CUSTOM SETTINGS FILE FOUND")

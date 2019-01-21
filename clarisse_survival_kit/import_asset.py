@@ -6,49 +6,32 @@ import logging
 def import_asset_gui(**kwargs):
     logging.debug("Import Asset GUI started")
     ix = get_ix(kwargs.get('ix'))
-    result = {'object_space': 0}
+    auto_cycle_name = 'Auto (Cycle)'
 
     class EventRewire(ix.api.EventObject):
-        def mapping_refresh(self, sender, evtid):
-            for index, checkbox in mapping_checkboxes.iteritems():
-                checkbox.set_value(checkbox == sender)
-
-        def os_base_refresh(self, sender, evtid):
-            result['object_space'] = 0
-            os_world_checkbox.set_value(False)
-            os_base_checkbox.set_value(True)
-
-        def os_world_refresh(self, sender, evtid):
-            result['object_space'] = 2
-            os_world_checkbox.set_value(True)
-            os_base_checkbox.set_value(False)
-
-        def color_space_preset(self, sender, evtid):
-            if sender == megascans_srgb_checkbox:
-                megascans_srgb_checkbox.set_value(True)
-                substance_srgb_checkbox.set_value(False)
-                for index, checkbox in color_space_checkboxes.iteritems():
-                    checkbox.set_value(index in MEGASCANS_SRGB_TEXTURES)
-            elif sender == substance_srgb_checkbox:
-                substance_srgb_checkbox.set_value(True)
-                megascans_srgb_checkbox.set_value(False)
-                for index, checkbox in color_space_checkboxes.iteritems():
-                    checkbox.set_value(index in SUBSTANCE_SRGB_TEXTURES)
+        def color_space_preset_refresh(self, sender, evtid):
+            if sender == color_space_presets_list:
+                color_space_preset = DEFAULT_COLOR_SPACES.copy()
+                color_space_preset.update(COLOR_SPACE_PRESETS.get(sender.get_selected_item_name().lower()))
+                if color_space_preset:
+                    for key, color_space_list_button in color_space_list_buttons.iteritems():
+                        for color_space in color_spaces:
+                            if color_space_preset.get(key) and color_space in color_space_preset[key]:
+                                color_space_list_button.set_selected_item_by_index(color_spaces.index(color_space))
             else:
-                srgb = []
-                for index, checkbox in color_space_checkboxes.iteritems():
-                    if checkbox.get_value():
-                        srgb.append(index)
-                if set(srgb) == set(MEGASCANS_SRGB_TEXTURES):
-                    megascans_srgb_checkbox.set_value(True)
-                    substance_srgb_checkbox.set_value(False)
-                elif set(srgb) == set(SUBSTANCE_SRGB_TEXTURES):
-                    print list(set(srgb).intersection(set(SUBSTANCE_SRGB_TEXTURES)))
-                    megascans_srgb_checkbox.set_value(False)
-                    substance_srgb_checkbox.set_value(True)
-                else:
-                    megascans_srgb_checkbox.set_value(False)
-                    substance_srgb_checkbox.set_value(False)
+                select_id = 0
+                for preset_index, preset in COLOR_SPACE_PRESETS.items():
+                    passes = True
+                    color_space_preset = DEFAULT_COLOR_SPACES.copy()
+                    color_space_preset.update(preset)
+                    for key, color_space_list_button in color_space_list_buttons.iteritems():
+                        if not color_space_list_button.get_selected_item_name() in color_space_preset[key]:
+                            passes = False
+                            break
+                    if passes:
+                        select_id = COLOR_SPACE_PRESETS.keys().index(preset_index) + 1
+                color_space_presets_list.set_selected_item_by_index(select_id)
+            return None
 
         def path_refresh(self, sender, evtid):
             directory = ix.api.GuiWidget.open_folder(ix.application, '',
@@ -69,23 +52,23 @@ def import_asset_gui(**kwargs):
                 directories = directory_txt.split(IMPORTER_PATH_DELIMITER)
                 for directory in directories:
                     if os.path.isdir(directory):
-                        srgb = []
-                        for index, checkbox in color_space_checkboxes.iteritems():
-                            if checkbox.get_value():
-                                srgb.append(index)
-                        mapping = None
-                        for index, checkbox in mapping_checkboxes.iteritems():
-                            if checkbox.get_value():
-                                mapping = index
-                        logging.debug("Import Asset called")
-                        surface = import_asset(directory,
-                                               projection_type=mapping,
-                                               clip_opacity=clip_opacity_checkbox.get_value(),
-                                               object_space=result['object_space'],
-                                               srgb=srgb,
-                                               triplanar_blend=triplanar_blend_field.get_value(),
-                                               ior=ior_field.get_value(),
-                                               ix=ix)
+                        logging.debug("Import Controller called")
+                        provider_name = provider_list.get_selected_item_name().lower()
+                        if provider_name == auto_cycle_name.lower():
+                            provider_name = None
+                        color_space_selection = {}
+                        for color_space_key, color_space_list_button in color_space_list_buttons.items():
+                            color_space_selection[color_space_key] = color_space_list_button.get_selected_item_name()
+                        surface = import_controller(directory,
+                                                    provider_name=provider_name,
+                                                    projection_type=mapping_list.get_selected_item_name().lower(),
+                                                    clip_opacity=clip_opacity_checkbox.get_value(),
+                                                    object_space=os_list.get_selected_item_index(),
+                                                    color_spaces=color_space_selection,
+                                                    triplanar_blend=triplanar_blend_field.get_value(),
+                                                    ior=ior_field.get_value(),
+                                                    metallic_ior=metallic_ior_field.get_value(),
+                                                    ix=ix)
                         if surface:
                             ix.selection.deselect_all()
                             ix.selection.add(surface.mtl)
@@ -106,162 +89,116 @@ def import_asset_gui(**kwargs):
                           ix.api.GuiWidget.CONSTRAINT_RIGHT, ix.api.GuiWidget.CONSTRAINT_BOTTOM)
 
     # Form generation
-    separator_label1 = ix.api.GuiLabel(panel, 10, 10, 380, 22, "[ ASSET PATH ]")
+    separator_label1 = ix.api.GuiLabel(panel, 10, 10, 380, 22, "[ ASSET DIRECTORY: ]")
     separator_label1.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
     path_button = ix.api.GuiPushButton(panel, 320, 40, 60, 22, "Browse")
     path_txt = ix.api.GuiLineEdit(panel, 10, 40, 300, 22)
-    separator_label2 = ix.api.GuiLabel(panel, 10, 100, 380, 22, "[ MAPPING ]")
+
+    separator_label2 = ix.api.GuiLabel(panel, 10, 70, 380, 22, "[ CONTENT PROVIDER: ]")
     separator_label2.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
-    uv_label = ix.api.GuiLabel(panel, 10, 130, 100, 22,
-                               "UV:")
-    uv_checkbox = ix.api.GuiCheckbox(panel, 180, 130, "")
-    cubic_label = ix.api.GuiLabel(panel, 220, 130, 100, 22,
-                                  "Cubic:")
-    cubic_checkbox = ix.api.GuiCheckbox(panel, 370, 130, "")
-    # triplanar_label = ix.api.GuiLabel(panel, 10, 160, 150, 22,
-    #                                          "Triplanar:")
-    triplanar_blend_field = ix.api.GuiNumberField(panel, 97, 160, 50, "Triplanar Blend:")
+
+    provider_label = ix.api.GuiLabel(panel, 10, 100, 150, 22, "Provider: ")
+    provider_list = ix.api.GuiListButton(panel, 180, 100, 120, 22)
+    provider_list.add_item(auto_cycle_name)
+    provider_list.add_separator()
+    for object_space_option in PROVIDERS:
+        provider_list.add_item(object_space_option.capitalize())
+    provider_list.set_selected_item_by_index(0)
+
+    separator_label3 = ix.api.GuiLabel(panel, 10, 130, 380, 22, "[ MAPPING ]")
+    separator_label3.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
+
+    mapping_label = ix.api.GuiLabel(panel, 10, 160, 180, 22, "Projection: ")
+    mapping_types = ['uv', 'triplanar', 'cubic', 'spherical', 'planar', 'cylindrical']
+    mapping_list = ix.api.GuiListButton(panel, 180, 160, 120, 22)
+    for mapping_type in mapping_types:
+        mapping_list.add_item(mapping_type.capitalize())
+    mapping_list.set_selected_item_by_index(1)
+
+    os_label = ix.api.GuiLabel(panel, 10, 190, 150, 22, "Object Space: ")
+    os_list = ix.api.GuiListButton(panel, 180, 190, 120, 22)
+    for object_space_option in ['Object (Base)', 'Object (Deformed)', 'Instance', 'World']:
+        os_list.add_item(object_space_option)
+
+    triplanar_label = ix.api.GuiLabel(panel, 10, 220, 150, 22,
+                                             "Triplanar blend:")
+    triplanar_blend_field = ix.api.GuiNumberField(panel, 180, 220, 50, "")
     triplanar_blend_field.set_slider_range(0, 1)
     triplanar_blend_field.set_increment(0.1)
     triplanar_blend_field.enable_slider_range(True)
 
-    triplanar_checkbox = ix.api.GuiCheckbox(panel, 180, 160, "")
-    spherical_label = ix.api.GuiLabel(panel, 220, 160, 100, 22,
-                                      "Spherical:")
-    spherical_checkbox = ix.api.GuiCheckbox(panel, 370, 160, "")
-    planar_label = ix.api.GuiLabel(panel, 10, 190, 150, 22,
-                                   "Planar (Y):")
-    planar_checkbox = ix.api.GuiCheckbox(panel, 180, 190, "")
-    cylindrical_label = ix.api.GuiLabel(panel, 220, 190, 150, 22,
-                                        "Cylindrical:")
-    cylindrical_checkbox = ix.api.GuiCheckbox(panel, 370, 190, "")
-
-    mapping_checkboxes = {
-        'uv': uv_checkbox,
-        'triplanar': triplanar_checkbox,
-        'cubic': cubic_checkbox,
-        'spherical': spherical_checkbox,
-        'planar': planar_checkbox,
-        'cylindrical': cylindrical_checkbox
-    }
-
-    os_base_label = ix.api.GuiLabel(panel, 10, 220, 150, 22,
-                                    "Object Space (Base): ")
-    os_base_checkbox = ix.api.GuiCheckbox(panel, 180, 220, "")
-    os_world_label = ix.api.GuiLabel(panel, 220, 220, 150, 22,
-                                     "Object Space (World): ")
-    os_world_checkbox = ix.api.GuiCheckbox(panel, 370, 220, "")
-    separator_label3 = ix.api.GuiLabel(panel, 10, 280, 380, 22, "[ COLOR SPACE: sRGB ]")
-    separator_label3.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
-
-    megascans_label = ix.api.GuiLabel(panel, 190, 280, 150, 22,
-                                      "Megascans:")
-    megascans_srgb_checkbox = ix.api.GuiCheckbox(panel, 260, 280, "")
-    substance_label = ix.api.GuiLabel(panel, 300, 280, 150, 22,
-                                      "Substance:")
-    substance_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 280, "")
-
-    diffuse_srgb_label = ix.api.GuiLabel(panel, 10, 310, 150, 22,
-                                         "Diffuse: ")
-    diffuse_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 310, "")
-    specular_srgb_label = ix.api.GuiLabel(panel, 220, 310, 150, 22,
-                                          "Specular: ")
-    specular_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 310, "")
-
-    roughness_srgb_label = ix.api.GuiLabel(panel, 10, 340, 150, 22,
-                                           "Roughness: ")
-    roughness_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 340, "")
-    normal_srgb_label = ix.api.GuiLabel(panel, 220, 340, 150, 22,
-                                        "Normal: ")
-    normal_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 340, "")
-
-    displacement_srgb_label = ix.api.GuiLabel(panel, 10, 370, 150, 22,
-                                              "Displacement: ")
-    displacement_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 370, "")
-    bump_srgb_label = ix.api.GuiLabel(panel, 220, 370, 150, 22,
-                                      "Bump: ")
-    bump_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 370, "")
-
-    emissive_srgb_label = ix.api.GuiLabel(panel, 10, 400, 150, 22,
-                                          "Emissive: ")
-    emissive_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 400, "")
-    ior_srgb_label = ix.api.GuiLabel(panel, 220, 400, 150, 22,
-                                     "IOR: ")
-    ior_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 400, "")
-
-    opacity_srgb_label = ix.api.GuiLabel(panel, 10, 430, 150, 22,
-                                         "Opacity: ")
-    opacity_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 430, "")
-    translucency_srgb_label = ix.api.GuiLabel(panel, 220, 430, 150, 22,
-                                              "Translucency: ")
-    translucency_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 430, "")
-
-    refraction_srgb_label = ix.api.GuiLabel(panel, 10, 460, 150, 22,
-                                            "Refraction: ")
-    refraction_srgb_checkbox = ix.api.GuiCheckbox(panel, 180, 460, "")
-
-    ao_srgb_label = ix.api.GuiLabel(panel, 220, 460, 150, 22,
-                                    "AO: ")
-    ao_srgb_checkbox = ix.api.GuiCheckbox(panel, 370, 460, "")
-
-    color_space_checkboxes = {
-        'diffuse': diffuse_srgb_checkbox,
-        'specular': specular_srgb_checkbox,
-        'roughness': roughness_srgb_checkbox,
-        'normal': normal_srgb_checkbox,
-        'displacement': displacement_srgb_checkbox,
-        'bump': bump_srgb_checkbox,
-        'emissive': emissive_srgb_checkbox,
-        'ior': ior_srgb_checkbox,
-        'refraction': refraction_srgb_checkbox,
-        'translucency': translucency_srgb_checkbox,
-        'opacity': opacity_srgb_checkbox,
-        'ao': ao_srgb_checkbox
-    }
-
-    separator_label4 = ix.api.GuiLabel(panel, 10, 520, 380, 22, "[ OTHER OPTIONS ]")
+    separator_label4 = ix.api.GuiLabel(panel, 10, 280, 380, 22, "[ COLOR SPACES: ]")
     separator_label4.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
+
+    color_space_presets_list = ix.api.GuiListButton(panel, 270, 280, 120, 22)
+    color_space_presets_list.add_item('Custom')
+    color_space_presets_list.add_separator()
+    for key, color_space_preset in COLOR_SPACE_PRESETS.items():
+        color_space_presets_list.add_item(key.capitalize())
+    color_space_presets_list.set_selected_item_by_index(1)
+
+    color_spaces = []
+    for name in ix.api.ColorIO.get_color_space_names():
+        color_spaces.append(name)
+
+    offset_y = 280
+
+    color_space_list_buttons = {}
+    color_space_labels = {}
+    i = 0
+    color_space_items = DEFAULT_COLOR_SPACES.copy()
+    color_space_items.pop('preview')
+
+    for key, options in color_space_items.items():
+        offset_x = 10 if (i % 2) == 0 else 220
+        if (i % 2) == 0:
+            offset_y += 30
+        color_space_labels[key] = ix.api.GuiLabel(panel, offset_x, offset_y, 150, 22,
+                                                                  ("%s: " % key).capitalize())
+        gui_list = ix.api.GuiListButton(panel, offset_x + 90, offset_y, 80, 22)
+        default_selected_index = 0
+        for color_space in color_spaces:
+            gui_list.add_item(color_space)
+            if color_space in options:
+                default_selected_index = color_spaces.index(color_space)
+        gui_list.set_selected_item_by_index(default_selected_index)
+        color_space_list_buttons[key] = gui_list
+        i += 1
+
+    separator_label5 = ix.api.GuiLabel(panel, 10, 520, 380, 22, "[ OTHER OPTIONS ]")
+    separator_label5.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
     clip_opacity_label = ix.api.GuiLabel(panel, 10, 550, 150, 22,
                                          "Clip opacity: ")
     clip_opacity_checkbox = ix.api.GuiCheckbox(panel, 180, 550, "")
-    ior_field = ix.api.GuiNumberField(panel, 280, 550, 50, "IOR value:")
+
+    ior_label = ix.api.GuiLabel(panel, 10, 580, 150, 22, "IOR value:")
+    ior_field = ix.api.GuiNumberField(panel, 145, 580, 50, "")
     ior_field.set_slider_range(1, 10)
     ior_field.set_increment(0.1)
     ior_field.enable_slider_range(True)
+    metallic_ior_label = ix.api.GuiLabel(panel, 220, 580, 150, 22, "Metallic IOR value:")
+    metallic_ior_field = ix.api.GuiNumberField(panel, 335, 580, 50, "")
+    metallic_ior_field.set_slider_range(1, 10)
+    metallic_ior_field.set_increment(0.1)
+    metallic_ior_field.enable_slider_range(True)
 
     close_button = ix.api.GuiPushButton(panel, 10, 610, 100, 22, "Close")
     run_button = ix.api.GuiPushButton(panel, 130, 610, 250, 22, "Import")
 
     # init values
-    triplanar_checkbox.set_value(True)
     triplanar_blend_field.set_value(0.5)
     ior_field.set_value(DEFAULT_IOR)
+    metallic_ior_field.set_value(DEFAULT_METALLIC_IOR)
 
     clip_opacity_checkbox.set_value(True)
-    os_base_checkbox.set_value(True)
-
-    megascans_srgb_checkbox.set_value(True)
 
     # Connect to function
     event_rewire = EventRewire()  # init the class
-
-    event_rewire.connect(os_base_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                         event_rewire.os_base_refresh)
-    event_rewire.connect(os_world_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                         event_rewire.os_world_refresh)
-    for key, mapping_checkbox in mapping_checkboxes.iteritems():
-        event_rewire.connect(mapping_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                             event_rewire.mapping_refresh)
-
-    for key, color_space_checkbox in color_space_checkboxes.iteritems():
-        if key in MEGASCANS_SRGB_TEXTURES:
-            color_space_checkbox.set_value(True)
-        event_rewire.connect(color_space_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                             event_rewire.color_space_preset)
-    event_rewire.connect(megascans_srgb_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                         event_rewire.color_space_preset)
-    event_rewire.connect(substance_srgb_checkbox, 'EVT_ID_CHECKBOX_CLICK',
-                         event_rewire.color_space_preset)
+    event_rewire.connect(color_space_presets_list, 'EVT_ID_LIST_BUTTON_SELECT',
+                         event_rewire.color_space_preset_refresh)
+    for key, color_space_list_button in color_space_list_buttons.iteritems():
+        event_rewire.connect(color_space_list_button, 'EVT_ID_LIST_BUTTON_SELECT',
+                             event_rewire.color_space_preset_refresh)
     event_rewire.connect(path_button, 'EVT_ID_PUSH_BUTTON_CLICK',
                          event_rewire.path_refresh)
     event_rewire.connect(close_button, 'EVT_ID_PUSH_BUTTON_CLICK',

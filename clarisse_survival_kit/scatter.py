@@ -40,10 +40,13 @@ def generate_decimated_pointcloud_gui():
                                                fractal_blend=fractal_blend_checkbox.get_value(),
                                                triplanar_blend=triplanar_blend_checkbox.get_value(),
                                                ao_blend=ao_blend_checkbox.get_value(), ix=ix)
-            ix.selection.deselect_all()
-            ix.selection.add(pc)
-            ix.end_command_batch()
-            sender.get_window().hide()
+            if pc:
+                ix.selection.deselect_all()
+                ix.selection.add(pc)
+                ix.end_command_batch()
+                sender.get_window().hide()
+            else:
+                ix.end_command_batch()
 
     # Window creation
     clarisse_win = ix.application.get_event_window()

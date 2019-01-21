@@ -1,7 +1,5 @@
-import sys
-
 from clarisse_survival_kit.app import *
-from clarisse_survival_kit.utility import check_selection
+from clarisse_survival_kit.providers.megascans import import_ms_library
 
 
 def import_ms_library_gui():

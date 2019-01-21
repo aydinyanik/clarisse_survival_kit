@@ -1,5 +1,4 @@
-from clarisse_survival_kit.app import *
-from clarisse_survival_kit.utility import check_selection
+from clarisse_survival_kit.utility import check_selection, tx_to_triplanar
 
 
 def textures_to_triplanar_gui():

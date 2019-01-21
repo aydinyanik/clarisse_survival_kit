@@ -2,8 +2,7 @@ import os
 import re
 import logging
 
-from clarisse_survival_kit.settings import IMAGE_FORMATS, FILENAME_MATCH_TEMPLATE, MATERIAL_SUFFIX, \
-    DISPLACEMENT_MAP_SUFFIX
+from clarisse_survival_kit.settings import *
 
 
 def add_gradient_key(attr, position, color, **kwargs):
@@ -54,48 +53,67 @@ def get_ix(ix_local):
         return ix
 
 
-def get_textures_from_directory(directory):
+def get_textures_from_directory(directory, filename_match_template=FILENAME_MATCH_TEMPLATE,
+                                image_formats=IMAGE_FORMATS):
     """Returns texture files which exist in the specified directory."""
     logging.debug("Searching for textures inside: " + str(directory))
-    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     textures = {}
-    for f in files:
-        filename, extension = os.path.splitext(f)
-        extension = extension.lower().lstrip('.')
-        if extension in IMAGE_FORMATS:
-            logging.debug("Found image: " + str(f))
-            path = os.path.join(directory, f)
-            path = os.path.normpath(path)
-            for key, pattern in FILENAME_MATCH_TEMPLATE.iteritems():
-                match = re.search(pattern, filename, re.IGNORECASE)
-                if match:
-                    logging.debug("Image matches with: " + str(key))
-                    if key == 'normal_lods':
-                        if type(textures.get(key)) != list:
-                            textures[key] = []
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            filename, extension = os.path.splitext(f)
+            extension = extension.lower().lstrip('.')
+            if extension in image_formats:
+                logging.debug("Found image: " + str(f))
+                path = os.path.normpath(os.path.join(root, f))
+                for key, pattern in filename_match_template.iteritems():
+                    match = re.search(pattern, filename, re.IGNORECASE)
+                    if match:
+                        logging.debug("Image matches with: " + str(key))
+                        if key == 'normal_lods':
+                            if type(textures.get(key)) != list:
+                                textures[key] = []
+                            else:
+                                # Check if another file extension exists.
+                                # If so use the first that occurs in the image_formats list.
+                                previous_extension = os.path.splitext(textures[key][-1])[-1].lstrip('.')
+                                if image_formats.index(previous_extension) > image_formats.index(extension):
+                                    textures[key] = path
+                                    continue
+                            textures[key].append(path)
                         else:
                             # Check if another file extension exists.
-                            # If so use the first that occurs in the IMAGE_FORMATS list.
-                            previous_extension = os.path.splitext(textures[key][-1])[-1].lstrip('.')
-                            if IMAGE_FORMATS.index(previous_extension) > IMAGE_FORMATS.index(extension):
+                            # If so use the first that occurs in the image_formats list.
+                            if key in textures:
+                                previous_extension = os.path.splitext(textures[key])[-1].lstrip('.')
+                                if image_formats.index(previous_extension) > image_formats.index(extension):
+                                    textures[key] = path
+                            else:
                                 textures[key] = path
-                                continue
-                        textures[key].append(path)
-                    else:
-                        # Check if another file extension exists.
-                        # If so use the first that occurs in the IMAGE_FORMATS list.
-                        if key in textures:
-                            previous_extension = os.path.splitext(textures[key])[-1].lstrip('.')
-                            if IMAGE_FORMATS.index(previous_extension) > IMAGE_FORMATS.index(extension):
-                                textures[key] = path
-                        else:
-                            textures[key] = path
     if textures:
         logging.debug("Textures found in directory: " + directory)
         logging.debug(str(textures))
     else:
         logging.debug("No textures found in directory.")
     return textures
+
+
+def get_geometry_from_directory(directory):
+    """Returns texture files which exist in the specified directory."""
+    logging.debug("Searching for meshes inside: " + str(directory))
+    meshes = []
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            if filename.lower().endswith(('.obj', '.abc', '.lwo')):
+                logging.debug("Found mesh file: " + str(filename))
+                path = os.path.join(root, filename)
+                path = os.path.normpath(path)
+                meshes.append(path)
+    if meshes:
+        logging.debug("Meshes found in directory: " + directory)
+        logging.debug(str(meshes))
+    else:
+        logging.debug("No meshes found in directory.")
+    return meshes
 
 
 def get_stream_map_files(textures):
@@ -114,7 +132,7 @@ def get_stream_map_files(textures):
             filename, extension = os.path.splitext(texture)
             extension = extension.lower().lstrip('.')
 
-            udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", filename)
+            udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", os.path.split(filename)[-1])
             if udim_match or extension == "tx":
                 logging.debug("Streamed map file found.")
                 stream_map_files.append(index)
@@ -246,7 +264,95 @@ def check_selection(selection, is_kindof=[""], max_num=0, min_num=1):
 def check_context(ctx, **kwargs):
     """Tests if you can write to specified context."""
     ix = get_ix(kwargs.get("ix"))
-    if (not ctx.is_editable()) and ctx.is_content_locked() and ctx.is_remote():
-        ix.log_error("Cannot write to context, because it's locked.")
+    if (not ctx.is_editable()) or ctx.is_content_locked() or ctx.is_remote():
+        ix.log_warning("Cannot write to context, because it's locked.")
         return False
     return True
+
+
+def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
+    """Gets all subcontexts."""
+    ix = get_ix(kwargs.get("ix"))
+    current_depth += 1
+    results = []
+    for i in range(ctx.get_context_count()):
+        sub_context = ctx.get_context(i)
+        results.append(sub_context)
+        # 0 is infinite
+        if current_depth <= max_depth or max_depth == 0:
+            for result in get_sub_contexts(sub_context, name, max_depth, current_depth, ix=ix):
+                if result not in results:
+                    results.append(result)
+    if name:
+        for sub_ctx in results:
+            if os.path.basename(str(sub_ctx)) == name:
+                return sub_ctx
+        return []
+    return results
+
+
+def get_items(ctx, kind=None, max_depth=0, current_depth=0, **kwargs):
+    """Gets all items recursively."""
+    ix = get_ix(kwargs.get("ix"))
+    result = []
+    items = ix.api.OfItemVector()
+    sub_ctxs = get_sub_contexts(ctx, max_depth=max_depth, current_depth=current_depth, ix=ix)
+    sub_ctxs.insert(0, ctx)
+    for sub_ctx in sub_ctxs:
+        if sub_ctx.get_object_count():
+            objects_array = ix.api.OfObjectArray(sub_ctx.get_object_count())
+            flags = ix.api.CoreBitFieldHelper()
+            sub_ctx.get_all_objects(objects_array, flags, False)
+            for i_obj in range(sub_ctx.get_object_count()):
+                if kind is not None:
+                    if objects_array[i_obj].is_kindof(kind):
+                        items.add(objects_array[i_obj])
+                else:
+                    items.add(objects_array[i_obj])
+    for item in items:
+        result.append(item)
+    return result
+
+
+def tx_to_triplanar(tx, blend=0.5, object_space=0, **kwargs):
+    """Converts the texture to triplanar."""
+    logging.debug("Converting texture to triplanar: " + str(tx))
+    ix = get_ix(kwargs.get("ix"))
+    print "Triplanar Blend: " + str(blend)
+    ctx = tx.get_context()
+    triplanar = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar", "Global",
+                                     str(ctx))
+    connected_attrs = ix.api.OfAttrVector()
+
+    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
+
+    for i_attr in range(0, connected_attrs.get_count()):
+        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(triplanar))
+    ix.cmds.SetTexture([str(triplanar) + ".right"], str(tx))
+    ix.cmds.SetTexture([str(triplanar) + ".left"], str(tx))
+    ix.cmds.SetTexture([str(triplanar) + ".top"], str(tx))
+    ix.cmds.SetTexture([str(triplanar) + ".bottom"], str(tx))
+    ix.cmds.SetTexture([str(triplanar) + ".front"], str(tx))
+    ix.cmds.SetTexture([str(triplanar) + ".back"], str(tx))
+    ix.cmds.SetValues([str(triplanar) + '.blend', str(triplanar) + '.object_space'],
+                      [str(blend), str(object_space)])
+    return triplanar
+
+
+def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
+    """Blurs the texture."""
+    logging.debug("Blurring selected texture: " + str(tx))
+    ix = get_ix(kwargs.get("ix"))
+    ctx = tx.get_context()
+    blur = ix.cmds.CreateObject(tx.get_contextual_name() + BLUR_SUFFIX, "TextureBlur", "Global", str(ctx))
+
+    connected_attrs = ix.api.OfAttrVector()
+
+    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
+
+    for i_attr in range(0, connected_attrs.get_count()):
+        ix.cmds.SetTexture([connected_attrs[i_attr].get_full_name()], blur.get_full_name())
+    ix.cmds.SetTexture([str(blur) + ".color"], str(tx))
+    blur.attrs.radius = radius
+    blur.attrs.quality = quality
+    return blur
