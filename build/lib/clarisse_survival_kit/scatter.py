@@ -23,7 +23,7 @@ def generate_decimated_pointcloud_gui():
 
         def run(self, sender, evtid):
             geometry = None
-            if check_selection([ix.selection[0]], is_kindof=["Geometry"], max_num=1):
+            if check_selection([ix.selection[0]], is_kindof=["Geometry", "SceneObjectCombiner"], max_num=1):
                 geometry = ix.selection[0]
             else:
                 ix.log_warning("Please select an object to scatter on.")

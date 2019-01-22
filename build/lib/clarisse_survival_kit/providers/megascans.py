@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import multiprocessing.dummy as mp
 
 from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.utility import *
@@ -31,7 +32,7 @@ def import_asset(asset_directory, report=None, **kwargs):
 
 
 def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_type='triplanar', object_space=0,
-                   clip_opacity=True, color_spaces=(), triplanar_blend=0.5, **kwargs):
+                   clip_opacity=True, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
     """Imports a Megascans surface."""
     logging.debug("++++++++++++++++++++++.")
     logging.debug("Import Megascans surface called.")
@@ -234,7 +235,7 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
 
 
 def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_space=0, clip_opacity=True,
-                   use_displacement=False, color_spaces=(), triplanar_blend=0.5, **kwargs):
+                   use_displacement=False, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************")
@@ -439,8 +440,7 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
                     if os.path.isdir(asset_directory_path):
                         if not ix.item_exists(str(ctx) + "/" + asset_directory_name):
                             print "Importing asset: " + asset_directory_path
-                            import_asset(asset_directory_path, target_ctx=ctx, color_spaces=MEGASCANS_COLOR_SPACES,
-                                         ix=ix)
+                            import_asset(asset_directory_path, target_ctx=ctx, ix=ix)
     if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
         logging.debug("My Assets exists...")
         import_ms_library(os.path.join(library_dir, "My Assets"), target_ctx=target_ctx,
