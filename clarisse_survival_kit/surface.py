@@ -196,9 +196,7 @@ class Surface:
             if index in texture_indices:
                 assigned_ctx = key
         if assigned_ctx:
-            print assigned_ctx
             sub_ctx = self.get_sub_ctx(index)
-            print sub_ctx
             if sub_ctx:
                 return sub_ctx
             else:
@@ -211,9 +209,7 @@ class Surface:
         for key, texture_indices in TEXTURE_CONTEXTS.iteritems():
             if index in texture_indices:
                 ctx_path = str(self.ctx) + "/" + key
-                print "Testing if exists: " + ctx_path
                 if self.ix.item_exists(ctx_path):
-                    print "Exists: " + ctx_path
                     return self.ix.get_item(ctx_path)
         return None
 
@@ -395,7 +391,6 @@ class Surface:
         ao_blend_tx = self.ix.cmds.CreateObject(self.name + AO_BLEND_SUFFIX, "TextureBlend", "Global",
                                                 str(self.get_sub_ctx('diffuse')))
         diffuse_tx = self.get('diffuse_triplanar', 'diffuse')
-        print "DIFFUSE TX: " + str(diffuse_tx)
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(ao_tx))
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])

@@ -4,6 +4,7 @@ import logging
 import datetime
 import site
 import platform
+import importlib
 
 sys.dont_write_bytecode = True
 
@@ -35,17 +36,25 @@ for sitepackages_folder in sitepackages_folders:
         if not os.path.isfile(init_path):
             init_file = open(init_path, 'w+')
             init_file.close()
+
+        log_level = logging.ERROR
         settings_path = os.path.join(user_path, settings_filename)
         if not os.path.isfile(settings_path):
             settings_file = open(settings_path, 'w+')
             settings_file.close()
+        else:
+            try:
+                from user_settings import LOG_LEVEL
+                log_level = LOG_LEVEL
+            except ImportError:
+                pass
 
         log_path = os.path.join(user_path, logging_filename)
         if os.path.isfile(log_path):
             with open(log_path, "w") as log_file:
                 log_file.truncate()
 
-        logging.basicConfig(filename=log_path, level=logging.DEBUG, format='%(message)s')
+        logging.basicConfig(filename=log_path, level=log_level, format='%(message)s')
         log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         logging.debug("--------------------------------------")
         logging.debug("Log start: " + log_start)
