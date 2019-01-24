@@ -1,28 +1,32 @@
 from clarisse_survival_kit.selectors import *
 from clarisse_survival_kit.utility import *
+from clarisse_survival_kit.surface import Surface
 import importlib
 
 
-def import_controller(asset_directory, provider_name=PROVIDERS[0], **kwargs):
+def import_controller(asset_directory, selected_provider=None, **kwargs):
     """Imports a surface, atlas or object."""
     logging.debug("Importing asset...")
     logging.debug("Arguments: " + str(kwargs))
     ix = get_ix(kwargs.get("ix"))
 
-    if not provider_name:
-        provider_name = PROVIDERS[0]
-    provider = importlib.import_module('clarisse_survival_kit.providers.' + provider_name)
-    logging.debug("Checking if provider matches inspection: " + provider_name)
+    provider_names = PROVIDERS
+    if selected_provider:
+        provider_names = [PROVIDERS[PROVIDERS.index(selected_provider)]]
 
     asset = None
-    report = provider.inspect_asset(asset_directory)
-    if report:
-        asset = provider.import_asset(asset_directory, report, **kwargs)
-    else:
-        logging.debug("Provider inspection did not return anything. Falling back to next provider.")
-        if provider_name != PROVIDERS[-1]:
-            next_provider = PROVIDERS[PROVIDERS.index(provider_name) + 1]
-            asset = import_controller(asset_directory, provider_name=next_provider, **kwargs)
+    for provider_name in provider_names:
+        logging.debug("Checking if provider matches inspection: " + provider_name)
+        provider = importlib.import_module('clarisse_survival_kit.providers.' + provider_name)
+        report = provider.inspect_asset(asset_directory)
+        if report:
+            asset = provider.import_asset(asset_directory, report=report, **kwargs)
+            break
+        else:
+            logging.debug('Provider %s did not pass inspection' % provider_name)
+            if selected_provider:
+                ix.log_warning('Content provider could not find asset in the specified directory.')
+                return None
     return asset
 
 
@@ -268,80 +272,97 @@ def tint_surface(ctx, color, strength=.5, **kwargs):
         return None
 
 
-def replace_surface(ctx, surface_directory, ior=DEFAULT_IOR, projection_type="triplanar", object_space=0,
-                    clip_opacity=True, srgb=(), triplanar_blend=0.5, **kwargs):
+def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     """
     Replace the selected surface context with a different surface.
     Links between blend materials are maintained.
     """
-    # logging.debug("Replace surface called")
-    # ix = get_ix(kwargs.get("ix"))
-    # if not check_context(ctx, ix=ix):
-    #     return None
-    #
-    # surface_directory = os.path.normpath(surface_directory)
-    # if not os.path.isdir(surface_directory):
-    #     return ix.log_warning("Invalid directory specified: " + surface_directory)
-    # logging.debug("Surface directory:" + surface_directory)
-    #
-    # # Initial data
-    # json_data = get_json_data_from_directory(surface_directory)
-    # if not json_data:
-    #     ix.log_warning("Could not find a Megascans JSON file. Defaulting to standard settings.")
-    # logging.debug("JSON data:")
-    # logging.debug(str(json_data))
-    # surface_height = json_data.get('surface_height', DEFAULT_DISPLACEMENT_HEIGHT)
-    # logging.debug("Surface height:" + str(surface_height))
-    # scan_area = json_data.get('scan_area', DEFAULT_UV_SCALE)
-    # logging.debug("Scan area:" + str(scan_area))
-    # tileable = json_data.get('tileable', True)
-    # surface_name = os.path.basename(os.path.normpath(surface_directory))
-    # logging.debug("Surface name:" + str(surface_name))
-    #
-    # # Let's find the textures
-    # textures = get_textures_from_directory(surface_directory)
-    # streamed_maps = get_stream_map_files(textures)
-    # if not textures:
-    #     ix.log_warning("No textures found in directory.")
-    #     return False
-    #
-    # surface = Surface(ix)
-    # surface.load(ctx)
-    # update_textures = {}
-    # for key, tx in surface.textures.copy().iteritems():
-    #     if tx.is_kindof('TextureMapFile') or tx.is_kindof('TextureStreamedMapFile'):
-    #         # Swap filename
-    #         if key in textures:
-    #             print "UPDATING FROM SURFACE: " + key
-    #             logging.debug("Texture needing update: " + key)
-    #             update_textures[key] = textures.get(key)
-    #         elif key not in textures:
-    #             print "DELETING FROM SURFACE: " + key
-    #             logging.debug("Texture no longer needed: " + key)
-    #             surface.destroy_tx(key)
-    # new_textures = {}
-    # for key, tx in textures.iteritems():
-    #     if key not in surface.textures:
-    #         if (key == 'gloss' and 'roughness' in surface.textures) or \
-    #                 (key == 'roughness' and 'gloss' in surface.textures):
-    #             continue
-    #         if (key == 'normal' and 'bump' in surface.textures) or \
-    #                 (key == 'bump' and 'normal' in surface.textures):
-    #             continue
-    #         print "NOT IN SURFACE: " + key
-    #         logging.debug("New texture: " + key)
-    #         new_textures[key] = tx
-    #
-    # surface.create_textures(new_textures, srgb=srgb, streamed_maps=streamed_maps, clip_opacity=clip_opacity)
-    # surface.update_ior(ior)
-    # surface.update_textures(update_textures, srgb, streamed_maps=streamed_maps)
-    # surface.update_names(surface_name)
-    # surface.update_displacement(surface_height)
-    # surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
-    # surface.update_projection(projection=projection_type, uv_scale=scan_area,
-    #                           triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
-    # surface.clean()
-    # return surface
+    logging.debug("Replace surface called...")
+    logging.debug("Arguments: " + str(kwargs))
+    ix = get_ix(kwargs.get("ix"))
+    if not check_context(ctx, ix=ix):
+        return None
+    
+    provider_names = PROVIDERS
+    if selected_provider:
+        provider_names = [PROVIDERS[PROVIDERS.index(selected_provider)]]
+        
+    uv_scale = DEFAULT_UV_SCALE
+    surface_height = DEFAULT_DISPLACEMENT_HEIGHT
+    tileable = True
+    color_spaces = kwargs.get('color_spaces', DEFAULT_COLOR_SPACES)
+    clip_opacity = kwargs.get('clip_opacity', True)
+    ior = kwargs.get('ior', DEFAULT_IOR)
+    metallic_ior = kwargs.get('metallic_ior', DEFAULT_METALLIC_IOR)
+    surface_name = os.path.basename(os.path.dirname(os.path.join(surface_directory, '')))
+    object_space = kwargs.get('object_space', 0)
+    triplanar_blend = kwargs.get('triplanar_blend', 0.5)
+    projection_type = kwargs.get('projection_type', 'triplanar')
+
+    for provider_name in provider_names:
+        logging.debug("Checking if provider matches inspection: " + provider_name)
+        provider = importlib.import_module('clarisse_survival_kit.providers.' + provider_name)
+        report = provider.inspect_asset(surface_directory)
+        if report:
+            if report.get('scan_area'):
+                uv_scale = report.get('scan_area')
+            if report.get('surface_height'):
+                surface_height = report.get('surface_height')
+            if report.get('tileable'):
+                tileable = report.get('tileable')
+            break
+        else:
+            logging.debug('Provider %s did not pass inspection' % provider_name)
+            if selected_provider:
+                ix.log_warning('Content provider could not find asset in the specified directory.')
+                return None
+
+
+    surface_directory = os.path.normpath(surface_directory)
+    if not os.path.isdir(surface_directory):
+        return ix.log_warning("Invalid directory specified: " + surface_directory)
+    logging.debug("Surface directory:" + surface_directory)
+
+
+    # Let's find the textures
+    textures = get_textures_from_directory(surface_directory)
+    streamed_maps = get_stream_map_files(textures)
+    if not textures:
+        ix.log_warning("No textures found in directory.")
+        return False
+
+    surface = Surface(ix)
+    surface.load(ctx)
+    update_textures = {}
+    for key, tx in surface.textures.copy().iteritems():
+        if tx.is_kindof('TextureMapFile') or tx.is_kindof('TextureStreamedMapFile'):
+            # Swap filename
+            if key in textures:
+                print "UPDATING FROM SURFACE: " + key
+                logging.debug("Texture needing update: " + key)
+                update_textures[key] = textures.get(key)
+            elif key not in textures:
+                print "DELETING FROM SURFACE: " + key
+                logging.debug("Texture no longer needed: " + key)
+                surface.destroy_tx(key)
+    new_textures = {}
+    for key, tx in textures.iteritems():
+        if key not in surface.textures:
+            print "NOT IN SURFACE: " + key
+            logging.debug("New texture: " + key)
+            new_textures[key] = tx
+
+    surface.create_textures(new_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
+                            clip_opacity=clip_opacity)
+    surface.update_ior(ior, metallic_ior=metallic_ior)
+    surface.update_textures(update_textures, color_spaces=color_spaces, streamed_maps=streamed_maps)
+    surface.update_names(surface_name)
+    surface.update_displacement(surface_height)
+    surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
+    surface.update_projection(projection=projection_type, uv_scale=uv_scale,
+                              triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
+    surface.clean()
+    return surface
 
 
 def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
@@ -671,8 +692,9 @@ def generate_decimated_pointcloud(geometry, ctx=None,
 
     logging.debug("Parenting...")
     ix.cmds.AddValues([str(pc) + ".constraints"], ["ConstraintParent"])
+    ix.application.check_for_events()
     ix.cmds.SetValues([str(pc) + ".parent.target"], [str(geometry)])
-    
+    ix.application.check_for_events()
     logging.debug("Setting up multi blend and selectors...")
     multi_blend_tx = ix.cmds.CreateObject(geo_name + DECIMATE_SUFFIX + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
                                           "Global", str(pc_ctx))

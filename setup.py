@@ -200,7 +200,7 @@ versions = ['3.5', '3.6']
 
 setup(
     name=package_name,
-    version="0.0.1",
+    version="1.0.0",
     author="Aydin Yanik",
     author_email="aydinyanik@gmail.com",
     description="Provides utility functions to import common assets such as Megascans assets and Substance textures.",
@@ -217,5 +217,5 @@ setup(
         "Programming Language :: Python :: 2",
         "License :: OSI Approved :: GPLv3",
         "Operating System :: OS Independent",
-    ],
+    ]
 )

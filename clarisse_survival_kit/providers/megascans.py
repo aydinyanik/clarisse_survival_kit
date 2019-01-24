@@ -11,24 +11,27 @@ from clarisse_survival_kit.surface import Surface
 def inspect_asset(asset_directory):
     json_data = get_json_data_from_directory(asset_directory)
     if json_data:
-        return json_data.get('type', 'surface')
+        return json_data
     else:
         return None
 
 
 def import_asset(asset_directory, report=None, **kwargs):
-    asset_type = report
     if not report:
-        asset_type = inspect_asset(asset_directory)
-    if asset_type:
-        if asset_type == 'surface':
-            import_surface(asset_directory, **kwargs)
-        elif asset_type == '3d':
-            import_3d(asset_directory, **kwargs)
-        elif asset_type == '3dplant':
-            import_3dplant(asset_directory, **kwargs)
-        elif asset_type == 'atlas':
-            import_atlas(asset_directory, **kwargs)
+        report = inspect_asset(asset_directory)
+    print report
+    if report:
+        asset_type = report.get('type')
+        print asset_type
+        if asset_type:
+            if asset_type == 'surface':
+                import_surface(asset_directory, **kwargs)
+            elif asset_type == '3d':
+                import_3d(asset_directory, **kwargs)
+            elif asset_type == '3dplant':
+                import_3dplant(asset_directory, **kwargs)
+            elif asset_type == 'atlas':
+                import_atlas(asset_directory, **kwargs)
 
 
 def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_type='triplanar', object_space=0,
@@ -380,18 +383,22 @@ def get_json_data_from_directory(directory):
                 if not json_data:
                     return None
                 meta_data = json_data.get('meta')
+                logging.debug("Meta JSON Data: " + str(meta_data))
                 if not meta_data:
                     return None
                 categories = json_data.get('categories')
+                logging.debug("Categories JSON Data: " + str(categories))
                 if not categories:
                     return None
                 logging.debug("JSON follows Megascans structure.")
                 if categories:
-                    if "3d" in categories:
+                    if 'surface' in categories:
+                        data['type'] = 'surface'
+                    if '3d' in categories:
                         data['type'] = '3d'
-                    if "atlas" in categories:
+                    if 'atlas' in categories:
                         data['type'] = 'atlas'
-                    if "3dplant" in categories:
+                    if '3dplant' in categories:
                         data['type'] = '3dplant'
                 if meta_data:
                     for md in meta_data:

@@ -130,30 +130,30 @@ TEXTURE_CONTEXTS = {
 # WARNING: Changing order may cause conflicts. The order is used for creating textures.
 TEXTURE_SETTINGS = collections.OrderedDict()
 TEXTURE_SETTINGS['diffuse'] = {'single_channel': False, 'suffix': DIFFUSE_SUFFIX,
-                               'connection': '.diffuse_front_color'}
+                               'connection': 'diffuse_front_color'}
 TEXTURE_SETTINGS['ao'] = {'single_channel': True, 'suffix': OCCLUSION_SUFFIX}
 TEXTURE_SETTINGS['specular'] = {'single_channel': False, 'suffix': SPECULAR_COLOR_SUFFIX,
-                                'connection': '.specular_1_color'}
+                                'connection': 'specular_1_color'}
 TEXTURE_SETTINGS['roughness'] = {'single_channel': True, 'suffix': SPECULAR_ROUGHNESS_SUFFIX,
-                                 'connection': '.specular_1_roughness'}
+                                 'connection': 'specular_1_roughness'}
 TEXTURE_SETTINGS['gloss'] = {'single_channel': True, 'suffix': SPECULAR_ROUGHNESS_SUFFIX,
-                             'connection': '.specular_1_roughness', 'invert': True}
+                             'connection': 'specular_1_roughness', 'invert': True}
 TEXTURE_SETTINGS['refraction'] = {'single_channel': False, 'suffix': REFRACTION_SUFFIX,
-                                  'connection': '.transmission_color'}
-TEXTURE_SETTINGS['ior'] = {'single_channel': False, 'suffix': IOR_SUFFIX,
-                           'connection': '.specular_1_index_of_refraction'}
-TEXTURE_SETTINGS['f0'] = {'single_channel': False, 'suffix': F0_SUFFIX,
-                          'connection': '.specular_1_fresnel_reflectivity'}
+                                  'connection': 'transmission_color'}
+TEXTURE_SETTINGS['ior'] = {'single_channel': True, 'suffix': IOR_SUFFIX,
+                           'connection': 'specular_1_index_of_refraction'}
+TEXTURE_SETTINGS['f0'] = {'single_channel': True, 'suffix': F0_SUFFIX,
+                          'connection': 'specular_1_fresnel_reflectivity'}
 TEXTURE_SETTINGS['opacity'] = {'single_channel': True, 'suffix': OPACITY_SUFFIX,
-                               'connection': '.opacity'}
+                               'connection': 'opacity'}
 TEXTURE_SETTINGS['metallic'] = {'single_channel': True, 'suffix': METALLIC_SUFFIX}
 TEXTURE_SETTINGS['displacement'] = {'single_channel': True, 'suffix': DISPLACEMENT_SUFFIX}
 TEXTURE_SETTINGS['normal'] = {'single_channel': False, 'suffix': NORMAL_SUFFIX}
 TEXTURE_SETTINGS['bump'] = {'single_channel': True, 'suffix': BUMP_SUFFIX}
 TEXTURE_SETTINGS['translucency'] = {'single_channel': False, 'suffix': TRANSLUCENCY_SUFFIX,
-                                    'connection': '.diffuse_back_color'}
+                                    'connection': 'diffuse_back_color'}
 TEXTURE_SETTINGS['emissive'] = {'single_channel': False, 'suffix': EMISSIVE_SUFFIX,
-                                'connection': '.emission_color'}
+                                'connection': 'emission_color'}
 TEXTURE_SETTINGS['preview'] = {'single_channel': False, 'suffix': PREVIEW_SUFFIX}
 
 # Other Suffixes & Variables

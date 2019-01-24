@@ -65,7 +65,7 @@ class Surface:
         self.name = os.path.basename(str(ctx))
         textures = {}
 
-        ctx_members = get_items(ctx)
+        ctx_members = get_items(ctx, ix=self.ix)
 
         mtl = None
         triplanar = False
@@ -299,9 +299,9 @@ class Surface:
         self.textures[index] = tx
         if connection:
             if self.projection == "triplanar":
-                self.ix.cmds.SetTexture([str(self.mtl) + connection], str(triplanar_tx))
+                self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(triplanar_tx))
             else:
-                self.ix.cmds.SetTexture([str(self.mtl) + connection], str(reorder_tx if reorder_tx else tx))
+                self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(reorder_tx if reorder_tx else tx))
         self.post_create_tx(index, tx)
         logging.debug("Done creating tx: " + str(tx))
         return tx
@@ -481,27 +481,36 @@ class Surface:
             logging.debug("IOR was locked")
         return metallic_blend_tx
 
-    def update_ior(self, ior):
+    def update_ior(self, ior, metallic_ior=DEFAULT_METALLIC_IOR):
         """Updates the IOR.
         Make sure floats have 1 precision. 1.6 will work, but 1.65 will crash Clarisse.
         """
         logging.debug("Updating IOR...")
         if self.mtl.get_attribute('specular_1_index_of_refraction').is_editable():
-            self.ix.cmds.SetTexture([str(self.mtl) + ".specular_1_index_of_refraction"], str(ior))
+            self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_index_of_refraction", [str(ior)])
             self.ix.application.check_for_events()
             self.ior = ior
         else:
             logging.debug("IOR was locked")
 
-    def update_tx(self, index, filename, suffix, color_space, streamed=False, single_channel=False, invert=False):
+    def get_connection_tx(self, index):
+        if self.projection == 'triplanar':
+            tx = self.get(index + '_triplanar')
+        else:
+            tx = self.get(index + '_reorder', index)
+        return tx
+
+    def update_tx(self, index, filename, suffix, color_space, streamed=False, single_channel=False,
+                  invert=False, connection=None):
         """Updates a texture by changing the filename or color space settings."""
         logging.debug("update_tx called with arguments:" +
-                      "\n".join([index, filename, suffix, color_space, str(streamed), str(single_channel)]))
+                      "\n".join([index, filename, suffix, str(color_space), str(streamed), str(single_channel)]))
         tx = self.get(index)
         if tx.is_kindof("TextureStreamedMapFile") != streamed:
             logging.debug("Map is no longer Map file or Stream Map. Switch in progress...")
             self.destroy_tx(index)
-            self.create_textures({index: filename}, {index: color_space}, [index] if streamed else [])
+            self.create_tx(index, filename, suffix, streamed=streamed, single_channel=single_channel,
+                           invert=invert, connection=connection)
             logging.debug("Texture recreated as: " + str(self.get(index)))
             tx = self.get(index)
         attrs = self.ix.api.CoreStringArray(3 if streamed else 4)
@@ -509,13 +518,18 @@ class Surface:
         attrs[1] = str(tx) + ".filename"
         attrs[2] = str(tx) + ".invert"
         values = self.ix.api.CoreStringArray(3 if streamed else 4)
-        values[0] = color_space
+        values[0] = str(color_space)
         values[1] = filename
         values[2] = str((1 if invert else 0))
         if not streamed:
             attrs[3] = str(tx) + ".single_channel_file_behavior"
             values[3] = str((1 if single_channel else 0))
         self.ix.cmds.SetValues(attrs, values)
+        if connection:
+            tx_attr = self.mtl.get_attribute(connection).get_texture()
+            if not tx_attr:
+                connection_tx = self.get_connection_tx(index)
+                self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(connection_tx))
         return tx
 
     def update_displacement(self, height):
@@ -552,13 +566,16 @@ class Surface:
         logging.debug("Updating names...")
         self.ix.cmds.RenameItem(str(self.ctx), name)
 
-        ctx_members = get_items(self.ctx)
+        ctx_members = get_items(self.ctx, ix=self.ix)
 
         for ctx_member in ctx_members:
-            logging.debug(
-                "Updating name from " + str(ctx_member) + " to " +
-                ctx_member.get_contextual_name().replace(self.name, name))
-            self.ix.cmds.RenameItem(str(ctx_member), ctx_member.get_contextual_name().replace(self.name, name))
+            if ctx_member.is_editable() and not ctx_member.is_content_locked():
+                logging.debug(
+                    "Updating name from " + str(ctx_member) + " to " +
+                    ctx_member.get_contextual_name().replace(self.name, name))
+                self.ix.cmds.RenameItem(str(ctx_member), ctx_member.get_contextual_name().replace(self.name, name))
+            else:
+                logging.debug('Ctx member %s was locked' % str(ctx_member))
         self.name = name
 
     def destroy_tx(self, index):
@@ -595,7 +612,13 @@ class Surface:
         """Resets the emissive or translucency attributes to 0 when not used."""
         logging.debug("Cleanup...")
         if not self.get('emissive'):
+            logging.debug("Resetting emission...")
             self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(0)])
         if not self.get('translucency'):
+            logging.debug("Resetting translucency...")
             self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(0)])
-
+        sub_ctxs = get_sub_contexts(self.ctx)
+        for sub_ctx in sub_ctxs:
+            logging.debug("Cleaning up empty ctx: " + str(sub_ctx))
+            if sub_ctx.get_object_count() == 0:
+                self.ix.cmds.DeleteItems([str(sub_ctx)])
