@@ -332,7 +332,6 @@ def tx_to_triplanar(tx, blend=0.5, object_space=0, **kwargs):
     """Converts the texture to triplanar."""
     logging.debug("Converting texture to triplanar: " + str(tx))
     ix = get_ix(kwargs.get("ix"))
-    print "Triplanar Blend: " + str(blend)
     ctx = tx.get_context()
     triplanar = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar", "Global",
                                      str(ctx))
@@ -415,7 +414,6 @@ def toggle_map_file_stream(tx, **kwargs):
     get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
 
     for i_attr in range(0, connected_attrs.get_count()):
-        print str(connected_attrs[i_attr])
         ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(out_tx))
 
     # Transfer all attributes

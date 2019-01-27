@@ -493,7 +493,7 @@ class Surface:
         else:
             logging.debug("IOR was locked")
 
-    def get_connection_tx(self, index):
+    def get_out_tx(self, index):
         if self.projection == 'triplanar':
             tx = self.get(index + '_triplanar')
         else:
@@ -528,7 +528,7 @@ class Surface:
         if connection:
             tx_attr = self.mtl.get_attribute(connection).get_texture()
             if not tx_attr:
-                connection_tx = self.get_connection_tx(index)
+                connection_tx = self.get_out_tx(index)
                 self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(connection_tx))
         return tx
 
@@ -551,6 +551,12 @@ class Surface:
             values[4] = str(((height / 2) * self.uv_scale[0]) * -1)
             self.ix.cmds.SetValues(attrs, values)
         self.height = height
+        connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
+        for connected_tx in connected_txs:
+            if connected_tx.get_contextual_name().endswith(DISPLACEMENT_HEIGHT_SCALE_SUFFIX):
+                connected_tx.attrs.input2[0] = height * self.uv_scale[0]
+                connected_tx.attrs.input2[1] = height * self.uv_scale[0]
+                connected_tx.attrs.input2[2] = height * self.uv_scale[0]
 
     def update_opacity(self, clip_opacity, found_textures, update_textures):
         """Connect/Disconnect the opacity texture depending if clip_opacity is set to False/True."""
@@ -576,6 +582,25 @@ class Surface:
                 self.ix.cmds.RenameItem(str(ctx_member), ctx_member.get_contextual_name().replace(self.name, name))
             else:
                 logging.debug('Ctx member %s was locked' % str(ctx_member))
+        disp_tx = self.get_out_tx('displacement')
+        if disp_tx:
+            logging.debug('Updating mixes names if they exist')
+            connected_txs = get_textures_connected_to_texture(disp_tx, ix=self.ix)
+            for connected_tx in connected_txs:
+                if connected_tx.get_contextual_name().endswith(DISPLACEMENT_HEIGHT_SCALE_SUFFIX):
+                    mix_ctx = connected_tx.get_context()
+                    self.ix.cmds.RenameItem(str(mix_ctx.get_parent()), name + MIX_SUFFIX)
+                    mix_ctx_members = get_items(mix_ctx.get_parent(), ix=self.ix)
+
+                    for ctx_member in mix_ctx_members:
+                        if ctx_member.is_editable() and not ctx_member.is_content_locked():
+                            logging.debug(
+                                "Updating name from " + str(ctx_member) + " to " +
+                                ctx_member.get_contextual_name().replace(self.name, name))
+                            self.ix.cmds.RenameItem(str(ctx_member),
+                                                    ctx_member.get_contextual_name().replace(self.name, name))
+                        else:
+                            logging.debug('Ctx member %s was locked' % str(ctx_member))
         self.name = name
 
     def destroy_tx(self, index):

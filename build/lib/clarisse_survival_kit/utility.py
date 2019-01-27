@@ -332,7 +332,6 @@ def tx_to_triplanar(tx, blend=0.5, object_space=0, **kwargs):
     """Converts the texture to triplanar."""
     logging.debug("Converting texture to triplanar: " + str(tx))
     ix = get_ix(kwargs.get("ix"))
-    print "Triplanar Blend: " + str(blend)
     ctx = tx.get_context()
     triplanar = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar", "Global",
                                      str(ctx))
@@ -378,7 +377,7 @@ def toggle_map_file_stream(tx, **kwargs):
     ctx = tx.get_context()
     tx_name = tx.get_contextual_name()
     if tx_name.endswith(PREVIEW_SUFFIX):
-        print "Preview file ignored"
+        logging.debug("Preview file ignored")
         return None
     temp_name = 'temp_' + ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for i in range(8))
     delete_items = [str(tx)]
@@ -415,7 +414,6 @@ def toggle_map_file_stream(tx, **kwargs):
     get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
 
     for i_attr in range(0, connected_attrs.get_count()):
-        print str(connected_attrs[i_attr])
         ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(out_tx))
 
     # Transfer all attributes
@@ -426,13 +424,13 @@ def toggle_map_file_stream(tx, **kwargs):
         # Check if the stream map file has the same attributes.
         # .single_channel_file_behavior isn't available in streamed map files.
         if new_tx.attribute_exists(attr_name):
-            print "Copying attribute: " + attr_name
+            logging.debug("Copying attribute: " + attr_name)
             attr = tx.get_attribute(attr_name)
             if attr.is_locked() or not attr.is_editable():
-                print "Attribute was locked"
+                logging.debug("Attribute was locked")
                 continue
             attr_type = attr.get_type_name(attr.get_type())
-            print "Attr type: " + attr_type
+            logging.debug("Attr type: " + attr_type)
             if attr_type == 'TYPE_STRING':
                 value = [attr.get_string()]
                 if value and attr_name == 'filename':
@@ -446,7 +444,7 @@ def toggle_map_file_stream(tx, **kwargs):
                 value = [str(v) for v in value_list]
             else:
                 continue
-            print "Value: " + str(value)
+            logging.debug("Value: " + str(value))
             ix.cmds.SetValue(str(new_tx) + '.' + attr_name, value)
     ix.cmds.DeleteItems(delete_items)
     ix.application.check_for_events()

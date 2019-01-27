@@ -626,7 +626,6 @@ def toggle_surface_complexity(ctx, **kwargs):
         connected_attrs = ix.api.OfAttrVector()
         get_attrs_connected_to_texture(mtl, connected_attrs, ix=ix)
         for i in range(0, connected_attrs.get_count()):
-            print connected_attrs[i]
             ix.cmds.SetValues([connected_attrs[i].get_full_name()], [str(new_preview_mtl)])
         ix.selection.select(mtl)
         ix.application.select_next_outputs()
