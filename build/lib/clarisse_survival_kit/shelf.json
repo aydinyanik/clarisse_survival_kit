@@ -60,6 +60,12 @@
       "description": "Imports the whole or selected categories of the Megascans Library. Already existing items will be ignored.",
       "script_filename": "import_ms_library.py",
       "icon_filename": "import_ms_library.png"
+    },
+    {
+      "title": "(Un)Stream Textures",
+      "description": "Converts selected regular map files to TextureStreamedMapFile and vice versa.",
+      "script_filename": "stream_toggle.py",
+      "icon_filename": "stream_toggle.png"
     }
   ]
 }

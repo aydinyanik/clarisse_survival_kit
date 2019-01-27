@@ -21,6 +21,9 @@ clarisse_survival_kit/settings.py
 clarisse_survival_kit/shelf.json
 clarisse_survival_kit/simplify.png
 clarisse_survival_kit/simplify.py
+clarisse_survival_kit/stream_toggle.png
+clarisse_survival_kit/stream_toggle.py
+clarisse_survival_kit/surface.py
 clarisse_survival_kit/tint.png
 clarisse_survival_kit/tint.py
 clarisse_survival_kit/triplanar.png
@@ -30,3 +33,6 @@ clarisse_survival_kit.egg-info/PKG-INFO
 clarisse_survival_kit.egg-info/SOURCES.txt
 clarisse_survival_kit.egg-info/dependency_links.txt
 clarisse_survival_kit.egg-info/top_level.txt
+clarisse_survival_kit/providers/__init__.py
+clarisse_survival_kit/providers/generic.py
+clarisse_survival_kit/providers/megascans.py
