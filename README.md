@@ -28,11 +28,11 @@ With pip you can download the installation files automatically by passing a link
 
 **Option 1: Online**
 ```sh
-pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-0.0.1.tar.gz
+pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
 ```
 **Option 2: Local**
 ```sh
-pip install .\clarisse_survival_kit-0.0.1.tar.gz
+pip install .\clarisse_survival_kit-1.0.0.tar.gz
 ```
 **Option 3: Setup.py**
 
@@ -76,7 +76,9 @@ The kit provides the following scripts:
    * Scope blend: A scope object is automatically created to quickly mask things out.
    * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
    * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
-
+   
+   ![Mix Image](http://remuno.nl/wp-content/uploads/2019/01/SnowMix.jpg)
+   
 ### Replace Surface
 You can quickly replace the selected surface or change the mapping settings. If you're replacing a material that was used in a surface mix it will also update.
 
@@ -103,7 +105,17 @@ Generates a GeometryPointCloud or GeometryPointUvSampler on the selected object.
 ### Import Megascans Library
 Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
 
+### Stream Toggle
+Converts the selected Map Files to Streamed Map Files and vice versa. If the texture is single channel it will generate a reorder node for you. UDIM tokens are automatically added in the filename if they exist. Almost all settings are copied over.
+
 ### Custom Settings & Logging
+By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
+
+```python
+import logging
+
+LOG_LEVEL = logging.DEBUG
+```
 You can locate the custom settings and log in the following locations:
 
 On Windows you can find it here:
@@ -128,6 +140,8 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **27-01-19** Added Map File Stream toggler
+- **27-01-19** Refactored Code and Restructured all contexts
 - **14-01-19** Added AO files support.
 - **14-01-19** Added preview file import.
 - **13-01-19** Added logging.
