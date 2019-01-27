@@ -473,6 +473,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
         ix.cmds.SetValue(str(mix_mtl) + ".input2", [str(base_mtl)])
         ix.cmds.SetValue(str(mix_mtl) + ".input1", [str(cover_mtl)])
 
+        mix_disp = ''
         if has_displacement:
             logging.debug("Surface has displacement. Setting up unique selector...")
             ix.cmds.LocalizeAttributes([str(mix_multi_blend_tx) + ".layer_2_color",
@@ -548,32 +549,37 @@ def mix_surfaces(srf_ctxs, cover_ctx, mix_name="mix" + MATERIAL_SUFFIX,
             disp_multi_blend_tx.attrs.layer_3_mode = 6
             disp_multi_blend_tx.attrs.enable_layer_3 = False
 
-            displacement_map = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
+            mix_disp = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
                                                     "Global",
                                                     str(mix_ctx))
-            displacement_map.attrs.bound[0] = 1
-            displacement_map.attrs.bound[1] = 1
-            displacement_map.attrs.bound[2] = 1
-            displacement_map.attrs.front_value = 1
-            ix.cmds.SetTexture([str(displacement_map) + ".front_value"], str(disp_multi_blend_tx))
+            mix_disp.attrs.bound[0] = 1
+            mix_disp.attrs.bound[1] = 1
+            mix_disp.attrs.bound[2] = 1
+            mix_disp.attrs.front_value = 1
+            ix.cmds.SetTexture([str(mix_disp) + ".front_value"], str(disp_multi_blend_tx))
         if assign_mtls:
-            logging.debug("Material assignment...")
-            ix.selection.deselect_all()
-            ix.application.check_for_events()
-            ix.selection.select(base_mtl)
-            ix.application.select_next_outputs()
-            selection = [i for i in ix.selection]
-            for sel in selection:
-                if sel.is_kindof("Geometry"):
-                    shading_group = sel.get_module().get_geometry().get_shading_group_names()
-                    count = shading_group.get_count()
-                    for j in range(count):
-                        shaders = sel.attrs.materials[j]
-                        if shaders == base_mtl:
-                            ix.cmds.SetValues([str(sel) + ".materials" + str([j])], [str(mix_mtl)])
-            ix.selection.deselect_all()
-            ix.application.check_for_events()
-            logging.debug("... done material assignment.")
+            mtls = get_all_mtls_from_context(srf_ctx, ix=ix)
+            for mtl in mtls:
+                logging.debug("Material assignment...")
+                ix.selection.deselect_all()
+                ix.application.check_for_events()
+                ix.selection.select(mtl)
+                ix.application.select_next_outputs()
+                selection = [i for i in ix.selection]
+                for sel in selection:
+                    if sel.is_kindof("Geometry"):
+                        shading_group = sel.get_module().get_geometry().get_shading_group_names()
+                        count = shading_group.get_count()
+                        for j in range(count):
+                            shader = sel.attrs.materials[j]
+                            if shader == mtl:
+                                ix.cmds.SetValues([str(sel) + ".materials" + str([j])], [str(mix_mtl)])
+                            if has_displacement:
+                                if sel.attrs.displacements[j] == base_disp:
+                                    ix.cmds.SetValues([str(sel) + ".displacements" + str([j])], [str(mix_disp)])
+                ix.selection.deselect_all()
+                ix.application.check_for_events()
+                logging.debug("... done material assignment.")
     logging.debug("Done mixing!!!")
     return root_ctx
 

@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import random
 
 from clarisse_survival_kit.settings import *
 
@@ -147,19 +148,31 @@ def get_stream_map_files(textures):
 def get_mtl_from_context(ctx, **kwargs):
     """"Returns the material from the context."""
     ix = get_ix(kwargs.get("ix"))
-    objects_array = ix.api.OfObjectArray(ctx.get_object_count())
-    flags = ix.api.CoreBitFieldHelper()
-    ctx.get_all_objects(objects_array, flags, False)
+    ctx_members = get_items(ctx, kind=["MaterialPhysicalStandard", "MaterialPhysicalBlend"], **kwargs)
     mtl = None
-    for ctx_member in objects_array:
-        if check_selection([ctx_member], is_kindof=["MaterialPhysicalStandard", "MaterialPhysicalBlend"], max_num=1):
-            if ctx_member.is_local() and ctx_member.get_contextual_name().endswith(MATERIAL_SUFFIX) or not mtl:
-                mtl = ctx_member
+    for ctx_member in ctx_members:
+        if ctx_member.is_local() and ctx_member.get_contextual_name().endswith(MATERIAL_SUFFIX) or not mtl:
+            mtl = ctx_member
     if not mtl:
         logging.debug("No material found in ctx: " + str(ctx))
         return None
     logging.debug("Found material: " + str(mtl))
     return mtl
+
+
+def get_all_mtls_from_context(ctx, **kwargs):
+    """"Returns the material from the context."""
+    ix = get_ix(kwargs.get("ix"))
+    ctx_members = get_items(ctx, kind=["MaterialPhysicalStandard", "MaterialPhysicalBlend"], **kwargs)
+    mtls = []
+    for ctx_member in ctx_members:
+        if ctx_member.get_contextual_name().endswith(MATERIAL_SUFFIX):
+            mtls.append(ctx_member)
+    if not mtls:
+        logging.debug("No materials found in ctx: " + str(ctx))
+        return []
+    logging.debug("Found %s materials: " % str(len(mtls)))
+    return mtls
 
 
 def get_disp_from_context(ctx, **kwargs):
@@ -291,7 +304,7 @@ def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
     return results
 
 
-def get_items(ctx, kind=None, max_depth=0, current_depth=0, **kwargs):
+def get_items(ctx, kind=(), max_depth=0, current_depth=0, **kwargs):
     """Gets all items recursively."""
     ix = get_ix(kwargs.get("ix"))
     result = []
@@ -304,9 +317,10 @@ def get_items(ctx, kind=None, max_depth=0, current_depth=0, **kwargs):
             flags = ix.api.CoreBitFieldHelper()
             sub_ctx.get_all_objects(objects_array, flags, False)
             for i_obj in range(sub_ctx.get_object_count()):
-                if kind is not None:
-                    if objects_array[i_obj].is_kindof(kind):
-                        items.add(objects_array[i_obj])
+                if kind:
+                    for k in kind:
+                        if objects_array[i_obj].is_kindof(k):
+                            items.add(objects_array[i_obj])
                 else:
                     items.add(objects_array[i_obj])
     for item in items:
@@ -356,3 +370,85 @@ def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
     blur.attrs.radius = radius
     blur.attrs.quality = quality
     return blur
+
+
+def toggle_map_file_stream(tx, **kwargs):
+    """Switches from TextureMapFile to TextureStreamedMapFile."""
+    ix = get_ix(kwargs.get("ix"))
+    ctx = tx.get_context()
+    tx_name = tx.get_contextual_name()
+    if tx_name.endswith(PREVIEW_SUFFIX):
+        logging.debug("Preview file ignored")
+        return None
+    temp_name = 'temp_' + ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for i in range(8))
+    delete_items = [str(tx)]
+    if tx.is_kindof('TextureMapFile'):
+        new_tx = ix.cmds.CreateObject(temp_name, "TextureStreamedMapFile", "Global", str(ctx))
+        default_color_space = ix.api.ColorIO.get_color_space_names()[0]
+        ix.cmds.SetValue(str(new_tx) + '.color_space_auto_detect', [str(0)])
+        ix.application.check_for_events()
+        ix.cmds.SetValue(str(new_tx) + '.color_space', [default_color_space])
+
+        single_channel = tx.attrs.single_channel_file_behavior[0] == 1
+        out_tx = new_tx
+        if single_channel:
+            logging.debug("Creating reorder node...")
+            reorder_tx = ix.cmds.CreateObject(tx_name + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
+                                                   "Global", str(ctx))
+            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+            ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(new_tx))
+            out_tx = reorder_tx
+    elif tx.is_kindof('TextureStreamedMapFile'):
+        new_tx = ix.cmds.CreateObject(temp_name, "TextureMapFile", "Global", str(ctx))
+        ix.application.check_for_events()
+        out_tx = new_tx
+
+        if ix.item_exists(str(ctx) + '/' + tx_name + SINGLE_CHANNEL_SUFFIX):
+            reorder_tx = ix.get_item(str(ctx) + '/' + tx_name + SINGLE_CHANNEL_SUFFIX)
+            delete_items.append(str(reorder_tx))
+            new_tx.attrs.single_channel_file_behavior[0] = 1
+    else:
+        logging.error('ERROR: No (streamed) map file was selected.')
+        return None
+
+    connected_attrs = ix.api.OfAttrVector()
+    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
+
+    for i_attr in range(0, connected_attrs.get_count()):
+        print str(connected_attrs[i_attr])
+        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(out_tx))
+
+    # Transfer all attributes
+    for i in range(0, tx.get_attribute_count()):
+        attr_name = str(tx.get_attribute(i)).split('.')[-1]
+        if attr_name in ['master_input', 'output_layer', 'u_repeat_mode', 'v_repeat_mode']:
+            continue
+        # Check if the stream map file has the same attributes.
+        # .single_channel_file_behavior isn't available in streamed map files.
+        if new_tx.attribute_exists(attr_name):
+            logging.debug("Copying attribute: " + attr_name)
+            attr = tx.get_attribute(attr_name)
+            if attr.is_locked() or not attr.is_editable():
+                logging.debug("Attribute was locked")
+                continue
+            attr_type = attr.get_type_name(attr.get_type())
+            logging.debug("Attr type: " + attr_type)
+            if attr_type == 'TYPE_STRING':
+                value = [attr.get_string()]
+                if value and attr_name == 'filename':
+                    udim_file = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", os.path.split(value[0])[-1], count=1)
+                    value = [os.path.join(os.path.split(value[0])[0], udim_file)]
+            elif attr_type == 'TYPE_BOOL':
+                value_bool = attr.get_bool()
+                value = [str(1) if value_bool else str(0)]
+            elif attr_type in ['TYPE_LONG', 'TYPE_DOUBLE']:
+                value_list = eval(str(getattr(tx.attrs, attr_name, '')))
+                value = [str(v) for v in value_list]
+            else:
+                continue
+            logging.debug("Value: " + str(value))
+            ix.cmds.SetValue(str(new_tx) + '.' + attr_name, value)
+    ix.cmds.DeleteItems(delete_items)
+    ix.application.check_for_events()
+    ix.cmds.RenameItem(str(new_tx), tx_name)
+    return new_tx
