@@ -109,7 +109,7 @@ Import the whole library or specified categories. If you need individual assets 
 Converts the selected Map Files to Streamed Map Files and vice versa. If the texture is single channel it will generate a reorder node for you. UDIM tokens are automatically added in the filename if they exist. Almost all settings are copied over.
 
 ### Custom Settings & Logging
-By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
+By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
 
 ```python
 import logging
