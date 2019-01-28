@@ -9,9 +9,15 @@
     },
     {
       "title": "Mix Surfaces",
-      "description": "Mixes 2 surfaces together.",
+      "description": "Mixes multiple selected surfaces with a cover surface. You can quickly cover multiple objects with dirt or snow.",
       "script_filename": "mix.py",
       "icon_filename": "mix.png"
+    },
+    {
+      "title": "Add Surface(s) to Mix",
+      "description": "Adds the selected surfaces to an existing mix.",
+      "script_filename": "add_to_mix.py",
+      "icon_filename": "add_to_mix.png"
     },
     {
       "title": "Textures to Triplanar",

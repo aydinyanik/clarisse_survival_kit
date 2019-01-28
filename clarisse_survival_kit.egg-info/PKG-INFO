@@ -36,11 +36,11 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         
         **Option 1: Online**
         ```sh
-        pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-0.0.1.tar.gz
+        pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
         ```
         **Option 2: Local**
         ```sh
-        pip install .\clarisse_survival_kit-0.0.1.tar.gz
+        pip install .\clarisse_survival_kit-1.0.0.tar.gz
         ```
         **Option 3: Setup.py**
         
@@ -72,7 +72,7 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         The kit provides the following scripts:
         ### Import Asset
           - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
-          - Import generic textures such as Substance. You can specify which textures should be interpreted as sRGB if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
+          - Import meshes(.abc/.obj/.lwo) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
         
         ### Mix Multiple Surfaces
          - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -84,7 +84,9 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
            * Scope blend: A scope object is automatically created to quickly mask things out.
            * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
            * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
-        
+           
+           ![Mix Image](http://remuno.nl/wp-content/uploads/2019/01/SnowMix.jpg)
+           
         ### Replace Surface
         You can quickly replace the selected surface or change the mapping settings. If you're replacing a material that was used in a surface mix it will also update.
         
@@ -111,8 +113,18 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         ### Import Megascans Library
         Import the whole library or specified categories. If you need individual assets use the Import Asset script. If you import 3D assets make sure you import them in a context that is currently not rendered inside your viewport. Otherwise it will try to render all objects.
         
+        ### Stream Toggle
+        Converts the selected Map Files to Streamed Map Files and vice versa. If the texture is single channel it will generate a reorder node for you. UDIM tokens are automatically added in the filename if they exist. Almost all settings are copied over.
+        
         ### Custom Settings & Logging
-        You can locate the config and log in the following locations:
+        By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
+        
+        ```python
+        import logging
+        
+        LOG_LEVEL = logging.DEBUG
+        ```
+        You can locate the custom settings and log in the following locations:
         
         On Windows you can find it here:
         
@@ -126,16 +138,18 @@ Description: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?sty
         
         >/Users/**YOUR_USERNAME**/Library/Preferences/Isotropix/.csk
         
-        You can manually make a folder inside that folder called ***user*** and create a **\_\_init\_\_.py** file and **user_settings.py** inside the user folder.
+        You can manually make that folder if it doesn't exist and create a **\_\_init\_\_.py** file and **user_settings.py** inside the .csk.
         
         **OR** 
         
         If you don't want to do that run the script once by clicking any of the buttons in the shelf and this folder and files are automatically generated for you.
         
-        All variables from the settings.py file can be copied over to and customized within the user_settings.py file inside your user folder. **Don't overwrite the settings.py file**. This file will be overwritten once you reinstall or upgrade.
+        All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/build/lib/clarisse_survival_kit/settings.py) from the [settings.py](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/build/lib/clarisse_survival_kit/settings.py) file can be copied over to and customized within the user_settings.py file inside your user folder. **Don't overwrite the settings.py file**. This file will be overwritten once you reinstall or upgrade.
         
         # Changelog
         
+        - **27-01-19** Added Map File Stream toggler
+        - **27-01-19** Refactored Code and Restructured all contexts
         - **14-01-19** Added AO files support.
         - **14-01-19** Added preview file import.
         - **13-01-19** Added logging.

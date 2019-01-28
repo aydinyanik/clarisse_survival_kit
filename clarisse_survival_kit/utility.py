@@ -304,7 +304,7 @@ def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
     return results
 
 
-def get_items(ctx, kind=(), max_depth=0, current_depth=0, **kwargs):
+def get_items(ctx, kind=(), max_depth=0, current_depth=0, return_first_hit=False, **kwargs):
     """Gets all items recursively."""
     ix = get_ix(kwargs.get("ix"))
     result = []
@@ -320,6 +320,8 @@ def get_items(ctx, kind=(), max_depth=0, current_depth=0, **kwargs):
                 if kind:
                     for k in kind:
                         if objects_array[i_obj].is_kindof(k):
+                            if return_first_hit:
+                                return objects_array[i_obj]
                             items.add(objects_array[i_obj])
                 else:
                     items.add(objects_array[i_obj])
