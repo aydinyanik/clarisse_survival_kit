@@ -79,6 +79,9 @@ The kit provides the following scripts:
    
    ![Mix Image](http://remuno.nl/wp-content/uploads/2019/01/SnowMix.jpg)
    
+### Add Surface(s) to Mix
+Adds the selected surfaces to an existing mix.
+
 ### Replace Surface
 You can quickly replace the selected surface or change the mapping settings. If you're replacing a material that was used in a surface mix it will also update.
 
@@ -140,6 +143,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **28-01-19** Added Add Surfaces to Mix
 - **27-01-19** Added Map File Stream toggler
 - **27-01-19** Refactored Code and Restructured all contexts
 - **14-01-19** Added AO files support.
@@ -151,7 +155,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 
 # TODO
-- Add a new surface to an existing multi mix.
+- Megascans Bridge communication
 
 Got any ideas? Did I miss anything important? Let me know.
 
