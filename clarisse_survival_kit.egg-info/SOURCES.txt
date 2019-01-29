@@ -14,6 +14,9 @@ clarisse_survival_kit/mix.png
 clarisse_survival_kit/mix.py
 clarisse_survival_kit/moisten.png
 clarisse_survival_kit/moisten.py
+clarisse_survival_kit/ms_bridge_gui.png
+clarisse_survival_kit/ms_bridge_gui.py
+clarisse_survival_kit/ms_bridge_importer.py
 clarisse_survival_kit/replace.png
 clarisse_survival_kit/replace.py
 clarisse_survival_kit/scatter.png

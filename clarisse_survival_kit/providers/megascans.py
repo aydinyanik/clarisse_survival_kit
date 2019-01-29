@@ -17,9 +17,9 @@ def inspect_asset(asset_directory):
 
 
 def import_asset(asset_directory, report=None, **kwargs):
+    asset_directory = os.path.join(os.path.normpath(asset_directory), '')
     if not report:
         report = inspect_asset(asset_directory)
-    print report
     if report:
         asset_type = report.get('type')
         print asset_type
@@ -44,7 +44,6 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         target_ctx = ix.application.get_working_context()
     if not check_context(target_ctx, ix=ix):
         return None
-    asset_directory = os.path.normpath(asset_directory)
     if not os.path.isdir(asset_directory):
         return ix.log_warning('Invalid directory specified: ' + asset_directory)
     logging.debug('Asset directory: ' + asset_directory)
@@ -378,7 +377,8 @@ def get_json_data_from_directory(directory):
         filename, extension = os.path.splitext(f)
         if extension == ".json":
             logging.debug("...JSON found!!!")
-            with open(os.path.join(directory, filename + ".json")) as json_file:
+            json_file = os.path.join(directory, filename + ".json")
+            with open(json_file) as json_file:
                 json_data = json.load(json_file)
                 if not json_data:
                     return None
