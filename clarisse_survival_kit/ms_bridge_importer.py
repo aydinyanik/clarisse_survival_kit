@@ -2,6 +2,8 @@ import json, sys, socket, time, threading, os
 import struct
 import socket
 
+host, port = '127.0.0.1', 24981
+
 
 class ClarisseNetError(Exception):
     def __init__(self, command, value):
@@ -79,11 +81,6 @@ class ClarisseNet:
                 return result
 
 
-host, port = '127.0.0.1', 24981
-
-print "Running Megascans Bridge client"
-
-
 class ms_Init(threading.Thread):
     def __init__(self, importer):
         threading.Thread.__init__(self)
@@ -113,7 +110,6 @@ class ms_Init(threading.Thread):
                         else:
                             self.importer(self.TotalData)
                             break
-
         except:
             pass
 
@@ -121,9 +117,10 @@ class ms_Init(threading.Thread):
 def send_to_command_port(assets):
     rclarisse = ClarisseNet()
     import_command = 'from clarisse_survival_kit.providers.megascans import *\n\n'
+    print assets
     for asset in assets:
         asset_path = str(json.dumps(asset['path']))
-        import_command += 'import_asset(' + asset_path + ', id="' + asset['id'] + '", ix=ix)\n'
+        import_command += 'import_asset(' + asset_path + ', ix=ix)\n'
     rclarisse.run(import_command)
 
 
@@ -147,5 +144,6 @@ def ms_asset_importer(imported_data):
         pass
 
 
+print "Running Megascans Bridge client"
 t = ms_Init(ms_asset_importer)
 t.start()
