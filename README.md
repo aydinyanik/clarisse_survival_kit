@@ -163,7 +163,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 
 # TODO
-- Megascans Bridge communication
+- Nothing :(
 
 Got any ideas? Did I miss anything important? Let me know.
 
