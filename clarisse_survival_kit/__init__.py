@@ -25,38 +25,50 @@ def get_isotropix_user_path():
     return clarisse_dir
 
 
-sitepackages_folders = site.getsitepackages()
-for sitepackages_folder in sitepackages_folders:
-    user_path = os.path.join(get_isotropix_user_path(), '.csk')
-    if user_path:
-        sys.path.append(os.path.normpath(user_path))
-        if not os.path.exists(user_path):
-            os.makedirs(user_path)
-        init_path = os.path.join(user_path, '__init__.py')
-        if not os.path.isfile(init_path):
-            init_file = open(init_path, 'w+')
-            init_file.close()
+user_path = os.path.join(get_isotropix_user_path(), '.csk')
+if user_path:
+    sys.path.append(os.path.normpath(user_path))
+    if not os.path.exists(user_path):
+        os.makedirs(user_path)
+    init_path = os.path.join(user_path, '__init__.py')
+    if not os.path.isfile(init_path):
+        init_file = open(init_path, 'w+')
+        init_file.close()
 
-        log_level = logging.ERROR
-        settings_path = os.path.join(user_path, settings_filename)
-        if not os.path.isfile(settings_path):
-            settings_file = open(settings_path, 'w+')
-            settings_file.close()
-        else:
-            try:
-                from user_settings import LOG_LEVEL
-                log_level = LOG_LEVEL
-            except ImportError:
-                pass
-
-        log_path = os.path.join(user_path, logging_filename)
-        if os.path.isfile(log_path):
-            with open(log_path, "w") as log_file:
-                log_file.truncate()
-
-        logging.basicConfig(filename=log_path, level=log_level, format='%(message)s')
-        log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        logging.debug("--------------------------------------")
-        logging.debug("Log start: " + log_start)
+    log_level = logging.ERROR
+    settings_path = os.path.join(user_path, settings_filename)
+    if not os.path.isfile(settings_path):
+        settings_file = open(settings_path, 'w+')
+        settings_file.close()
     else:
-        print "Could not generate log or user settings!!!"
+        try:
+            from user_settings import LOG_LEVEL
+            log_level = LOG_LEVEL
+        except ImportError:
+            pass
+
+    log_path = os.path.join(user_path, logging_filename)
+    if os.path.isfile(log_path):
+        with open(log_path, "w") as log_file:
+            log_file.truncate()
+    try:
+        from user_settings import PACKAGE_PATH
+    except ImportError:
+        sitepackages_folders = site.getsitepackages()
+        for sitepackages_folder in sitepackages_folders:
+            sub_folders = os.listdir(sitepackages_folder)
+            for sub_folder in sub_folders:
+                folder_path = os.path.normpath(os.path.join(sitepackages_folder, sub_folder))
+                if os.path.isdir(folder_path):
+                    if sub_folder == 'clarisse_survival_kit':
+                        print "Found CSK package location on disk"
+                        settings_file = open(settings_path, 'a')
+                        settings_file.write('PACKAGE_PATH = "%s"' % folder_path)
+                        settings_file.close()
+
+    logging.basicConfig(filename=log_path, level=log_level, format='%(message)s')
+    log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logging.debug("--------------------------------------")
+    logging.debug("Log start: " + log_start)
+else:
+    print "Could not generate log or user settings!!!"
