@@ -42,12 +42,9 @@ DEFAULT_COLOR_SPACES['opacity'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['emissive'] = SRGB_COLOR_SPACES
 DEFAULT_COLOR_SPACES['preview'] = SRGB_COLOR_SPACES
 
-MEGASCANS_COLOR_SPACES = {'diffuse': SRGB_COLOR_SPACES,
-                          'translucency': SRGB_COLOR_SPACES}
-SUBSTANCE_COLOR_SPACES = {'diffuse': SRGB_COLOR_SPACES,
-                          'specular': SRGB_COLOR_SPACES,
-                          'emissive': SRGB_COLOR_SPACES,
-                          'translucency': SRGB_COLOR_SPACES}
+MEGASCANS_COLOR_SPACES = DEFAULT_COLOR_SPACES.copy()
+SUBSTANCE_COLOR_SPACES = DEFAULT_COLOR_SPACES.copy()
+SUBSTANCE_COLOR_SPACES['specular'] = SRGB_COLOR_SPACES
 
 COLOR_SPACE_PRESETS = collections.OrderedDict()
 COLOR_SPACE_PRESETS['megascans'] = MEGASCANS_COLOR_SPACES

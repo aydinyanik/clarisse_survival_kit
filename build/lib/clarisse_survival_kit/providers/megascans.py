@@ -17,12 +17,14 @@ def inspect_asset(asset_directory):
 
 
 def import_asset(asset_directory, report=None, **kwargs):
+    ix = get_ix(kwargs.get('ix'))
     asset_directory = os.path.join(os.path.normpath(asset_directory), '')
     if not report:
         report = inspect_asset(asset_directory)
     if report:
+        if not kwargs.get('color_spaces'):
+            kwargs['color_spaces'] = get_color_spaces(MEGASCANS_COLOR_SPACES, ix=ix)
         asset_type = report.get('type')
-        print asset_type
         if asset_type:
             if asset_type == 'surface':
                 import_surface(asset_directory, **kwargs)
@@ -35,7 +37,7 @@ def import_asset(asset_directory, report=None, **kwargs):
 
 
 def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_type='triplanar', object_space=0,
-                   clip_opacity=True, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
+                   clip_opacity=True, color_spaces=None, triplanar_blend=0.5, **kwargs):
     """Imports a Megascans surface."""
     logging.debug("++++++++++++++++++++++.")
     logging.debug("Import Megascans surface called.")
@@ -46,6 +48,8 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         return None
     if not os.path.isdir(asset_directory):
         return ix.log_warning('Invalid directory specified: ' + asset_directory)
+    # if not color_spaces:
+    #     color_spaces = get_color_spaces(MEGASCANS_COLOR_SPACES, ix=ix)
     logging.debug('Asset directory: ' + asset_directory)
 
     # Initial data

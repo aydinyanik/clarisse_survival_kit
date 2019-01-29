@@ -283,6 +283,18 @@ def check_context(ctx, **kwargs):
     return True
 
 
+def get_color_spaces(preset, **kwargs):
+    """Gets the installed color spaces for a preset."""
+    ix = get_ix(kwargs.get("ix"))
+    color_spaces = {}
+    installed_color_spaces = ix.api.ColorIO.get_color_space_names()
+    for key, choices in preset.items():
+        for choice in choices:
+            if choice in installed_color_spaces:
+                color_spaces[key] = choice
+    return color_spaces
+
+
 def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
     """Gets all subcontexts."""
     ix = get_ix(kwargs.get("ix"))
