@@ -75,6 +75,8 @@ Since the Bridge communication script is running outside of Clarisse and decoupl
 
 Packing channels is not supported. Assets that are exported outside of the library will work fine.
 
+[Video: Megascans Bridge Communication](https://vimeo.com/315113262)
+
 ### Mix Multiple Surfaces
  - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
  - Masking features:
