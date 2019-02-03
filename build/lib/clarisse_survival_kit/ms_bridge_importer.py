@@ -133,11 +133,7 @@ def ms_asset_importer(imported_data):
             assets.append({'path': json_data['path'], 'id': json_data['id']})
             json_file = os.path.join(os.path.normpath(json_data['path']), json_data['id'] + '.json')
             with open(json_file, 'w') as outfile:
-                output = json.dumps(json_data, indent=4)
-                # 3D plants come in flattened
-                output = output.replace('3dplant', '3d')
-                print output
-                outfile.write(output)
+                outfile.write(json.dumps(json_data, indent=4))
         if assets:
             send_to_command_port(assets)
         threaded_server = ms_Init(ms_asset_importer)
