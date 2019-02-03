@@ -40,6 +40,8 @@ class Surface:
         logging.debug("Creating textures...")
         for index, texture_settings in TEXTURE_SETTINGS.items():
             if index in textures:
+                if index == 'opacity' and clip_opacity:
+                    continue
                 logging.debug("Using these settings for texture: " + str(texture_settings))
                 color_space = color_spaces.get(index)
                 filename = textures[index]
