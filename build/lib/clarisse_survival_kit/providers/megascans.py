@@ -273,12 +273,13 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     tileable = json_data.get('tileable', True)
     asset_name = os.path.basename(os.path.normpath(asset_directory))
     logging.debug("Asset name: " + asset_name)
-
+    logging.debug(os.path.join(asset_directory, 'Textures/Atlas/'))
     atlas_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Atlas/'))
     if not atlas_textures:
         ix.log_warning("No atlas textures found in directory. Files might have been exported flattened from Bridge.\n"
                        "Testing import as Atlas.")
-        import_atlas(asset_directory, target_ctx=target_ctx, use_displacement=use_displacement, clip_opacity=clip_opacity, **kwargs)
+        import_atlas(asset_directory, target_ctx=target_ctx, use_displacement=use_displacement,
+                     clip_opacity=clip_opacity, **kwargs)
         return None
     logging.debug("Atlas textures: ")
     logging.debug(str(atlas_textures))
@@ -415,6 +416,7 @@ def get_json_data_from_directory(directory):
                                                  (md['value']).replace("m", "").replace(" ", "").split("x")]
                         elif md['key'] == "tileable":
                             data['tileable'] = md['value']
+            break
     return data
 
 

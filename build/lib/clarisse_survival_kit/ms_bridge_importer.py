@@ -131,9 +131,16 @@ def ms_asset_importer(imported_data):
         assets = []
         for json_data in json_array:
             assets.append({'path': json_data['path'], 'id': json_data['id']})
-            json_file = os.path.join(os.path.normpath(json_data['path']), json_data['id'] + '.json')
-            with open(json_file, 'w') as outfile:
-                outfile.write(json.dumps(json_data, indent=4))
+            files = [f for f in os.listdir(json_data['path']) if os.path.isfile(os.path.join(json_data['path'], f))]
+            json_exists = False
+            for f in files:
+                filename, extension = os.path.splitext(f)
+                if extension == ".json":
+                    json_exists = True
+            if not json_exists:
+                json_file = os.path.join(os.path.normpath(json_data['path']), json_data['id'] + '.json')
+                with open(json_file, 'w') as outfile:
+                    outfile.write(json.dumps(json_data, indent=4))
         if assets:
             send_to_command_port(assets)
         threaded_server = ms_Init(ms_asset_importer)

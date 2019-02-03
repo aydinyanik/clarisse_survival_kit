@@ -41,7 +41,7 @@ class Surface:
         for index, texture_settings in TEXTURE_SETTINGS.items():
             if index in textures:
                 if index == 'opacity' and clip_opacity:
-                    continue
+                    texture_settings['connection'] = None
                 logging.debug("Using these settings for texture: " + str(texture_settings))
                 color_space = color_spaces.get(index)
                 filename = textures[index]
@@ -189,6 +189,9 @@ class Surface:
                 self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_fresnel_mode", [str(0)])
         if index == "emissive":
             self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
+        if index == 'translucency':
+            self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
+            self.ix.application.check_for_events()
         return True
 
     def create_sub_ctx(self, index):
