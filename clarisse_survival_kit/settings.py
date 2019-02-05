@@ -12,7 +12,7 @@ FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|al
                            'bump': r'(?:_bump|^bump$)',
                            'normal_lods': r'_Normal_LOD[0-9]$',
                            'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
-                           'translucency': r'_Translucency',
+                           'translucency': r'_Translucency|_translucent|^translucent$',
                            'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
                            'ior': r'(?:_ior|^ior$)',
                            'f0': r'(?:_f0|^f0$)',

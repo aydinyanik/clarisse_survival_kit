@@ -356,7 +356,7 @@ class Surface:
         values[1] = str(self.height * 1.1 * self.uv_scale[0])
         values[2] = str(self.height * 1.1 * self.uv_scale[0])
         values[3] = str(self.height * self.uv_scale[0])
-        values[4] = str(((self.height / 2) * self.uv_scale[0]) * -1)
+        values[4] = str(-0.5)
         self.ix.cmds.SetValues(attrs, values)
         self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_tx))
         self.textures['displacement_map'] = disp
@@ -553,7 +553,7 @@ class Surface:
             values[1] = str(height * 1.1 * self.uv_scale[0])
             values[2] = str(height * 1.1 * self.uv_scale[0])
             values[3] = str(height * self.uv_scale[0])
-            values[4] = str(((height / 2) * self.uv_scale[0]) * -1)
+            values[4] = str(-0.5)
             self.ix.cmds.SetValues(attrs, values)
         self.height = height
         connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
