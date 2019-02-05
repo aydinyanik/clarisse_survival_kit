@@ -65,6 +65,8 @@ The kit provides the following scripts:
 ### Import Asset
   - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
   - Import meshes(.abc/.obj/.lwo) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
+  
+  [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
 
 ### Megascans Bridge Communication
 Launch the Bridge listener from the shelf and send assets directly to Clarisse. Make sure the **Command Port** is running. You can enable the Command Port from the preferences. Keep it at the default port number of **55000**. When exporting assets from Bridge to Clarisse make sure to select Custom as your application and keep the port at the default of **24981**. 
@@ -72,6 +74,8 @@ Launch the Bridge listener from the shelf and send assets directly to Clarisse. 
 Since the Bridge communication script is running outside of Clarisse and decoupled from CSK I didn't make these settings configurable. You can edit the ms_bridge_importer.py python file if you need to customize the ports, but these settings will be overwritten once you install a new version.
 
 Packing channels is not supported. Assets that are exported outside of the library will work fine.
+
+[Video: Megascans Bridge Communication](https://vimeo.com/315113262)
 
 ### Mix Multiple Surfaces
  - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
