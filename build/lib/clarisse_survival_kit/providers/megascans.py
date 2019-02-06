@@ -166,7 +166,7 @@ def import_3d(asset_directory, target_ctx=None, clip_opacity=True, **kwargs):
         i = 0
         for lod_level, lod_mtl in lod_mtls.iteritems():
             ix.cmds.AddShadingLayerRule(str(shading_layer), i, ["filter", "", "is_visible", "1"])
-            ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "filter", ["./*LOD" + str(lod_level)])
+            ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "filter", ["./*LOD" + str(lod_level) + "*"])
             ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "material", [str(lod_mtl)])
             if surface.get('opacity') and clip_opacity:
                 ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "clip_map",
@@ -189,7 +189,7 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
     # Force projection to UV
     kwargs['projection_type'] = 'uv'
     surface = import_surface(asset_directory=asset_directory, target_ctx=target_ctx, clip_opacity=clip_opacity,
-                             **kwargs)
+                             double_sided=True, **kwargs)
     asset_name = surface.name
     mtl = surface.mtl
     ctx = surface.ctx
@@ -288,7 +288,8 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     logging.debug(str(streamed_maps))
 
     atlas_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=DEFAULT_PLANT_DISPLACEMENT_HEIGHT,
-                            tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
+                            tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
+                            double_sided=True)
     plant_root_ctx = ix.cmds.CreateContext(asset_name, "Global", str(target_ctx))
     atlas_mtl = atlas_surface.create_mtl(ATLAS_CTX, plant_root_ctx)
     atlas_surface.create_textures(atlas_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
@@ -306,7 +307,8 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     logging.debug("Billboard streamed maps: ")
     logging.debug(str(streamed_maps))
     billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=surface_height,
-                                tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior)
+                                tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
+                                double_sided=True)
     billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
     billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
                                       clip_opacity=clip_opacity)

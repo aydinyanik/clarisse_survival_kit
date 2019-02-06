@@ -19,6 +19,7 @@ class Surface:
         self.height = kwargs.get('height', DEFAULT_DISPLACEMENT_HEIGHT)
         self.triplanar_blend = kwargs.get('triplanar_blend', 0.5)
         self.tile = kwargs.get('tile', True)
+        self.double_sided = kwargs.get('double_sided', False)
         self.textures = {}
         self.streamed_maps = []
 
@@ -29,6 +30,8 @@ class Surface:
         ctx = self.ix.cmds.CreateContext(name, "Global", str(target_ctx))
         self.ctx = ctx
         mtl = self.ix.cmds.CreateObject(name + MATERIAL_SUFFIX, "MaterialPhysicalStandard", "Global", str(ctx))
+        if mtl.attribute_exists('sidedness') and self.double_sided:
+            self.ix.cmds.SetValues([str(mtl) + ".sidedness"], ["1"])
         self.ix.cmds.SetValue(str(mtl) + ".specular_1_index_of_refraction", [str(self.ior)])
         self.ix.cmds.SetValue(str(mtl) + ".specular_1_strength", [str(self.specular_strength)])
         self.mtl = mtl
