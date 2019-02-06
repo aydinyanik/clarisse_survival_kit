@@ -192,6 +192,7 @@ class Surface:
                 self.ix.cmds.SetValue(str(self.mtl) + ".specular_1_fresnel_mode", [str(0)])
         if index == "emissive":
             self.ix.cmds.SetValue(str(self.mtl) + ".emission_strength", [str(1)])
+            self.ix.application.check_for_events()
         if index == 'translucency':
             self.ix.cmds.SetValue(str(self.mtl) + ".diffuse_back_strength", [str(1)])
             self.ix.application.check_for_events()
