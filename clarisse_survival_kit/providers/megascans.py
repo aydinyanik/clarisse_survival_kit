@@ -180,7 +180,7 @@ def import_3d(asset_directory, target_ctx=None, clip_opacity=True, **kwargs):
     logging.debug("********************************************************")
 
 
-def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displacement=False, **kwargs):
+def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displacement=True, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************")
@@ -241,7 +241,7 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
 
 
 def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_space=0, clip_opacity=True,
-                   use_displacement=False, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
+                   use_displacement=True, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************")
