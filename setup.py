@@ -196,7 +196,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 package_name = "clarisse_survival_kit"
-versions = ['3.5', '3.6', '4.0']
+versions = ['3.5', '3.6']
 
 setup(
     name=package_name,
