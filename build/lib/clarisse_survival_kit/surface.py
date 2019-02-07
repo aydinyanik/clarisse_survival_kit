@@ -144,12 +144,13 @@ class Surface:
                     values[5] = str(uv_scale[1])
                     self.ix.cmds.SetValues(attrs, values)
                 if not tile:
+                    repeat_mode = 0 if tx.is_kindof("TextureStreamedMapFile") else 2
                     attrs = self.ix.api.CoreStringArray(2)
                     attrs[0] = str(tx) + ".u_repeat_mode"
                     attrs[1] = str(tx) + ".v_repeat_mode"
                     values = self.ix.api.CoreStringArray(2)
-                    values[0] = str(2)
-                    values[1] = str(2)
+                    values[0] = str(repeat_mode)
+                    values[1] = str(repeat_mode)
                     self.ix.cmds.SetValues(attrs, values)
             if (tx.is_kindof("TextureMapFile") or tx.is_kindof("TextureStreamedMapFile")) and \
                             self.projection != "triplanar" and projection == "triplanar":
@@ -284,6 +285,7 @@ class Surface:
             self.ix.cmds.SetValue(str(triplanar_tx) + ".blend", [str(self.triplanar_blend)])
             self.ix.cmds.SetValue(str(triplanar_tx) + ".object_space", [str(self.object_space)])
             self.textures[index + '_triplanar'] = triplanar_tx
+        default_repeat_mode = 3 if streamed else 0
         attrs = self.ix.api.CoreStringArray(5 if streamed else 6)
         attrs[0] = str(tx) + ".color_space_auto_detect"
         attrs[1] = str(tx) + ".filename"
@@ -294,8 +296,8 @@ class Surface:
         values[0] = '0'
         values[1] = str(filename)
         values[2] = str(1 if invert else 0)
-        values[3] = str((2 if not self.tile else 0))
-        values[4] = str((2 if not self.tile else 0))
+        values[3] = str((2 if not self.tile else default_repeat_mode))
+        values[4] = str((2 if not self.tile else default_repeat_mode))
         if not streamed:
             attrs[5] = str(tx) + ".single_channel_file_behavior"
             values[5] = str((1 if single_channel else 0))

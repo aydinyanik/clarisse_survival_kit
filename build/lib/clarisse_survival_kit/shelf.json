@@ -68,6 +68,12 @@
       "icon_filename": "stream_toggle.png"
     },
     {
+      "title": "Convert Textures",
+      "description": "Converts selected textures to another file type.",
+      "script_filename": "converter.py",
+      "icon_filename": "replace.png"
+    },
+    {
       "title": "Import Megascans Library",
       "description": "Imports the whole or selected categories of the Megascans Library. Already existing items will be ignored.",
       "script_filename": "import_ms_library.py",

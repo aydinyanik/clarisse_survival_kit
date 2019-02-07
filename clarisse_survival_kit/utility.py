@@ -2,6 +2,9 @@ import os
 import re
 import logging
 import random
+import subprocess
+import platform
+import glob
 
 from clarisse_survival_kit.settings import *
 
@@ -464,3 +467,52 @@ def toggle_map_file_stream(tx, **kwargs):
     ix.application.check_for_events()
     ix.cmds.RenameItem(str(new_tx), tx_name)
     return new_tx
+
+
+def convert_tx(tx, extension, target_folder=None, **kwargs):
+    """Converts the selected texture."""
+    logging.debug("Converting texture: {} to .{}".format(str(tx), extension))
+    ix = get_ix(kwargs.get("ix"))
+
+    file_path = tx.attrs.filename.attr.get_string()
+    file_dir = os.path.split(os.path.join(file_path))[0]
+    if not target_folder:
+        target_folder = file_dir
+    filename, ext = os.path.splitext(os.path.basename(file_path))
+    if ext.lstrip(".") == "tx":
+        ix.log_warning("Cannot convert .tx file back to other formats.")
+        return None
+    new_file_path = os.path.normpath(
+        os.path.join(target_folder, filename + '.' + extension))
+
+    if extension == 'tx':
+        executable_name = 'maketx'
+        if platform.system() == "Windows":
+            executable_name += '.exe'
+        if not tx.is_kindof('TextureStreamedMapFile'):
+            tx = toggle_map_file_stream(tx, ix=ix)
+        converter_path = os.path.normpath(
+            os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
+        command_string = r'"{}" -v -u "{}" -o "{}"'.format(converter_path, file_path, new_file_path)
+    else:
+        executable_name = 'iconvert'
+        if platform.system() == "Windows":
+            executable_name += '.exe'
+        converter_path = os.path.normpath(
+            os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
+        command_string = r'"{}" "{}" "{}"'.format(converter_path, file_path, new_file_path)
+
+    if "<UDIM>" in file_path:
+        udim_filename_split = file_path.split("<UDIM>")
+        udim_files = glob.glob(os.path.join(file_dir, udim_filename_split[0] + '*' + udim_filename_split[1] + '.*'))
+        for udim_file in udim_files:
+            udim_command_string = command_string.replace(file_path, udim_file)
+            logging.debug(udim_command_string)
+            subprocess.call(udim_command_string, shell=True)
+
+    else:
+        logging.debug(command_string)
+        subprocess.call(command_string, shell=True)
+    tx.attrs.filename = new_file_path
+    return tx
+

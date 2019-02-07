@@ -6,6 +6,8 @@ clarisse_survival_kit/add_to_mix.py
 clarisse_survival_kit/app.py
 clarisse_survival_kit/blur.png
 clarisse_survival_kit/blur.py
+clarisse_survival_kit/converter.png
+clarisse_survival_kit/converter.py
 clarisse_survival_kit/import_asset.png
 clarisse_survival_kit/import_asset.py
 clarisse_survival_kit/import_ms_library.png
