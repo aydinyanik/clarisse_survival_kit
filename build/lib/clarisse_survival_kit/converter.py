@@ -65,7 +65,7 @@ def converter_gui():
                 tx = ix.get_item(selection_list.get_item_name(i))
                 if tx:
                     convert_tx(tx, extension=extension_list.get_selected_item_name(),
-                               target_folder=directory, ix=ix)
+                               replace=replace_checkbox.get_value(), target_folder=directory, ix=ix)
                 # progress = (i + 1) / count
                 progress.step(i)
                 ix.application.check_for_events()

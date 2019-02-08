@@ -469,7 +469,7 @@ def toggle_map_file_stream(tx, **kwargs):
     return new_tx
 
 
-def convert_tx(tx, extension, target_folder=None, **kwargs):
+def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
     """Converts the selected texture."""
     logging.debug("Converting texture: {} to .{}".format(str(tx), extension))
     ix = get_ix(kwargs.get("ix"))
@@ -489,7 +489,7 @@ def convert_tx(tx, extension, target_folder=None, **kwargs):
         executable_name = 'maketx'
         if platform.system() == "Windows":
             executable_name += '.exe'
-        if not tx.is_kindof('TextureStreamedMapFile'):
+        if not tx.is_kindof('TextureStreamedMapFile') and replace:
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
@@ -509,10 +509,11 @@ def convert_tx(tx, extension, target_folder=None, **kwargs):
             udim_command_string = command_string.replace(file_path, udim_file)
             logging.debug(udim_command_string)
             subprocess.call(udim_command_string, shell=True)
-
     else:
         logging.debug(command_string)
         subprocess.call(command_string, shell=True)
-    tx.attrs.filename = new_file_path
+
+    if replace:
+        tx.attrs.filename = new_file_path
     return tx
 

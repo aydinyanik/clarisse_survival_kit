@@ -71,7 +71,7 @@
       "title": "Convert Textures",
       "description": "Converts selected textures to another file type.",
       "script_filename": "converter.py",
-      "icon_filename": "replace.png"
+      "icon_filename": "converter.png"
     },
     {
       "title": "Import Megascans Library",
