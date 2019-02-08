@@ -410,7 +410,7 @@ def toggle_map_file_stream(tx, **kwargs):
         if single_channel:
             logging.debug("Creating reorder node...")
             reorder_tx = ix.cmds.CreateObject(tx_name + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
-                                                   "Global", str(ctx))
+                                              "Global", str(ctx))
             ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
             ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(new_tx))
             out_tx = reorder_tx
@@ -507,9 +507,15 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
 
     if "<UDIM>" in file_path:
         udim_filename_split = file_path.split("<UDIM>")
-        udim_files = glob.glob(os.path.join(file_dir, udim_filename_split[0] + '*' + udim_filename_split[1] + '.*'))
+        udim_files = glob.glob(os.path.join(file_dir, udim_filename_split[0] + '*' + udim_filename_split[1]))
+        logging.debug(str(udim_filename_split))
+        logging.debug(str(udim_files))
         for udim_file in udim_files:
             udim_command_string = command_string.replace(file_path, udim_file)
+            udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", os.path.split(udim_file)[-1])
+            logging.debug(udim_match.group(0))
+            new_udim_file_path = new_file_path.replace('<UDIM>', str(udim_match.group(0)))
+            udim_command_string = udim_command_string.replace(new_file_path, new_udim_file_path)
             logging.debug(udim_command_string)
             subprocess.call(udim_command_string, shell=True)
     else:
@@ -517,6 +523,5 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
         subprocess.call(command_string, shell=True)
 
     if replace:
-        tx.attrs.filename = new_file_path
+        tx.attrs.filename = os.path.normpath(new_file_path)
     return tx
-
