@@ -466,6 +466,7 @@ def toggle_map_file_stream(tx, **kwargs):
     ix.cmds.DeleteItems(delete_items)
     if new_tx.is_kindof('TextureStreamedMapFile'):
         ix.cmds.SetValue(str(new_tx) + '.interpolation_mode', [str(3)])
+        ix.cmds.SetValue(str(new_tx) + '.mipmap_mode', [str(3)])
     ix.application.check_for_events()
     ix.cmds.RenameItem(str(new_tx), tx_name)
     return new_tx
