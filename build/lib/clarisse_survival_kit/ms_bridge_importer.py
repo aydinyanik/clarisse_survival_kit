@@ -1,6 +1,7 @@
 import json, sys, socket, time, threading, os
 import struct
 import socket
+import re
 
 host, port = '127.0.0.1', 24981
 
@@ -120,7 +121,16 @@ def send_to_command_port(assets):
     print assets
     for asset in assets:
         asset_path = str(json.dumps(asset['path']))
-        import_command += 'import_asset(' + asset_path + ', ix=ix)\n'
+        resolution = str(asset['resolution'])
+        lod = None
+        if asset.get('lod'):
+            # Check if LOD is on drugs :)
+            if str(asset.get('lod')).lower() == 'high':
+                lod = -1
+            else:
+                lod = re.match('.*?([0-9]+)$', asset.get('lod')).group(1)
+        import_command += 'import_asset(' + asset_path + \
+                          ', resolution="{}", lod={}, ix=ix)\n'.format(resolution, str(lod))
     rclarisse.run(import_command)
 
 
@@ -130,7 +140,8 @@ def ms_asset_importer(imported_data):
         json_array = json.loads(imported_data)
         assets = []
         for json_data in json_array:
-            assets.append({'path': json_data['path'], 'id': json_data['id']})
+            assets.append({'path': json_data['path'], 'id': json_data['id'],
+                           'resolution': json_data['resolution'], 'lod': json_data.get('activeLOD')})
             files = [f for f in os.listdir(json_data['path']) if os.path.isfile(os.path.join(json_data['path'], f))]
             json_exists = False
             for f in files:

@@ -10,7 +10,6 @@ FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|al
                            'gloss': r'(?:_Gloss|_glossiness|^glossiness$)',
                            'normal': r'(?:_Normal|_NormalBump$|^normal$)',
                            'bump': r'(?:_bump|^bump$)',
-                           'normal_lods': r'_Normal_LOD[0-9]$',
                            'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
                            'translucency': r'_Translucency|_translucent|^translucent$',
                            'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
@@ -21,7 +20,11 @@ FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|al
                            'ao': r'(?:_ao|^ao$|_occlusion)',
                            'preview': r'(?:_preview|^preview$|_render)'}
 
+LOD_MATCH_TEMPLATE = r'_LOD(?P<lod>[0-9]*)'
+
 PROVIDERS = ['megascans', 'generic']
+
+IMAGE_RESOLUTIONS = ['8K', '4K', '2K', '1K']
 
 SRGB_COLOR_SPACES = ['sRGB', 'Utility - sRGB - Texture']
 LINEAR_COLOR_SPACES = ['linear', 'Utility - Linear - sRGB']

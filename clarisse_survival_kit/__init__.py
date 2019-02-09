@@ -53,6 +53,7 @@ if user_path:
             log_file.truncate()
     try:
         from user_settings import PACKAGE_PATH
+        os.environ["CSK_PACKAGE_PATH"] = PACKAGE_PATH
     except ImportError:
         sitepackages_folders = site.getsitepackages()
         for sitepackages_folder in sitepackages_folders:
@@ -63,7 +64,8 @@ if user_path:
                     if sub_folder == 'clarisse_survival_kit':
                         print "Found CSK package location on disk"
                         settings_file = open(settings_path, 'a')
-                        settings_file.write('PACKAGE_PATH = "%s"' % folder_path)
+                        settings_file.write('\nPACKAGE_PATH = "%s"' % folder_path)
+                        os.environ["CSK_PACKAGE_PATH"] = folder_path
                         settings_file.close()
 
     logging.basicConfig(filename=log_path, level=log_level, format='%(message)s')

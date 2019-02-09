@@ -5,6 +5,7 @@ import random
 import subprocess
 import platform
 import glob
+import bisect
 
 from clarisse_survival_kit.settings import *
 
@@ -58,14 +59,21 @@ def get_ix(ix_local):
 
 
 def get_textures_from_directory(directory, filename_match_template=FILENAME_MATCH_TEMPLATE,
-                                image_formats=IMAGE_FORMATS):
+                                lod_match_template=LOD_MATCH_TEMPLATE, image_formats=IMAGE_FORMATS,
+                                resolution=None, lod=None, lod_keys=('normal',)):
     """Returns texture files which exist in the specified directory."""
     logging.debug("Searching for textures inside: " + str(directory))
+    logging.debug('Resolution: ' + str(resolution))
+    logging.debug('LOD: ' + str(lod))
     textures = {}
+    lod_files = {}
+    for lod_key in lod_keys:
+        lod_files[lod_key] = {}
     for root, dirs, files in os.walk(directory):
         for f in files:
             filename, extension = os.path.splitext(f)
             extension = extension.lower().lstrip('.')
+            lod_check = True
             if extension in image_formats:
                 logging.debug("Found image: " + str(f))
                 path = os.path.normpath(os.path.join(root, f))
@@ -73,26 +81,59 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
                     match = re.search(pattern, filename, re.IGNORECASE)
                     if match:
                         logging.debug("Image matches with: " + str(key))
-                        if key == 'normal_lods':
-                            if type(textures.get(key)) != list:
-                                textures[key] = []
+                        if resolution and resolution not in filename:
+                            logging.debug("Found texture but without specified resolution: " + str(filename))
+                            continue
+                        lod_match = re.search(lod_match_template, filename, re.IGNORECASE)
+                        if lod_match:
+                            if lod_match.group('lod'):
+                                lod_level = int(lod_match.group('lod'))
                             else:
-                                # Check if another file extension exists.
-                                # If so use the first that occurs in the image_formats list.
-                                previous_extension = os.path.splitext(textures[key][-1])[-1].lstrip('.')
-                                if image_formats.index(previous_extension) > image_formats.index(extension):
+                                lod_level = -1
+                            logging.debug('Texture has LOD level: ' + str(lod_level))
+                        if key in lod_keys:
+                            logging.debug("LOD texture found: " + str(filename))
+                            if lod is not None:
+                                logging.debug("Checking if LOD {} matches with filename".format(str(lod)))
+                                if lod == -1:
+                                    if lod_match:
+                                        lod_check = False
+                                else:
+                                    if lod_match and lod_level != lod:
+                                        logging.debug("Texture did not match with LOD level {}".format(str(lod)))
+                                        lod_check = False
+                                logging.debug("Texture is a LOD normal: " + str(filename))
+                        # Check if another file extension exists.
+                        # If so use the first that occurs in the image_formats list.
+                        if key in textures:
+                            previous_extension = os.path.splitext(textures[key])[-1].lstrip('.')
+                            if image_formats.index(previous_extension) > image_formats.index(extension):
+                                if lod_check:
                                     textures[key] = path
-                                    continue
-                            textures[key].append(path)
+                                else:
+                                    lod_files[key][lod_level] = path
                         else:
-                            # Check if another file extension exists.
-                            # If so use the first that occurs in the image_formats list.
-                            if key in textures:
-                                previous_extension = os.path.splitext(textures[key])[-1].lstrip('.')
-                                if image_formats.index(previous_extension) > image_formats.index(extension):
-                                    textures[key] = path
-                            else:
+                            if lod_check:
                                 textures[key] = path
+                            else:
+                                lod_files[key][lod_level] = path
+    logging.debug(str(lod_files))
+    for lod_key in lod_keys:
+        if textures.get(lod_key):
+            break
+        if not lod_files.get(lod_key):
+            logging.debug('No LODs Found.')
+            break
+        logging.debug('LOD for key "{}" is missing. Trying to pick texture from next LOD level.'.format(lod_key))
+        keys = lod_files[lod_key].keys()
+        keys.sort()
+        search_key = lod if lod else -1
+        search_key_index = bisect.bisect(keys, search_key)
+        logging.debug(str(search_key_index))
+        filename = lod_files[lod_key].get(keys[search_key_index - 1])
+        logging.debug('Chose following file as nearest LOD: ' + filename)
+        textures[lod_key] = filename
+
     if textures:
         logging.debug("Textures found in directory: " + directory)
         logging.debug(str(textures))
@@ -496,6 +537,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
+        thread_count = ix.application.get_max_thread_count()
         command_string = r'"{}" -v -u "{}" -o "{}"'.format(converter_path, file_path, new_file_path)
     else:
         executable_name = 'iconvert'
