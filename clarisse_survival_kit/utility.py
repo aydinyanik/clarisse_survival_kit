@@ -538,7 +538,11 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
         thread_count = ix.application.get_max_thread_count()
-        command_string = r'"{}" -v -u "{}" -o "{}"'.format(converter_path, file_path, new_file_path)
+        if thread_count > 32:
+            thread_count = 32
+        command_string = r'"{}" -v -u --oiio --resize --threads {} "{}" -o "{}"'.format(converter_path, thread_count, file_path, new_file_path)
+        logging.debug('Command string:')
+        logging.debug(command_string)
     else:
         executable_name = 'iconvert'
         if platform.system() == "Windows":
@@ -546,6 +550,8 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
         command_string = r'"{}" "{}" "{}"'.format(converter_path, file_path, new_file_path)
+        logging.debug('Command string:')
+        logging.debug(command_string)
 
     if "<UDIM>" in file_path:
         udim_filename_split = file_path.split("<UDIM>")
@@ -559,10 +565,20 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             new_udim_file_path = new_file_path.replace('<UDIM>', str(udim_match.group(0)))
             udim_command_string = udim_command_string.replace(new_file_path, new_udim_file_path)
             logging.debug(udim_command_string)
-            subprocess.call(udim_command_string, shell=True)
+            conversion = subprocess.Popen(command_string, stdout=subprocess.PIPE, shell=True)
+            out, err = conversion.communicate()
+            logging.debug(str(out))
+            logging.debug(str(err))
+            print out
+            print err
     else:
         logging.debug(command_string)
-        subprocess.call(command_string, shell=True)
+        conversion = subprocess.Popen(command_string, stdout=subprocess.PIPE, shell=True)
+        out, err = conversion.communicate()
+        logging.debug(str(out))
+        logging.debug(str(err))
+        print out
+        print err
 
     if replace:
         tx.attrs.filename = os.path.normpath(new_file_path)
