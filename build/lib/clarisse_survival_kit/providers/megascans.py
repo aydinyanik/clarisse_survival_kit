@@ -74,7 +74,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
     textures = get_textures_from_directory(asset_directory, resolution=resolution, lod=lod,
                                            lod_match_template=lod_match_template)
     if not textures:
-        ix.log_warning('No textures found in directory.')
+        ix.log_warning('No textures found in directory. Directory is empty or resolution is invalid.')
         return None
     logging.debug('Found textures: ')
     logging.debug(str(textures))
@@ -102,6 +102,9 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
     kwargs['projection_type'] = 'uv'
     surface = import_surface(asset_directory=asset_directory, target_ctx=target_ctx, clip_opacity=clip_opacity,
                              resolution=resolution, lod=lod, **kwargs)
+    if not surface:
+        logging.debug('Material creation failed. Specified resolution is probably not valid.')
+        return None
     asset_name = surface.name
     mtl = surface.mtl
     ctx = surface.ctx
@@ -141,7 +144,6 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
         if files:
             for f in files:
                 filename, extension = os.path.splitext(os.path.basename(f))
-                object_material = mtl
                 polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(ctx))
                 ix.cmds.SetValue(str(polyfile) + ".filename", [f])
                 # Megascans .obj files are saved in cm, Clarisse imports them as meters.
@@ -150,10 +152,13 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
                 polyfile.attrs.scale_offset[2] = .01
                 geo = polyfile.get_module()
                 for i in range(geo.get_shading_group_count()):
-                    geo.assign_material(object_material.get_module(), i)
+                    logging.debug('Applying material to geometry')
+                    geo.assign_material(mtl.get_module(), i)
                     if clip_opacity and surface.get('opacity'):
+                        logging.debug('Applying clip map')
                         geo.assign_clip_map(surface.get('opacity').get_module(), i)
                     if not filename.endswith("_High") and surface.get('displacement'):
+                        logging.debug('Applying displacement map')
                         geo.assign_displacement(surface.get('displacement_map').get_module(), i)
 
     logging.debug("Creating shading layers..")
@@ -182,6 +187,9 @@ def import_atlas(asset_directory, target_ctx=None, lod=None, clip_opacity=True, 
     kwargs['projection_type'] = 'uv'
     surface = import_surface(asset_directory=asset_directory, target_ctx=target_ctx, clip_opacity=clip_opacity,
                              double_sided=True, resolution=resolution, **kwargs)
+    if not surface:
+        logging.debug('Material creation failed. Specified resolution is probably not valid.')
+        return None
     asset_name = surface.name
     mtl = surface.mtl
     ctx = surface.ctx
@@ -272,7 +280,7 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
         ix.log_warning("No atlas textures found in directory. Files might have been exported flattened from Bridge.\n"
                        "Testing import as Atlas.")
         import_atlas(asset_directory, target_ctx=target_ctx, use_displacement=use_displacement,
-                     clip_opacity=clip_opacity, **kwargs)
+                     clip_opacity=clip_opacity, resolution=resolution, **kwargs)
         return None
     logging.debug("Atlas textures: ")
     logging.debug(str(atlas_textures))
@@ -455,4 +463,5 @@ def import_ms_library(library_dir, target_ctx=None, lod=None, custom_assets=True
     if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
         logging.debug("My Assets exists...")
         import_ms_library(os.path.join(library_dir, "My Assets"), target_ctx=target_ctx,
-                          skip_categories=skip_categories, lod=lod, custom_assets=False, ix=ix)
+                          skip_categories=skip_categories, lod=lod, resolution=resolution,
+                          custom_assets=False, ix=ix)
