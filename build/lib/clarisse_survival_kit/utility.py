@@ -529,6 +529,10 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
     new_file_path = os.path.normpath(
         os.path.join(target_folder, filename + '.' + extension))
 
+    thread_count = ix.application.get_max_thread_count()
+    if thread_count > 32:
+        thread_count = 32
+
     if extension == 'tx':
         executable_name = 'maketx'
         if platform.system() == "Windows":
@@ -537,9 +541,6 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
-        thread_count = ix.application.get_max_thread_count()
-        if thread_count > 32:
-            thread_count = 32
         command_string = r'"{}" -v -u --oiio --resize --threads {} "{}" -o "{}"'.format(converter_path, thread_count, file_path, new_file_path)
         logging.debug('Command string:')
         logging.debug(command_string)
@@ -549,7 +550,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             executable_name += '.exe'
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
-        command_string = r'"{}" "{}" "{}"'.format(converter_path, file_path, new_file_path)
+        command_string = r'"{}" --threads 0 "{}" "{}"'.format(converter_path, file_path, new_file_path)
         logging.debug('Command string:')
         logging.debug(command_string)
 
