@@ -135,7 +135,7 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
         logging.debug(str(lod_files))
         keys = lod_files.keys()
         keys.sort()
-        search_key = lod if lod else -1
+        search_key = lod if lod is not None else -1
         search_key_index = bisect.bisect(keys, search_key)
         logging.debug(str(search_key_index))
         files = lod_files.get(keys[search_key_index - 1])
@@ -154,6 +154,7 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
                 for i in range(geo.get_shading_group_count()):
                     logging.debug('Applying material to geometry')
                     geo.assign_material(mtl.get_module(), i)
+                    ix.application.check_for_events()
                     if clip_opacity and surface.get('opacity'):
                         logging.debug('Applying clip map')
                         geo.assign_clip_map(surface.get('opacity').get_module(), i)

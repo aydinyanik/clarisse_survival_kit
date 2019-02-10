@@ -127,7 +127,7 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
         logging.debug('LOD for key "{}" is missing. Trying to pick texture from next LOD level.'.format(lod_key))
         keys = lod_files[lod_key].keys()
         keys.sort()
-        search_key = lod if lod else -1
+        search_key = lod if lod is not None else -1
         search_key_index = bisect.bisect(keys, search_key)
         logging.debug(str(search_key_index))
         filename = lod_files[lod_key].get(keys[search_key_index - 1])
