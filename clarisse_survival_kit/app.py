@@ -2,6 +2,7 @@ from clarisse_survival_kit.selectors import *
 from clarisse_survival_kit.utility import *
 from clarisse_survival_kit.surface import Surface
 import importlib
+import time
 
 
 def import_controller(asset_directory, selected_provider=None, **kwargs):
@@ -715,6 +716,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
     logging.debug("Parenting...")
     ix.cmds.AddValues([str(pc) + ".constraints"], ["ConstraintParent"])
     ix.application.check_for_events()
+    time.sleep(0.25)
     ix.cmds.SetValues([str(pc) + ".parent.target"], [str(geometry)])
     ix.application.check_for_events()
     logging.debug("Setting up multi blend and selectors...")
