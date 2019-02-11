@@ -1,4 +1,9 @@
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url)
+![Donations Received](https://img.shields.io/badge/Donations%20Received-Just%201-green.svg?style=for-the-badge)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
+
+>This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
+
 # Clarisse Survival Kit
 
 ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
@@ -94,7 +99,9 @@ Packing channels is not supported. Assets that are exported outside of the libra
 Adds the selected surfaces to an existing mix.
 
 ### Replace Surface
-You can quickly replace the selected surface or change the mapping settings. If you're replacing a material that was used in a surface mix it will also update.
+You can quickly replace the selected surface or change the mapping settings. If you're replacing a material that was used in a surface mix it will also update. 
+
+Note: If you replace Megascans assets with other Megascans assets this script will work fine. There can be some structure issues if you replace it with other type of asset structures. I am hoping to iron this out in the future.
 
 ### Toggle Surface Complexity
 Swaps out the selected material temporarily with a simple PhysicalDiffuse material. When you rerun the command on the selected PhysicalStandard material or its parent context it converts it back to the original state.
@@ -121,6 +128,9 @@ Import the whole library or specified categories. If you need individual assets 
 
 ### Stream Toggle
 Converts the selected Map Files to Streamed Map Files and vice versa. If the texture is single channel it will generate a reorder node for you. UDIM tokens are automatically added in the filename if they exist. Almost all settings are copied over.
+
+### Texture Converter
+Convert images to tx or other formats. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx. Currently you can't convert tx back to non streamed textures.
 
 ### Custom Settings & Logging
 By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
@@ -154,6 +164,9 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **11-02-19** Added Texture Converter
+- **11-02-19** Automated enabling Command Port for Bridge communication
+- **11-02-19** Added LOD and Resolution Picker
 - **29-01-19** Added Megascans Bridge Communication
 - **28-01-19** Added Add Surfaces to Mix
 - **27-01-19** Added Map File Stream toggler
@@ -167,7 +180,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 
 # TODO
-- Nothing :(
+- Cavity map support
 
 Got any ideas? Did I miss anything important? Let me know.
 
