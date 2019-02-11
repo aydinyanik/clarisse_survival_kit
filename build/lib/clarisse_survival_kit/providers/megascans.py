@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import multiprocessing.dummy as mp
+import glob
+import bisect
 
 from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.utility import *
@@ -37,7 +39,7 @@ def import_asset(asset_directory, report=None, **kwargs):
 
 
 def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection_type='triplanar', object_space=0,
-                   clip_opacity=True, color_spaces=None, triplanar_blend=0.5, **kwargs):
+                   clip_opacity=True, color_spaces=None, triplanar_blend=0.5, resolution=None, lod=None, **kwargs):
     """Imports a Megascans surface."""
     logging.debug("++++++++++++++++++++++.")
     logging.debug("Import Megascans surface called.")
@@ -68,9 +70,11 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
 
     # All assets except 3dplant have the material in the root directory of the asset.
     logging.debug('Searching for textures: ')
-    textures = get_textures_from_directory(asset_directory)
+    lod_match_template = r'(?:_LOD(?P<lod>[0-9]*)|_NormalBump$)'
+    textures = get_textures_from_directory(asset_directory, resolution=resolution, lod=lod,
+                                           lod_match_template=lod_match_template)
     if not textures:
-        ix.log_warning('No textures found in directory.')
+        ix.log_warning('No textures found in directory. Directory is empty or resolution is invalid.')
         return None
     logging.debug('Found textures: ')
     logging.debug(str(textures))
@@ -89,7 +93,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
     return surface
 
 
-def import_3d(asset_directory, target_ctx=None, clip_opacity=True, **kwargs):
+def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_opacity=True, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************************")
@@ -97,90 +101,84 @@ def import_3d(asset_directory, target_ctx=None, clip_opacity=True, **kwargs):
     # Force projection to uv
     kwargs['projection_type'] = 'uv'
     surface = import_surface(asset_directory=asset_directory, target_ctx=target_ctx, clip_opacity=clip_opacity,
-                             **kwargs)
+                             resolution=resolution, lod=lod, **kwargs)
+    if not surface:
+        logging.debug('Material creation failed. Specified resolution is probably not valid.')
+        return None
     asset_name = surface.name
     mtl = surface.mtl
     ctx = surface.ctx
-    textures = get_textures_from_directory(asset_directory)
 
-    lod_mtls = {}
-    if 'normal_lods' in textures and 'normal' in textures:
-        logging.debug("Setting up normal lods: ")
-        normal_lods = {}
-        for normal_lod_file in textures['normal_lods']:
-            logging.debug(str(normal_lod_file))
-            lod_filename, lod_ext = os.path.splitext(normal_lod_file)
-            lod_level_match = re.sub('.*?([0-9]*)$', r'\1', lod_filename)
-            lod_level = int(lod_level_match)
-            logging.debug("LOD level: " + str(lod_level))
-            lod_mtl = ix.cmds.Instantiate([str(mtl)])[0]
-            ix.cmds.LocalizeAttributes([str(lod_mtl) + ".normal_input"], True)
-            ix.cmds.RenameItem(str(lod_mtl), asset_name + MATERIAL_LOD_SUFFIX % lod_level)
-            normal_lod_tx = ix.cmds.Instantiate([str(surface.get('normal'))])[0]
-            ix.cmds.LocalizeAttributes([str(normal_lod_tx) + ".filename"], True)
-            ix.cmds.RenameItem(str(normal_lod_tx), asset_name + NORMAL_LOD_SUFFIX % lod_level)
-            normal_lod_map = ix.cmds.CreateObject(asset_name + NORMAL_MAP_LOD_SUFFIX % lod_level,
-                                                  "TextureNormalMap", "Global", str(ctx))
-            ix.cmds.SetTexture([str(lod_mtl) + ".normal_input"], str(normal_lod_map))
-            ix.cmds.SetTexture([str(normal_lod_map) + ".input"], str(normal_lod_tx))
-            ix.cmds.SetValue(str(normal_lod_tx) + ".filename", [normal_lod_file])
-            normal_lods[lod_level] = normal_lod_tx
-            lod_mtls[lod_level_match] = lod_mtl
-            lod_level += 1
     files = [f for f in os.listdir(asset_directory) if os.path.isfile(os.path.join(asset_directory, f))]
+    lod_files = {}
     for f in files:
         filename, extension = os.path.splitext(f)
         if extension == ".obj":
-            logging.debug("Found normal lod obj: " + f)
-            if "normal_lods" in textures and re.search(r'_LOD[0-9]$', filename, re.IGNORECASE):
-                lod_level = re.sub('.*?([0-9]*)$', r'\1', filename)
-                object_material = lod_mtls[lod_level]
+            if filename.lower().endswith('_high'):
+                if not lod_files.get(-1):
+                    lod_files[-1] = []
+                lod_files[-1].append(os.path.normpath(os.path.join(asset_directory, f)))
             else:
-                object_material = mtl
-            polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(ctx))
-            ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.normpath(os.path.join(asset_directory, f))])
-            # Megascans .obj files are saved in cm, Clarisse imports them as meters.
-            polyfile.attrs.scale_offset[0] = .01
-            polyfile.attrs.scale_offset[1] = .01
-            polyfile.attrs.scale_offset[2] = .01
-            geo = polyfile.get_module()
-            for i in range(geo.get_shading_group_count()):
-                geo.assign_material(object_material.get_module(), i)
-                if clip_opacity and textures.get('opacity'):
-                    geo.assign_clip_map(surface.get('opacity').get_module(), i)
-                if not filename.endswith("_High") and textures.get('displacement'):
-                    geo.assign_displacement(surface.get('displacement_map').get_module(), i)
+                lod_level_match = re.search(r'.*?LOD(?P<lod>[0-9]*)$', filename, re.IGNORECASE)
+                if lod_level_match:
+                    lod_level = int(lod_level_match.group('lod'))
+                    if not lod_files.get(lod_level):
+                        lod_files[lod_level] = []
+                    lod_files[lod_level].append(os.path.normpath(os.path.join(asset_directory, f)))
+            logging.debug("Found obj: " + f)
         elif extension == ".abc":
             abc_reference = ix.cmds.CreateFileReference(str(ctx),
                                                         [os.path.normpath(os.path.join(asset_directory, f))])
+
+    if lod_files:
+        logging.debug('Lod files:')
+        logging.debug(str(lod_files))
+        keys = lod_files.keys()
+        keys.sort()
+        search_key = lod if lod is not None else -1
+        search_key_index = bisect.bisect(keys, search_key)
+        logging.debug(str(search_key_index))
+        files = lod_files.get(keys[search_key_index - 1])
+        logging.debug('Files:')
+        logging.debug(str(files))
+        if files:
+            for f in files:
+                filename, extension = os.path.splitext(os.path.basename(f))
+                polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(ctx))
+                ix.cmds.SetValue(str(polyfile) + ".filename", [f])
+                # Megascans .obj files are saved in cm, Clarisse imports them as meters.
+                polyfile.attrs.scale_offset[0] = .01
+                polyfile.attrs.scale_offset[1] = .01
+                polyfile.attrs.scale_offset[2] = .01
+                geo = polyfile.get_module()
+                for i in range(geo.get_shading_group_count()):
+                    logging.debug('Applying material to geometry')
+                    geo.assign_material(mtl.get_module(), i)
+                    ix.application.check_for_events()
+                    if clip_opacity and surface.get('opacity'):
+                        logging.debug('Applying clip map')
+                        geo.assign_clip_map(surface.get('opacity').get_module(), i)
+                    if not filename.endswith("_High") and surface.get('displacement'):
+                        logging.debug('Applying displacement map')
+                        geo.assign_displacement(surface.get('displacement_map').get_module(), i)
+
     logging.debug("Creating shading layers..")
     shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
                                          str(ctx))
     ix.cmds.AddShadingLayerRule(str(shading_layer), 0, ["filter", "", "is_visible", "1"])
-    ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "filter", ["./*_High"])
+    ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "filter", ["./*"])
+    if lod in MESH_LOD_DISPLACEMENT_LEVELS and surface.get('displacement_map'):
+        ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "displacement",
+                                             [str(surface.get('displacement_map'))])
     ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "material", [str(mtl)])
     if surface.get('opacity') and clip_opacity:
         ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "clip_map",
                                              [str(surface.get('opacity'))])
-    if lod_mtls:
-        i = 0
-        for lod_level, lod_mtl in lod_mtls.iteritems():
-            ix.cmds.AddShadingLayerRule(str(shading_layer), i, ["filter", "", "is_visible", "1"])
-            ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "filter", ["./*LOD" + str(lod_level) + "*"])
-            ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "material", [str(lod_mtl)])
-            if surface.get('opacity') and clip_opacity:
-                ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "clip_map",
-                                                     [str(surface.get('opacity'))])
-            if surface.get('displacement'):
-                if i in MESH_LOD_DISPLACEMENT_LEVELS:
-                    ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [i], "displacement",
-                                                         [str(surface.get('displacement_map'))])
-            i += 1
     logging.debug("...done creating shading layers and importing 3d object.")
     logging.debug("********************************************************")
 
 
-def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displacement=True, **kwargs):
+def import_atlas(asset_directory, target_ctx=None, lod=None, clip_opacity=True, resolution=None, use_displacement=True, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************")
@@ -189,11 +187,13 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
     # Force projection to UV
     kwargs['projection_type'] = 'uv'
     surface = import_surface(asset_directory=asset_directory, target_ctx=target_ctx, clip_opacity=clip_opacity,
-                             double_sided=True, **kwargs)
+                             double_sided=True, resolution=resolution, **kwargs)
+    if not surface:
+        logging.debug('Material creation failed. Specified resolution is probably not valid.')
+        return None
     asset_name = surface.name
     mtl = surface.mtl
     ctx = surface.ctx
-    textures = get_textures_from_directory(asset_directory)
 
     files = [f for f in os.listdir(asset_directory) if os.path.isfile(os.path.join(asset_directory, f))]
     polyfiles = []
@@ -207,9 +207,9 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
             geo = polyfile.get_module()
             for i in range(geo.get_shading_group_count()):
                 geo.assign_material(mtl.get_module(), i)
-                if textures.get('opacity') and clip_opacity:
+                if surface.get('opacity') and clip_opacity:
                     geo.assign_clip_map(surface.get('opacity').get_module(), i)
-                if textures.get('displacement') and use_displacement:
+                if surface.get('displacement') and use_displacement:
                     geo.assign_displacement(surface.get('displacement').get_module(), i)
             polyfiles.append(polyfile)
         elif extension == ".abc":
@@ -223,10 +223,10 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
         ix.cmds.AddShadingLayerRule(str(shading_layer), 0, ["filter", "", "is_visible", "1"])
         ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "filter", ["./*"])
         ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "material", [str(mtl)])
-        if textures.get('opacity'):
+        if surface.get('opacity'):
             ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "clip_map",
                                                  [str(surface.get('opacity'))])
-        if textures.get('displacement'):
+        if surface.get('displacement'):
             ix.cmds.SetShadingLayerRulesProperty(str(shading_layer), [0], "displacement",
                                                  [str(surface.get('displacement_map'))])
     logging.debug("...done setting up shading layer")
@@ -241,7 +241,8 @@ def import_atlas(asset_directory, target_ctx=None, clip_opacity=True, use_displa
 
 
 def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_space=0, clip_opacity=True,
-                   use_displacement=True, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5, **kwargs):
+                   use_displacement=True, color_spaces=MEGASCANS_COLOR_SPACES, triplanar_blend=0.5,
+                   resolution=None, lod=None, **kwargs):
     """Imports a Megascans 3D object."""
     ix = get_ix(kwargs.get('ix'))
     logging.debug("*******************")
@@ -274,12 +275,13 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     asset_name = os.path.basename(os.path.normpath(asset_directory))
     logging.debug("Asset name: " + asset_name)
     logging.debug(os.path.join(asset_directory, 'Textures/Atlas/'))
-    atlas_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Atlas/'))
+    atlas_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Atlas/'),
+                                                 resolution=resolution)
     if not atlas_textures:
         ix.log_warning("No atlas textures found in directory. Files might have been exported flattened from Bridge.\n"
                        "Testing import as Atlas.")
         import_atlas(asset_directory, target_ctx=target_ctx, use_displacement=use_displacement,
-                     clip_opacity=clip_opacity, **kwargs)
+                     clip_opacity=clip_opacity, resolution=resolution, **kwargs)
         return None
     logging.debug("Atlas textures: ")
     logging.debug(str(atlas_textures))
@@ -296,7 +298,8 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
                                   clip_opacity=clip_opacity)
     atlas_ctx = atlas_surface.ctx
     # Find the textures of the Billboard and create the material.
-    billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'))
+    billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'),
+                                                     resolution=resolution)
     if not billboard_textures:
         ix.log_warning("No textures found in directory.")
         return None
@@ -320,7 +323,6 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
             logging.debug("Variation dir found: " + variation_dir)
             files = [f for f in os.listdir(variation_dir) if os.path.isfile(os.path.join(variation_dir, f))]
             # Search for models files and apply material
-            objs = []
             for f in files:
                 filename, extension = os.path.splitext(f)
                 if extension == ".obj":
@@ -422,7 +424,8 @@ def get_json_data_from_directory(directory):
     return data
 
 
-def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_categories=(), **kwargs):
+def import_ms_library(library_dir, target_ctx=None, lod=None, custom_assets=True, resolution=None,
+                      skip_categories=(), **kwargs):
     """Imports the whole Megascans Library. Point it to the Downloaded folder inside your library folder.
     """
     logging.debug("Importing Megascans library...")
@@ -457,8 +460,9 @@ def import_ms_library(library_dir, target_ctx=None, custom_assets=True, skip_cat
                     if os.path.isdir(asset_directory_path):
                         if not ix.item_exists(str(ctx) + "/" + asset_directory_name):
                             print "Importing asset: " + asset_directory_path
-                            import_asset(asset_directory_path, target_ctx=ctx, ix=ix)
+                            import_asset(asset_directory_path, resolution=resolution, lod=lod, target_ctx=ctx, ix=ix)
     if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
         logging.debug("My Assets exists...")
         import_ms_library(os.path.join(library_dir, "My Assets"), target_ctx=target_ctx,
-                          skip_categories=skip_categories, custom_assets=False, ix=ix)
+                          skip_categories=skip_categories, lod=lod, resolution=resolution,
+                          custom_assets=False, ix=ix)

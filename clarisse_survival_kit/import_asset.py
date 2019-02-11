@@ -56,6 +56,14 @@ def import_asset_gui(**kwargs):
                         provider_name = provider_list.get_selected_item_name().lower()
                         if provider_name == auto_cycle_name.lower():
                             provider_name = None
+                        resolution = resolution_list.get_selected_item_name()
+                        if resolution == 'Auto':
+                            resolution = None
+                        lod = lod_list.get_selected_item_name()
+                        if lod == 'High':
+                            lod = -1
+                        else:
+                            lod = int(lod)
                         color_space_selection = {}
                         for color_space_key, color_space_list_button in color_space_list_buttons.items():
                             color_space_selection[color_space_key] = color_space_list_button.get_selected_item_name()
@@ -68,6 +76,8 @@ def import_asset_gui(**kwargs):
                                                     triplanar_blend=triplanar_blend_field.get_value(),
                                                     ior=ior_field.get_value(),
                                                     metallic_ior=metallic_ior_field.get_value(),
+                                                    resolution=resolution,
+                                                    lod=lod,
                                                     ix=ix)
                         if surface:
                             ix.selection.deselect_all()
@@ -127,6 +137,13 @@ def import_asset_gui(**kwargs):
     triplanar_blend_field.set_increment(0.1)
     triplanar_blend_field.enable_slider_range(True)
 
+    resolution_label = ix.api.GuiLabel(panel, 10, 250, 180, 22, "Resolution: ")
+    resolution_types = ['Auto'] + IMAGE_RESOLUTIONS
+    resolution_list = ix.api.GuiListButton(panel, 180, 250, 120, 22)
+    for resolution_type in resolution_types:
+        resolution_list.add_item(resolution_type)
+    resolution_list.set_selected_item_by_index(0)
+
     separator_label4 = ix.api.GuiLabel(panel, 10, 280, 380, 22, "[ COLOR SPACES: ]")
     separator_label4.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
 
@@ -170,6 +187,13 @@ def import_asset_gui(**kwargs):
     clip_opacity_label = ix.api.GuiLabel(panel, 10, 550, 150, 22,
                                          "Clip opacity: ")
     clip_opacity_checkbox = ix.api.GuiCheckbox(panel, 180, 550, "")
+
+    lod_label = ix.api.GuiLabel(panel, 220, 550, 180, 22, "LOD: ")
+    lod_types = ['High', '0', '1', '2', '3', '4', '5']
+    lod_list = ix.api.GuiListButton(panel, 270, 550, 120, 22)
+    for lod_type in lod_types:
+        lod_list.add_item(lod_type)
+    lod_list.set_selected_item_by_index(0)
 
     ior_label = ix.api.GuiLabel(panel, 10, 580, 150, 22, "IOR value:")
     ior_field = ix.api.GuiNumberField(panel, 145, 580, 50, "")

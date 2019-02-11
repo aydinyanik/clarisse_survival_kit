@@ -28,11 +28,19 @@ def import_ms_library_gui():
 
         def run(self, sender, evtid):
             ix.begin_command_batch("Import Megascans library")
+            resolution = resolution_list.get_selected_item_name()
+            if resolution == 'Auto':
+                resolution = None
+            lod = lod_list.get_selected_item_name()
+            if lod == 'High':
+                lod = -1
+            else:
+                lod = int(lod)
             directory = path_txt.get_text()
             if directory:
                 if os.path.isdir(directory):
-                    import_ms_library(directory, None, custom_assets=cat_custom_checkbox.get_value(),
-                                      skip_categories=skip_categories, ix=ix)
+                    import_ms_library(directory, target_ctx=None, custom_assets=cat_custom_checkbox.get_value(),
+                                      skip_categories=skip_categories, lod=lod, resolution=resolution, ix=ix)
                 else:
                     ix.log_warning("Invalid directory: %s" % directory)
             else:
@@ -41,7 +49,7 @@ def import_ms_library_gui():
 
     # Window creation
     clarisse_win = ix.application.get_event_window()
-    window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 290)  # Parent, X position, Y position, Width, Height
+    window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 380)  # Parent, X position, Y position, Width, Height
     window.set_title('Import Megascans library')  # Window name
 
     # Main widget creation
@@ -71,6 +79,23 @@ def import_ms_library_gui():
     cat_custom_label = ix.api.GuiLabel(panel, 10, 190, 100, 22, "Custom Assets:")
     cat_custom_checkbox = ix.api.GuiCheckbox(panel, 180, 190, "")
 
+    separator_label3 = ix.api.GuiLabel(panel, 10, 220, 380, 22, "[ OPTIONS ]")
+    separator_label3.set_text_color(ix.api.GMathVec3uc(128, 128, 128))
+
+    lod_label = ix.api.GuiLabel(panel, 10, 250, 180, 22, "LOD: ")
+    lod_types = ['High', '0', '1', '2', '3', '4', '5']
+    lod_list = ix.api.GuiListButton(panel, 180, 250, 120, 22)
+    for lod_type in lod_types:
+        lod_list.add_item(lod_type)
+    lod_list.set_selected_item_by_index(0)
+
+    resolution_label = ix.api.GuiLabel(panel, 10, 280, 180, 22, "Resolution: ")
+    resolution_types = ['Auto'] + IMAGE_RESOLUTIONS
+    resolution_list = ix.api.GuiListButton(panel, 180, 280, 120, 22)
+    for resolution_type in resolution_types:
+        resolution_list.add_item(resolution_type)
+    resolution_list.set_selected_item_by_index(0)
+
     category_checkboxes = {
         '3d': cat_3d_checkbox,
         '3dplant': cat_3dplant_checkbox,
@@ -78,8 +103,8 @@ def import_ms_library_gui():
         'surface': cat_surface_checkbox,
     }
 
-    close_button = ix.api.GuiPushButton(panel, 10, 250, 100, 22, "Close")
-    run_button = ix.api.GuiPushButton(panel, 130, 250, 250, 22, "Import")
+    close_button = ix.api.GuiPushButton(panel, 10, 330, 100, 22, "Close")
+    run_button = ix.api.GuiPushButton(panel, 130, 330, 250, 22, "Import")
 
     # init values
     cat_3d_checkbox.set_value(True)
