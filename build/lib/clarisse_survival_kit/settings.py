@@ -18,6 +18,7 @@ FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|al
                            'metallic': r'(?:_metallic|^metallic$|_metalness|^metalness$)',
                            'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
                            'ao': r'(?:_ao|^ao$|_occlusion)',
+                           'cavity': r'(?:_cavity|^cavity$)',
                            'preview': r'(?:_preview|^preview$|_render)'}
 
 LOD_MATCH_TEMPLATE = r'_LOD(?P<lod>[0-9]*)'
@@ -40,6 +41,7 @@ DEFAULT_COLOR_SPACES['ior'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['f0'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['metallic'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['ao'] = LINEAR_COLOR_SPACES
+DEFAULT_COLOR_SPACES['cavity'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['translucency'] = SRGB_COLOR_SPACES
 DEFAULT_COLOR_SPACES['opacity'] = LINEAR_COLOR_SPACES
 DEFAULT_COLOR_SPACES['emissive'] = SRGB_COLOR_SPACES
@@ -79,7 +81,11 @@ TRIPLANAR_SUFFIX = "_triplanar"
 DISPLACEMENT_SUFFIX = "_displacement_tx"
 DISPLACEMENT_MAP_SUFFIX = "_displacement_map"
 OCCLUSION_SUFFIX = "_ao_tx"
-OCCLUSION_BLEND_SUFFIX = "ao_blend_tx"
+OCCLUSION_RESCALE_SUFFIX = "_ao_rescale_tx"
+OCCLUSION_BLEND_SUFFIX = "_ao_blend_tx"
+CAVITY_SUFFIX = "_cavity_tx"
+CAVITY_BLEND_SUFFIX = "_cavity_blend_tx"
+CAVITY_RESCALE_SUFFIX = "_cavity_rescale_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
 PREVIEW_SUFFIX = "_preview"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
@@ -89,6 +95,7 @@ DEFAULT_IOR = 1.5
 DEFAULT_METALLIC_IOR = 5
 DEFAULT_SPECULAR_STRENGTH = .2
 DEFAULT_AO_BLEND_STRENGTH = .85
+DEFAULT_CAVITY_BLEND_STRENGTH = .85
 
 SUFFIXES = {
     'diffuse': DIFFUSE_SUFFIX,
@@ -109,12 +116,16 @@ SUFFIXES = {
     'displacement': DISPLACEMENT_SUFFIX,
     'displacement_map': DISPLACEMENT_MAP_SUFFIX,
     'ao': OCCLUSION_SUFFIX,
+    'ao_rescale': OCCLUSION_RESCALE_SUFFIX,
     'ao_blend': OCCLUSION_BLEND_SUFFIX,
+    'cavity': CAVITY_SUFFIX,
+    'cavity_rescale': CAVITY_RESCALE_SUFFIX,
+    'cavity_blend': CAVITY_BLEND_SUFFIX,
     'preview': PREVIEW_SUFFIX
 }
 
 TEXTURE_CONTEXTS = {
-    'diffuse': ['diffuse', 'ao', 'ao_blend'],
+    'diffuse': ['diffuse', 'ao', 'ao_rescale', 'ao_blend', 'cavity', 'cavity_rescale', 'cavity_blend'],
     'specular': ['specular'],
     'roughness': ['roughness', 'gloss'],
     'refraction': ['refraction'],
@@ -132,6 +143,7 @@ TEXTURE_SETTINGS = collections.OrderedDict()
 TEXTURE_SETTINGS['diffuse'] = {'single_channel': False, 'suffix': DIFFUSE_SUFFIX,
                                'connection': 'diffuse_front_color'}
 TEXTURE_SETTINGS['ao'] = {'single_channel': True, 'suffix': OCCLUSION_SUFFIX}
+TEXTURE_SETTINGS['cavity'] = {'single_channel': True, 'suffix': CAVITY_SUFFIX}
 TEXTURE_SETTINGS['specular'] = {'single_channel': False, 'suffix': SPECULAR_COLOR_SUFFIX,
                                 'connection': 'specular_1_color'}
 TEXTURE_SETTINGS['roughness'] = {'single_channel': True, 'suffix': SPECULAR_ROUGHNESS_SUFFIX,
