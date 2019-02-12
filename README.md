@@ -181,7 +181,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 
 # TODO
-- Cavity map support
+- Nothing
 
 Got any ideas? Did I miss anything important? Let me know.
 
