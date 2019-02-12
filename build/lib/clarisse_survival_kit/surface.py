@@ -323,6 +323,8 @@ class Surface:
         post_tx = None
         if index == "ao":
             post_tx = self.create_ao_blend()
+        elif index == "cavity":
+            post_tx = self.create_cavity_blend()
         elif index == "displacement":
             post_tx = self.create_displacement_map()
         elif index == "normal":
@@ -391,24 +393,53 @@ class Surface:
         if not self.get('ao'):
             self.ix.log_warning("No ao texture was found.")
             return None
-        if self.projection == 'triplanar':
-            ao_tx = self.get('ao_triplanar')
-        else:
-            if self.get('ao_reorder'):
-                ao_tx = self.get('ao_reorder')
-            else:
-                ao_tx = self.get('ao')
-
-        ao_blend_tx = self.ix.cmds.CreateObject(self.name + AO_BLEND_SUFFIX, "TextureBlend", "Global",
+        ao_tx = self.get_out_tx('ao')
+        if not ao_tx:
+            print 'ERROR: AO could not be properly created.'
+            logging.error('ERROR: AO could not be properly created.')
+            return False
+        diffuse_tx = self.get_out_tx('diffuse')
+        logging.debug('Hooking ao to: ' + str(diffuse_tx))
+        ao_rescale_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_RESCALE_SUFFIX, "TextureRescale",
+                                                  "Global", str(self.get_sub_ctx('diffuse')))
+        self.ix.cmds.SetTexture([str(ao_rescale_tx) + ".input"], str(diffuse_tx))
+        ao_blend_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_BLEND_SUFFIX, "TextureBlend", "Global",
                                                 str(self.get_sub_ctx('diffuse')))
-        diffuse_tx = self.get('diffuse_triplanar', 'diffuse')
-        self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(diffuse_tx))
+        self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(ao_rescale_tx))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(ao_tx))
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mix", [str(DEFAULT_AO_BLEND_STRENGTH)])
-        self.textures["ao_blend"] = ao_blend_tx
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(ao_blend_tx))
+        self.textures["ao_rescale"] = ao_rescale_tx
+        self.textures["ao_blend"] = ao_blend_tx
         return ao_blend_tx
+    
+    def create_cavity_blend(self):
+        """Creates a cavity blend texture if it doesn't exist."""
+        logging.debug("Creating cavity blend texture...")
+        if not self.get('cavity'):
+            self.ix.log_warning("No cavity texture was found.")
+            return None
+        cavity_tx = self.get_out_tx('cavity')
+        if not cavity_tx:
+            print 'ERROR: CAVITY could not be properly created.'
+            logging.error('ERROR: CAVITY could not be properly created.')
+            return False
+        diffuse_tx = self.get_out_tx('diffuse')
+        logging.debug('Hooking cavity to: ' + str(diffuse_tx))
+        cavity_rescale_tx = self.ix.cmds.CreateObject(self.name + CAVITY_RESCALE_SUFFIX, "TextureRescale",
+                                                  "Global", str(self.get_sub_ctx('diffuse')))
+        self.ix.cmds.SetTexture([str(cavity_rescale_tx) + ".input"], str(diffuse_tx))
+        cavity_blend_tx = self.ix.cmds.CreateObject(self.name + CAVITY_BLEND_SUFFIX, "TextureBlend", "Global",
+                                                str(self.get_sub_ctx('diffuse')))
+        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input2"], str(cavity_rescale_tx))
+        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input1"], str(cavity_tx))
+        self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mode", [str(7)])
+        self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mix", [str(DEFAULT_CAVITY_BLEND_STRENGTH)])
+        self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(cavity_blend_tx))
+        self.textures["cavity_rescale"] = cavity_rescale_tx
+        self.textures["cavity_blend"] = cavity_blend_tx
+        return cavity_blend_tx
 
     def create_bump_map(self):
         """Creates a Bump map if it doesn't exist."""
@@ -416,13 +447,12 @@ class Surface:
         if not self.get('bump'):
             self.ix.log_warning("No bump texture was found.")
             return None
-        if self.projection == 'triplanar':
-            bump_tx = self.get('bump_triplanar')
-        else:
-            if self.get('bump_reorder'):
-                bump_tx = self.get('bump_reorder')
-            else:
-                bump_tx = self.get('bump')
+        bump_tx = self.get_out_tx('bump')
+        if not bump_tx:
+            print 'ERROR: BUMP could not be properly created.'
+            logging.error('ERROR: BUMP could not be properly created.')
+            return False
+        
         bump_map = self.ix.cmds.CreateObject(self.name + BUMP_MAP_SUFFIX, "TextureBumpMap",
                                              "Global", str(self.get_sub_ctx('bump')))
         self.ix.cmds.SetTexture([str(bump_map) + ".input"], str(bump_tx))
@@ -436,14 +466,12 @@ class Surface:
         if not self.get('ior'):
             self.ix.log_warning("No ior texture was found.")
             return None
-        if self.projection == 'triplanar':
-            ior_tx = self.get('ior_triplanar')
-        else:
-            if self.get('ior_reorder'):
-                ior_tx = self.get('ior_reorder')
-            else:
-                ior_tx = self.get('ior')
-
+        ior_tx = self.get_out_tx('ior')
+        if not ior_tx:
+            print 'ERROR: IOR could not be properly created.'
+            logging.error('ERROR: IOR could not be properly created.')
+            return False
+        
         logging.debug("Using following texture as input2 for divide: " + str(ior_tx))
         ior_divide_tx = self.ix.cmds.CreateObject(self.name + IOR_DIVIDE_SUFFIX, "TextureDivide",
                                                   "Global", str(self.get_sub_ctx('ior')))
@@ -466,13 +494,11 @@ class Surface:
         if not self.get('metallic'):
             self.ix.log_warning("No ior texture was found.")
             return None
-        if self.projection == 'triplanar':
-            metallic_tx = self.get('metallic_triplanar')
-        else:
-            if self.get('metallic_reorder'):
-                metallic_tx = self.get('metallic_reorder')
-            else:
-                metallic_tx = self.get('metallic')
+        metallic_tx = self.get_out_tx('metallic')
+        if not metallic_tx:
+            print 'ERROR: METALLIC could not be properly created.'
+            logging.error('ERROR: METALLIC could not be properly created.')
+            return False
 
         metallic_blend_tx = self.ix.cmds.CreateObject(self.name + METALLIC_BLEND_SUFFIX, "TextureBlend",
                                                   "Global", str(self.get_sub_ctx('ior')))
@@ -505,7 +531,11 @@ class Surface:
             logging.debug("IOR was locked")
 
     def get_out_tx(self, index):
-        if self.projection == 'triplanar':
+        if index == 'diffuse' and self.get('cavity_blend'):
+            tx = self.get('cavity_blend')
+        elif index == 'diffuse' and self.get('ao_blend'):
+            tx = self.get('ao_blend')
+        elif self.projection == 'triplanar':
             tx = self.get(index + '_triplanar')
         else:
             tx = self.get(index + '_reorder', index)
@@ -626,7 +656,11 @@ class Surface:
         elif index == 'ior':
             self.destroy_tx('ior_divide')
         elif index == 'ao':
+            self.destroy_tx('ao_rescale')
             self.destroy_tx('ao_blend')
+        elif index == 'cavity':
+            self.destroy_tx('cavity_rescale')
+            self.destroy_tx('cavity_blend')
 
         if self.get(index + '_reorder'):
             self.destroy_tx(index + '_reorder')
