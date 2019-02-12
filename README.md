@@ -164,6 +164,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **11-02-19** Added Cavity Textures Support
 - **11-02-19** Added Texture Converter
 - **11-02-19** Automated enabling Command Port for Bridge communication
 - **11-02-19** Added LOD and Resolution Picker
