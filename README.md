@@ -35,6 +35,12 @@ With pip you can download the installation files automatically by passing a link
 ```sh
 pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
 ```
+Use the -U setting to upgrade if you have an existing installation and want to upgrade:
+
+```sh
+pip install -U https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
+```
+
 **Option 2: Local**
 ```sh
 pip install .\clarisse_survival_kit-1.0.0.tar.gz
