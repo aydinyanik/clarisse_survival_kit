@@ -12,7 +12,7 @@
 
 ## Installation
 
-**Make sure Clarisse is not running while installing the kit**
+**Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
 
 CSK requires Python 2.7 to be installed.
 Make sure pip is installed which comes with the Python installation. To be sure you can download Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure pip is checked.
