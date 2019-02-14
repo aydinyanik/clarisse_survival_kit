@@ -162,7 +162,7 @@ def moisten_surface(ctx,
     logging.debug("Setup diffuse blend")
     sub_ctx = get_sub_contexts(ctx, name='diffuse', ix=ix)
     diffuse_ctx = sub_ctx if sub_ctx else ctx
-    
+
     diffuse_blend_tx = ix.cmds.CreateObject(surface_name + MOISTURE_DIFFUSE_BLEND_SUFFIX, "TextureBlend", "Global",
                                             str(diffuse_ctx))
     diffuse_blend_tx.attrs.input1[0] = diffuse_multiplier
@@ -283,11 +283,11 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     ix = get_ix(kwargs.get("ix"))
     if not check_context(ctx, ix=ix):
         return None
-    
+
     provider_names = PROVIDERS
     if selected_provider:
         provider_names = [PROVIDERS[PROVIDERS.index(selected_provider)]]
-        
+
     uv_scale = DEFAULT_UV_SCALE
     surface_height = DEFAULT_DISPLACEMENT_HEIGHT
     tileable = True
@@ -318,12 +318,10 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
                 ix.log_warning('Content provider could not find asset in the specified directory.')
                 return None
 
-
     surface_directory = os.path.normpath(surface_directory)
     if not os.path.isdir(surface_directory):
         return ix.log_warning("Invalid directory specified: " + surface_directory)
     logging.debug("Surface directory:" + surface_directory)
-
 
     # Let's find the textures
     textures = get_textures_from_directory(surface_directory)
@@ -567,8 +565,8 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             disp_multi_blend_tx.attrs.enable_layer_3 = False
 
             mix_disp = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
-                                                    "Global",
-                                                    str(mix_ctx))
+                                            "Global",
+                                            str(mix_ctx))
             mix_disp.attrs.bound[0] = 1
             mix_disp.attrs.bound[1] = 1
             mix_disp.attrs.bound[2] = 1
@@ -789,3 +787,90 @@ def generate_decimated_pointcloud(geometry, ctx=None,
     return pc
 
 
+def mask_blend_nodes(blend_nodes, ctx=None, mix_name='mix',
+                     height_blend=False,
+                     fractal_blend=False,
+                     scope_blend=False,
+                     slope_blend=True,
+                     triplanar_blend=False,
+                     ao_blend=False,
+                     **kwargs):
+    """Generates masks on the selected blend textures/materials."""
+    logging.debug("Masking blend items...")
+    ix = get_ix(kwargs.get("ix"))
+    if not blend_nodes:
+        return None
+    if not ctx:
+        ctx = ix.application.get_working_context()
+    if not check_context(ctx, ix=ix):
+        return None
+
+    selectors_ctx = ix.cmds.CreateContext(MIX_SELECTORS_NAME, "Global", str(ctx))
+    
+    multi_blend_tx = ix.cmds.CreateObject(mix_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+                                          "Global", str(ctx))
+    # Setup fractal noise
+    fractal_selector = create_fractal_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    # Setup slope gradient
+    slope_selector = create_slope_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    # Setup scope
+    scope_selector = create_scope_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    # Setup triplanar
+    triplanar_selector = create_triplanar_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    # Setup AO
+    ao_selector = create_ao_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    # Setup height blend
+    height_selector = create_height_selector(selectors_ctx, mix_name, MIX_SUFFIX, ix=ix)
+
+    multi_blend_tx.attrs.layer_1_label[0] = "Base intensity"
+    # Attach Ambient Occlusion blend
+    multi_blend_tx.attrs.enable_layer_2 = True
+    multi_blend_tx.attrs.layer_2_mode = 1
+    multi_blend_tx.attrs.layer_2_label[0] = "Ambient Occlusion Blend"
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_2_color"], str(ao_selector))
+    if not ao_blend: multi_blend_tx.attrs.enable_layer_2 = False
+    # Attach height blend
+    multi_blend_tx.attrs.enable_layer_4 = True
+    multi_blend_tx.attrs.layer_4_mode = 1
+    multi_blend_tx.attrs.layer_4_label[0] = "Height Blend"
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_4_color"], str(height_selector))
+    if not height_blend: multi_blend_tx.attrs.enable_layer_4 = False
+    # Attach slope blend
+    multi_blend_tx.attrs.enable_layer_5 = True
+    multi_blend_tx.attrs.layer_5_mode = 1
+    multi_blend_tx.attrs.layer_5_label[0] = "Slope Blend"
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_5_color"], str(slope_selector))
+    if not slope_blend: multi_blend_tx.attrs.enable_layer_5 = False
+    # Attach triplanar blend
+    multi_blend_tx.attrs.enable_layer_6 = True
+    multi_blend_tx.attrs.layer_6_mode = 1
+    multi_blend_tx.attrs.layer_6_label[0] = "Triplanar Blend"
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_6_color"], str(triplanar_selector))
+    if not triplanar_blend: multi_blend_tx.attrs.enable_layer_6 = False
+    # Attach scope blend
+    multi_blend_tx.attrs.enable_layer_7 = True
+    multi_blend_tx.attrs.layer_7_mode = 1
+    multi_blend_tx.attrs.layer_7_label[0] = "Scope Blend"
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_7_color"], str(scope_selector))
+    if not scope_blend: multi_blend_tx.attrs.enable_layer_7 = False
+    # Attach fractal blend
+    multi_blend_tx.attrs.enable_layer_8 = True
+    multi_blend_tx.attrs.layer_8_label[0] = "Fractal Blend"
+    multi_blend_tx.attrs.layer_8_mode = 4 if True in [ao_blend, height_blend, slope_blend, scope_blend] else 1
+    ix.cmds.SetTexture([str(multi_blend_tx) + ".layer_8_color"], str(fractal_selector))
+    if not fractal_blend: multi_blend_tx.attrs.enable_layer_8 = False
+
+    for blend_node in blend_nodes:
+        ix.cmds.SetTexture([str(blend_node) + ".mix"], str(multi_blend_tx))
+        # if blend_node.is_kindof('TextureBlend'):
+        #     pass
+        # if blend_node.is_kindof('MaterialPhysicalBlend'):
+        #     ix.cmds.SetTexture([str(blend_node) + ".mix"], str(multi_blend_tx))
+
+    logging.debug("Done adding selectors!!!")
+    return multi_blend_tx

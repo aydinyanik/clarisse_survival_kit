@@ -102,7 +102,7 @@ def mix_surface_gui():
     srf2_btn = ix.api.GuiPushButton(panel, 10, 160, 380, 22, "Add selected material")
 
     name_label = ix.api.GuiLabel(panel, 10, 190, 150, 22, "Mix name or suffix:")
-    name_txt = ix.api.GuiLineEdit(panel, 100, 190, 290, 22)
+    name_txt = ix.api.GuiLineEdit(panel, 200, 190, 190, 22)
     displacement_blend_label = ix.api.GuiLabel(panel, 10, 220, 150, 22,
                                                "Displacement blend: ")
     displacement_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 220, "")

@@ -4,6 +4,8 @@ clarisse_survival_kit/__init__.py
 clarisse_survival_kit/add_to_mix.png
 clarisse_survival_kit/add_to_mix.py
 clarisse_survival_kit/app.py
+clarisse_survival_kit/blend.png
+clarisse_survival_kit/blend.py
 clarisse_survival_kit/blur.png
 clarisse_survival_kit/blur.py
 clarisse_survival_kit/converter.png
@@ -12,6 +14,8 @@ clarisse_survival_kit/import_asset.png
 clarisse_survival_kit/import_asset.py
 clarisse_survival_kit/import_ms_library.png
 clarisse_survival_kit/import_ms_library.py
+clarisse_survival_kit/mask.png
+clarisse_survival_kit/mask.py
 clarisse_survival_kit/mix.png
 clarisse_survival_kit/mix.py
 clarisse_survival_kit/moisten.png
