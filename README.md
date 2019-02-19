@@ -25,7 +25,7 @@ Follow the steps described in the picture below. Make sure to add the following 
 - C:\Python27\Lib\site-packages
 
 ![Environment_Variables Image](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png)
-
+Click [here](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png) for a larger version of the image above.
 
 The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
 
