@@ -57,9 +57,9 @@ pip install .\clarisse_survival_kit-1.0.0.tar.gz
 ```
 **Option 3: Setup.py**
 
-**NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
+**NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
 
-Download the zip by clicking the big green button, extract the files and run the following command via the command line:
+Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
 ```sh
 python setup.py install
 ```
