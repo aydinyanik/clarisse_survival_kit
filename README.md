@@ -14,8 +14,18 @@
 
 **Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
 
-CSK requires Python 2.7 to be installed.
-Make sure pip is installed which comes with the Python installation. To be sure you can download Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure pip is checked.
+CSK requires Python 2.7 to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure **pip** gets installed.
+
+### Windows Environment Variables Setup
+To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
+
+Follow the steps described in the picture below. Make sure to add the following entries to your **Path** environment variable(don't confuse it with PythonPath).
+- C:\Python27
+- C:\Python27\Scripts
+- C:\Python27\Lib\site-packages
+
+![Environment_Variables Image](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png)
+
 
 The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
 
