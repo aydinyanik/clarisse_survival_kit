@@ -75,7 +75,7 @@ On Mac you can find it here:
 The kit provides the following scripts:
 ### Import Asset
   - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
-  - Import meshes(.abc/.obj/.lwo) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
+  - Import meshes(.abc/.obj) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
   
   ![Auto_Material_Setup_Image](http://remuno.nl/wp-content/uploads/2019/02/auto_material_setup.png)
   
@@ -89,6 +89,8 @@ Since the Bridge communication script is running outside of Clarisse and decoupl
 Packing channels is not supported. Assets that are exported outside of the library will work fine.
 
 [Video: Megascans Bridge Communication](https://vimeo.com/315113262)
+
+![Bridge_Communication_Image](http://remuno.nl/wp-content/uploads/2019/02/bridge_communication.png)
 
 ### Mix Multiple Surfaces
  - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -139,6 +141,8 @@ Converts the selected Map Files to Streamed Map Files and vice versa. If the tex
 
 ### Texture Converter
 Convert images to tx or other formats. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx. Currently you can't convert tx back to non streamed textures.
+
+![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
 
 ### Custom Settings & Logging
 By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
