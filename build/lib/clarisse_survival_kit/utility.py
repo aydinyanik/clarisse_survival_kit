@@ -429,13 +429,25 @@ def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
     return blur
 
 
-def quick_blend(item_a, item_b, **kwargs):
-    """Quickly blends two items."""
-    logging.debug("Blending selected items: {} {}".format(str(item_a), str(item_b)))
+def quick_blend(items, **kwargs):
+    """Quickly blends two or more items."""
     ix = get_ix(kwargs.get("ix"))
+    item_a = items[0]
+    item_b = items[1]
+    logging.debug("Blending selected items: {} {}".format(str(item_a), str(item_b)))
     ctx = item_a.get_context()
-    if 'Texture' in item_a.get_class_name() and 'Texture' in item_b.get_class_name():
-        blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend", "Global", str(ctx))
+    if len(items) > 8:
+        ix.log_warning("Too many items selected. Up to 8 items can be blended.")
+        return None
+
+    if check_selection(items, ['Texture'], min_num=2):
+        print "Mixing Textures"
+        if len(items) == 2:
+            blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend",
+                                            "Global", str(ctx))
+        else:
+            blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+                                            "Global", str(ctx))
 
         connected_attrs = ix.api.OfAttrVector()
 
@@ -444,68 +456,90 @@ def quick_blend(item_a, item_b, **kwargs):
         for i_attr in range(0, connected_attrs.get_count()):
             ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(blend_tx))
 
-        ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_a))
-        ix.cmds.SetTexture([str(blend_tx) + ".input2"], str(item_b))
-
+        if len(items) == 2:
+            ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_a))
+            ix.cmds.SetTexture([str(blend_tx) + ".input2"], str(item_b))
+        else:
+            ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
+            ix.application.check_for_events()
+            ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(item_a))
+            for item in items[1:]:
+                item_index = items.index(item) + 2
+                ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
+                ix.application.check_for_events()
+                ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))], str(item))
         return blend_tx
-    elif item_a.get_class_name().startswith('MaterialPhysical') and \
-            item_b.get_class_name().startswith('MaterialPhysical'):
-        blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX, "MaterialPhysicalBlend", "Global", str(ctx))
+    elif check_selection(items, ['MaterialPhysical'], min_num=2):
+        print "Mixing Materials"
+        if len(items) == 2:
+            blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX, "MaterialPhysicalBlend",
+                                             "Global", str(ctx))
+        else:
+            if len(items) > 6:
+                ix.log_warning("Too many items selected. Up to 6 materials can be mixed.")
+                return None
+            blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX,
+                                             "MaterialPhysicalMultiblend", "Global", str(ctx))
 
         connected_attrs = ix.api.OfAttrVector()
 
         get_attrs_connected_to_texture(item_a, connected_attrs, ix=ix)
 
         for i_attr in range(0, connected_attrs.get_count()):
-            print str(connected_attrs[i_attr])
             ix.cmds.SetValue(str(connected_attrs[i_attr]), [str(blend_mtl)])
 
-        ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(item_a)])
-        ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(item_b)])
+        if len(items) == 2:
+            ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(item_a)])
+            ix.cmds.SetValue(str(blend_mtl) + ".input2", [str(item_b)])
+        else:
+            for item in items:
+                item_index = items.index(item) + 1
+                ix.cmds.SetValue(str(blend_mtl) + ".enable_layer_{}".format(str(item_index)), [str(1)])
+                ix.application.check_for_events()
+                ix.cmds.SetValues([str(blend_mtl) + ".layer_{}".format(str(item_index))], [str(item)])
 
         return blend_mtl
-    elif item_a.is_kindof('Displacement') and item_b.is_kindof('Displacement'):
-        print "Setting up surface 1"
-        item_a_srf_height = item_a.attrs.front_value[0]
-        print "item_a surface height: " + str(item_a_srf_height)
-        item_a_disp_tx_front_value = ix.get_item(str(item_a) + ".front_value")
-        item_a_disp_tx = item_a_disp_tx_front_value.get_texture()
-        item_a_disp_height_scale_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-                                                         "TextureMultiply", "Global", str(ctx))
-        ix.cmds.SetTexture([str(item_a_disp_height_scale_tx) + ".input1"], str(item_a_disp_tx))
-        item_a_disp_height_scale_tx.attrs.input2[0] = item_a_srf_height
-        item_a_disp_height_scale_tx.attrs.input2[1] = item_a_srf_height
-        item_a_disp_height_scale_tx.attrs.input2[2] = item_a_srf_height
-        
-        item_a_disp_offset_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-                                                   "Global", str(ctx))
-        item_a_disp_offset_tx.attrs.input2[0] = -0.5 * item_a_srf_height + 0.5
-        item_a_disp_offset_tx.attrs.input2[1] = -0.5 * item_a_srf_height + 0.5
-        item_a_disp_offset_tx.attrs.input2[2] = -0.5 * item_a_srf_height + 0.5
-        ix.cmds.SetTexture([str(item_a_disp_offset_tx) + ".input1"], str(item_a_disp_height_scale_tx))
+    elif check_selection(items, ['TextureNormalMap'], min_num=2):
+        blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+                                            "Global", str(ctx))
+        ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
+        ix.application.check_for_events()
+        ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(items[0]))
+        for item in items[1:]:
+            item_index = items.index(item) + 2
+            ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
+            ix.cmds.SetValue(str(blend_tx) + ".layer_{}_mode".format(str(item_index)), [str(10)])
+            ix.application.check_for_events()
+            ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
+                               str(item))
 
-        # Surface 2
-        print "Setting up surface 2"
-        item_b_srf_height = item_b.attrs.front_value[0]
-        print "item_b surface height: " + str(item_b_srf_height)
-        item_b_disp_tx_front_value = ix.get_item(str(item_b) + ".front_value")
-        item_b_disp_tx = item_b_disp_tx_front_value.get_texture()
-        item_b_disp_height_scale_tx = ix.cmds.CreateObject(
-            item_b.get_contextual_name() + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-            "TextureMultiply", "Global", str(ctx))
-        ix.cmds.SetTexture([str(item_b_disp_height_scale_tx) + ".input1"], str(item_b_disp_tx))
-        item_b_disp_height_scale_tx.attrs.input2[0] = item_b_srf_height
-        item_b_disp_height_scale_tx.attrs.input2[1] = item_b_srf_height
-        item_b_disp_height_scale_tx.attrs.input2[2] = item_b_srf_height
-
-        item_b_disp_offset_tx = ix.cmds.CreateObject(item_b.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX,
-                                                     "TextureAdd",
-                                                     "Global", str(ctx))
-        item_b_disp_offset_tx.attrs.input2[0] = -0.5 * item_b_srf_height + 0.5
-        item_b_disp_offset_tx.attrs.input2[1] = -0.5 * item_b_srf_height + 0.5
-        item_b_disp_offset_tx.attrs.input2[2] = -0.5 * item_b_srf_height + 0.5
-        ix.cmds.SetTexture([str(item_b_disp_offset_tx) + ".input1"], str(item_b_disp_height_scale_tx))
-        ix.cmds.SetTexture([str(item_b) + ".front_value"], str(item_b_disp_offset_tx))
+        ix.cmds.SetTexture([str(item_a) + ".input"], str(blend_tx))
+    elif check_selection(items, ['Displacement'], min_num=2):
+        if len(items) == 2:
+            blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend", "Global",
+                                            str(ctx))
+        else:
+            blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+                                            "Global", str(ctx))
+        item_disp_offset_txs = []
+        for item in items:
+            item_srf_height = item.attrs.front_value[0]
+            item_disp_tx_front_value = ix.get_item(str(item) + ".front_value")
+            item_disp_tx = item_disp_tx_front_value.get_texture()
+            item_disp_height_scale_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                                                               "TextureMultiply", "Global", str(ctx))
+            ix.cmds.SetTexture([str(item_disp_height_scale_tx) + ".input1"], str(item_disp_tx))
+            item_disp_height_scale_tx.attrs.input2[0] = item_srf_height
+            item_disp_height_scale_tx.attrs.input2[1] = item_srf_height
+            item_disp_height_scale_tx.attrs.input2[2] = item_srf_height
+    
+            item_disp_offset_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+                                                         "Global", str(ctx))
+            item_disp_offset_tx.attrs.input2[0] = -0.5 * item_srf_height + 0.5
+            item_disp_offset_tx.attrs.input2[1] = -0.5 * item_srf_height + 0.5
+            item_disp_offset_tx.attrs.input2[2] = -0.5 * item_srf_height + 0.5
+            ix.cmds.SetTexture([str(item_disp_offset_tx) + ".input1"], str(item_disp_height_scale_tx))
+            item_disp_offset_txs.append(item_disp_offset_tx)
 
         item_a.attrs.bound[0] = 1
         item_a.attrs.bound[1] = 1
@@ -513,10 +547,19 @@ def quick_blend(item_a, item_b, **kwargs):
         item_a.attrs.front_value = 1
         item_a.attrs.front_offset = -0.5
 
-        blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend", "Global", str(ctx))
-
-        ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_a_disp_offset_tx))
-        ix.cmds.SetTexture([str(blend_tx) + ".input2"], str(item_b_disp_offset_tx))
+        if len(items) == 2:
+            ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_disp_offset_txs[0]))
+            ix.cmds.SetTexture([str(blend_tx) + ".input2"], str(item_disp_offset_txs[1]))
+        else:
+            ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
+            ix.application.check_for_events()
+            ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(item_disp_offset_txs[0]))
+            for item in items[1:]:
+                item_index = items.index(item) + 2
+                ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
+                ix.application.check_for_events()
+                ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
+                                   str(item_disp_offset_txs[items.index(item)]))
 
         ix.cmds.SetTexture([str(item_a) + ".front_value"], str(blend_tx))
 

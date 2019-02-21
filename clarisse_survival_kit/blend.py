@@ -6,9 +6,10 @@ def blend_gui():
     selection_copy = []
     for selection in ix.selection:
         selection_copy.append(selection)
-    if check_selection(selection_copy, is_kindof=["Texture", "MaterialPhysical", "Displacement"], min_num=2, max_num=2):
+    if check_selection(selection_copy, is_kindof=["Texture", "MaterialPhysical", "Displacement", "TextureNormalMap"],
+                       min_num=2):
         ix.begin_command_batch("Blend items")
-        blend_tx = quick_blend(selection_copy[0], selection_copy[1], ix=ix)
+        blend_tx = quick_blend(selection_copy, ix=ix)
         ix.end_command_batch()
         ix.selection.deselect_all()
         ix.selection.add(blend_tx)

@@ -81,11 +81,10 @@ TRIPLANAR_SUFFIX = "_triplanar"
 DISPLACEMENT_SUFFIX = "_displacement_tx"
 DISPLACEMENT_MAP_SUFFIX = "_displacement_map"
 OCCLUSION_SUFFIX = "_ao_tx"
-OCCLUSION_RESCALE_SUFFIX = "_ao_rescale_tx"
 OCCLUSION_BLEND_SUFFIX = "_ao_blend_tx"
 CAVITY_SUFFIX = "_cavity_tx"
 CAVITY_BLEND_SUFFIX = "_cavity_blend_tx"
-CAVITY_RESCALE_SUFFIX = "_cavity_rescale_tx"
+CAVITY_REMAP_SUFFIX = "_cavity_map_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
 PREVIEW_SUFFIX = "_preview"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
@@ -116,16 +115,15 @@ SUFFIXES = {
     'displacement': DISPLACEMENT_SUFFIX,
     'displacement_map': DISPLACEMENT_MAP_SUFFIX,
     'ao': OCCLUSION_SUFFIX,
-    'ao_rescale': OCCLUSION_RESCALE_SUFFIX,
     'ao_blend': OCCLUSION_BLEND_SUFFIX,
     'cavity': CAVITY_SUFFIX,
-    'cavity_rescale': CAVITY_RESCALE_SUFFIX,
+    'cavity_remap': CAVITY_REMAP_SUFFIX,
     'cavity_blend': CAVITY_BLEND_SUFFIX,
     'preview': PREVIEW_SUFFIX
 }
 
 TEXTURE_CONTEXTS = {
-    'diffuse': ['diffuse', 'ao', 'ao_rescale', 'ao_blend', 'cavity', 'cavity_rescale', 'cavity_blend'],
+    'diffuse': ['diffuse', 'ao', 'ao_blend', 'cavity', 'cavity_remap', 'cavity_blend'],
     'specular': ['specular'],
     'roughness': ['roughness', 'gloss'],
     'refraction': ['refraction'],

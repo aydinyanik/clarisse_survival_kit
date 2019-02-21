@@ -22,6 +22,7 @@ class Surface:
         self.double_sided = kwargs.get('double_sided', False)
         self.textures = {}
         self.streamed_maps = []
+        self.displacement_multiplier = kwargs.get('displacement_multiplier', 1)
 
     def create_mtl(self, name, target_ctx):
         """Creates a new PhysicalStandard material and context."""
@@ -223,7 +224,8 @@ class Surface:
                     return self.ix.get_item(ctx_path)
         return None
 
-    def create_tx(self, index, filename, suffix="_tx", color_space=None, streamed=False, single_channel=False, invert=False,
+    def create_tx(self, index, filename, suffix="_tx", color_space=None, streamed=False, single_channel=False,
+                  invert=False,
                   connection=None):
         """Creates a new map or streaming file and if projection is set to triplanar it will be mapped that way."""
         if not self.pre_create_tx(index):
@@ -232,7 +234,8 @@ class Surface:
         reorder_tx = None
         logging.debug("create_tx called with arguments:" +
                       "\n".join(
-                          [index, filename, suffix, str(color_space), str(streamed), str(single_channel), str(connection)]))
+                          [index, filename, suffix, str(color_space), str(streamed), str(single_channel),
+                           str(connection)]))
         target_ctx = self.create_sub_ctx(index)
         if streamed:
             logging.debug("Setting up TextureStreamedMapFile...")
@@ -360,10 +363,10 @@ class Surface:
         attrs[3] = str(disp) + ".front_value"
         attrs[4] = str(disp) + ".front_offset"
         values = self.ix.api.CoreStringArray(5)
-        values[0] = str(self.height * 1.1 * self.uv_scale[0])
-        values[1] = str(self.height * 1.1 * self.uv_scale[0])
-        values[2] = str(self.height * 1.1 * self.uv_scale[0])
-        values[3] = str(self.height * self.uv_scale[0])
+        values[0] = str(self.height * 1.1 * self.displacement_multiplier)
+        values[1] = str(self.height * 1.1 * self.displacement_multiplier)
+        values[2] = str(self.height * 1.1 * self.displacement_multiplier)
+        values[3] = str(self.height * self.displacement_multiplier)
         values[4] = str(-0.5)
         self.ix.cmds.SetValues(attrs, values)
         self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_tx))
@@ -400,20 +403,16 @@ class Surface:
             return False
         diffuse_tx = self.get_out_tx('diffuse')
         logging.debug('Hooking ao to: ' + str(diffuse_tx))
-        ao_rescale_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_RESCALE_SUFFIX, "TextureRescale",
-                                                  "Global", str(self.get_sub_ctx('diffuse')))
-        self.ix.cmds.SetTexture([str(ao_rescale_tx) + ".input"], str(diffuse_tx))
         ao_blend_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_BLEND_SUFFIX, "TextureBlend", "Global",
                                                 str(self.get_sub_ctx('diffuse')))
-        self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(ao_rescale_tx))
+        self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(ao_tx))
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mix", [str(DEFAULT_AO_BLEND_STRENGTH)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(ao_blend_tx))
-        self.textures["ao_rescale"] = ao_rescale_tx
         self.textures["ao_blend"] = ao_blend_tx
         return ao_blend_tx
-    
+
     def create_cavity_blend(self):
         """Creates a cavity blend texture if it doesn't exist."""
         logging.debug("Creating cavity blend texture...")
@@ -427,17 +426,18 @@ class Surface:
             return False
         diffuse_tx = self.get_out_tx('diffuse')
         logging.debug('Hooking cavity to: ' + str(diffuse_tx))
-        cavity_rescale_tx = self.ix.cmds.CreateObject(self.name + CAVITY_RESCALE_SUFFIX, "TextureRescale",
-                                                  "Global", str(self.get_sub_ctx('diffuse')))
-        self.ix.cmds.SetTexture([str(cavity_rescale_tx) + ".input"], str(diffuse_tx))
+        cavity_remap_tx = self.ix.cmds.CreateObject(self.name + CAVITY_REMAP_SUFFIX, "TextureRemap",
+                                                    "Global", str(self.get_sub_ctx('diffuse')))
+        self.ix.cmds.SetTexture([str(cavity_remap_tx) + ".input"], str(cavity_tx))
         cavity_blend_tx = self.ix.cmds.CreateObject(self.name + CAVITY_BLEND_SUFFIX, "TextureBlend", "Global",
-                                                str(self.get_sub_ctx('diffuse')))
-        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input2"], str(cavity_rescale_tx))
-        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input1"], str(cavity_tx))
+                                                    str(self.get_sub_ctx('diffuse')))
+        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input2"], str(diffuse_tx))
+        self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input1"], str(cavity_remap_tx))
         self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mode", [str(7)])
         self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mix", [str(DEFAULT_CAVITY_BLEND_STRENGTH)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(cavity_blend_tx))
-        self.textures["cavity_rescale"] = cavity_rescale_tx
+        self.ix.cmds.SetValues([str(cavity_remap_tx) + ".pass_through"], ["1"])
+        self.textures["cavity_remap"] = cavity_remap_tx
         self.textures["cavity_blend"] = cavity_blend_tx
         return cavity_blend_tx
 
@@ -452,7 +452,7 @@ class Surface:
             print 'ERROR: BUMP could not be properly created.'
             logging.error('ERROR: BUMP could not be properly created.')
             return False
-        
+
         bump_map = self.ix.cmds.CreateObject(self.name + BUMP_MAP_SUFFIX, "TextureBumpMap",
                                              "Global", str(self.get_sub_ctx('bump')))
         self.ix.cmds.SetTexture([str(bump_map) + ".input"], str(bump_tx))
@@ -471,7 +471,7 @@ class Surface:
             print 'ERROR: IOR could not be properly created.'
             logging.error('ERROR: IOR could not be properly created.')
             return False
-        
+
         logging.debug("Using following texture as input2 for divide: " + str(ior_tx))
         ior_divide_tx = self.ix.cmds.CreateObject(self.name + IOR_DIVIDE_SUFFIX, "TextureDivide",
                                                   "Global", str(self.get_sub_ctx('ior')))
@@ -501,7 +501,7 @@ class Surface:
             return False
 
         metallic_blend_tx = self.ix.cmds.CreateObject(self.name + METALLIC_BLEND_SUFFIX, "TextureBlend",
-                                                  "Global", str(self.get_sub_ctx('ior')))
+                                                      "Global", str(self.get_sub_ctx('ior')))
         metallic_blend_tx.attrs.input2[0] = self.ior
         metallic_blend_tx.attrs.input2[1] = self.ior
         metallic_blend_tx.attrs.input2[2] = self.ior
@@ -573,7 +573,7 @@ class Surface:
                 self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(connection_tx))
         return tx
 
-    def update_displacement(self, height):
+    def update_displacement(self, height, displacement_multiplier=1):
         """Updates a Displacement map with new height settings."""
         logging.debug("Updating displacement...")
         disp = self.get('displacement_map')
@@ -585,13 +585,14 @@ class Surface:
             attrs[3] = str(disp) + ".front_value"
             attrs[4] = str(disp) + ".front_offset"
             values = self.ix.api.CoreStringArray(5)
-            values[0] = str(height * 1.1 * self.uv_scale[0])
-            values[1] = str(height * 1.1 * self.uv_scale[0])
-            values[2] = str(height * 1.1 * self.uv_scale[0])
-            values[3] = str(height * self.uv_scale[0])
+            values[0] = str(height * 1.1 * displacement_multiplier)
+            values[1] = str(height * 1.1 * displacement_multiplier)
+            values[2] = str(height * 1.1 * displacement_multiplier)
+            values[3] = str(height * displacement_multiplier)
             values[4] = str(-0.5)
             self.ix.cmds.SetValues(attrs, values)
         self.height = height
+        self.displacement_multiplier = displacement_multiplier
         connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
         for connected_tx in connected_txs:
             if connected_tx.get_contextual_name().endswith(DISPLACEMENT_HEIGHT_SCALE_SUFFIX):
@@ -656,10 +657,9 @@ class Surface:
         elif index == 'ior':
             self.destroy_tx('ior_divide')
         elif index == 'ao':
-            self.destroy_tx('ao_rescale')
             self.destroy_tx('ao_blend')
         elif index == 'cavity':
-            self.destroy_tx('cavity_rescale')
+            self.destroy_tx('cavity_remap')
             self.destroy_tx('cavity_blend')
 
         if self.get(index + '_reorder'):

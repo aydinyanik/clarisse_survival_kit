@@ -57,16 +57,17 @@ if user_path:
     except ImportError:
         sitepackages_folders = site.getsitepackages()
         for sitepackages_folder in sitepackages_folders:
-            sub_folders = os.listdir(sitepackages_folder)
-            for sub_folder in sub_folders:
-                folder_path = os.path.normpath(os.path.join(sitepackages_folder, sub_folder))
-                if os.path.isdir(folder_path):
-                    if sub_folder == 'clarisse_survival_kit':
-                        print "Found CSK package location on disk"
-                        settings_file = open(settings_path, 'a')
-                        settings_file.write('\nPACKAGE_PATH = "%s"' % folder_path)
-                        os.environ["CSK_PACKAGE_PATH"] = folder_path
-                        settings_file.close()
+            if os.path.isdir(sitepackages_folder):
+                sub_folders = os.listdir(sitepackages_folder)
+                for sub_folder in sub_folders:
+                    folder_path = os.path.normpath(os.path.join(sitepackages_folder, sub_folder))
+                    if os.path.isdir(folder_path):
+                        if sub_folder == 'clarisse_survival_kit':
+                            print "Found CSK package location on disk"
+                            settings_file = open(settings_path, 'a')
+                            settings_file.write('\nPACKAGE_PATH = "%s"' % folder_path)
+                            os.environ["CSK_PACKAGE_PATH"] = folder_path
+                            settings_file.close()
 
     logging.basicConfig(filename=log_path, level=log_level, format='%(message)s')
     log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

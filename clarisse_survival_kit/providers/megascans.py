@@ -13,6 +13,7 @@ from clarisse_survival_kit.surface import Surface
 def inspect_asset(asset_directory):
     json_data = get_json_data_from_directory(asset_directory)
     if json_data:
+        json_data['displacement_multiplier'] = 0.2
         return json_data
     else:
         return None
@@ -84,7 +85,8 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         logging.debug(str(streamed_maps))
 
     surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=surface_height, tile=tileable,
-                      object_space=object_space, triplanar_blend=triplanar_blend, ior=ior, specular_strength=1)
+                      object_space=object_space, triplanar_blend=triplanar_blend, ior=ior, specular_strength=1,
+                      displacement_multiplier=0.2)
     mtl = surface.create_mtl(asset_name, target_ctx)
     surface.create_textures(textures, color_spaces=color_spaces,
                             streamed_maps=streamed_maps, clip_opacity=clip_opacity)
@@ -291,7 +293,7 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
 
     atlas_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=DEFAULT_PLANT_DISPLACEMENT_HEIGHT,
                             tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
-                            double_sided=True, specular_strength=1)
+                            double_sided=True, specular_strength=1, displacement_multiplier=0.2)
     plant_root_ctx = ix.cmds.CreateContext(asset_name, "Global", str(target_ctx))
     atlas_mtl = atlas_surface.create_mtl(ATLAS_CTX, plant_root_ctx)
     atlas_surface.create_textures(atlas_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
@@ -311,7 +313,7 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     logging.debug(str(streamed_maps))
     billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=surface_height,
                                 tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
-                                double_sided=True, specular_strength=1)
+                                double_sided=True, specular_strength=1, displacement_multiplier=0.2)
     billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
     billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
                                       clip_opacity=clip_opacity)
