@@ -440,7 +440,22 @@ def quick_blend(items, **kwargs):
         ix.log_warning("Too many items selected. Up to 8 items can be blended.")
         return None
 
-    if check_selection(items, ['Texture'], min_num=2):
+    if check_selection(items, ['TextureNormalMap'], min_num=2):
+        blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
+                                            "Global", str(ctx))
+        ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
+        ix.application.check_for_events()
+        ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(items[0]))
+        for item in items[1:]:
+            item_index = items.index(item) + 2
+            ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
+            ix.cmds.SetValue(str(blend_tx) + ".layer_{}_mode".format(str(item_index)), [str(10)])
+            ix.application.check_for_events()
+            ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
+                               str(item))
+
+        ix.cmds.SetTexture([str(item_a) + ".input"], str(blend_tx))
+    elif check_selection(items, ['Texture'], min_num=2):
         print "Mixing Textures"
         if len(items) == 2:
             blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend",
@@ -499,21 +514,6 @@ def quick_blend(items, **kwargs):
                 ix.cmds.SetValues([str(blend_mtl) + ".layer_{}".format(str(item_index))], [str(item)])
 
         return blend_mtl
-    elif check_selection(items, ['TextureNormalMap'], min_num=2):
-        blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
-                                            "Global", str(ctx))
-        ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
-        ix.application.check_for_events()
-        ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(items[0]))
-        for item in items[1:]:
-            item_index = items.index(item) + 2
-            ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
-            ix.cmds.SetValue(str(blend_tx) + ".layer_{}_mode".format(str(item_index)), [str(10)])
-            ix.application.check_for_events()
-            ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
-                               str(item))
-
-        ix.cmds.SetTexture([str(item_a) + ".input"], str(blend_tx))
     elif check_selection(items, ['Displacement'], min_num=2):
         if len(items) == 2:
             blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend", "Global",
