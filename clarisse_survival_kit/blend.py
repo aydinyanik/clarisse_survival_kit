@@ -11,12 +11,13 @@ def blend_gui():
         ix.begin_command_batch("Blend items")
         blend_tx = quick_blend(selection_copy, ix=ix)
         ix.end_command_batch()
-        ix.selection.deselect_all()
-        ix.selection.add(blend_tx)
+        if blend_tx:
+            ix.selection.deselect_all()
+            ix.selection.add(blend_tx)
+        ix.application.check_for_events()
     else:
-        print "heeere"
         ix.log_warning("ERROR: Couldn't mix the selected items. \n"
-                       "Make sure to select either two texture items or two PhysicalMaterials. \n"
+                       "Make sure to select either two or more Texture items, Normal Maps, Displacement Maps or PhysicalMaterials. \n"
                        "Texture items can be of any type. Materials can only be of Physical category.")
 
 

@@ -442,19 +442,28 @@ def quick_blend(items, **kwargs):
 
     if check_selection(items, ['TextureNormalMap'], min_num=2):
         blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
-                                            "Global", str(ctx))
+                                        "Global", str(ctx))
         ix.cmds.SetValue(str(blend_tx) + ".enable_layer_1", [str(1)])
         ix.application.check_for_events()
-        ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(items[0]))
+        normal_tx_value = ix.get_item(str(item_a) + ".input")
+        if normal_tx_value:
+            normal_tx = normal_tx_value.get_texture()
+            if normal_tx:
+                ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(normal_tx))
         for item in items[1:]:
-            item_index = items.index(item) + 2
+            item_index = items.index(item) + 1
             ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
             ix.cmds.SetValue(str(blend_tx) + ".layer_{}_mode".format(str(item_index)), [str(10)])
             ix.application.check_for_events()
-            ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
-                               str(item))
+            item_normal_tx_value = ix.get_item(str(item) + ".input")
+            if item_normal_tx_value:
+                item_normal_tx = item_normal_tx_value.get_texture()
+                if item_normal_tx:
+                    ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
+                                       str(item_normal_tx))
 
         ix.cmds.SetTexture([str(item_a) + ".input"], str(blend_tx))
+        return blend_tx
     elif check_selection(items, ['Texture'], min_num=2):
         print "Mixing Textures"
         if len(items) == 2:
@@ -479,7 +488,7 @@ def quick_blend(items, **kwargs):
             ix.application.check_for_events()
             ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(item_a))
             for item in items[1:]:
-                item_index = items.index(item) + 2
+                item_index = items.index(item) + 1
                 ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
                 ix.application.check_for_events()
                 ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))], str(item))
@@ -526,15 +535,17 @@ def quick_blend(items, **kwargs):
             item_srf_height = item.attrs.front_value[0]
             item_disp_tx_front_value = ix.get_item(str(item) + ".front_value")
             item_disp_tx = item_disp_tx_front_value.get_texture()
-            item_disp_height_scale_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-                                                               "TextureMultiply", "Global", str(ctx))
+            item_disp_height_scale_tx = ix.cmds.CreateObject(
+                item.get_contextual_name() + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                "TextureMultiply", "Global", str(ctx))
             ix.cmds.SetTexture([str(item_disp_height_scale_tx) + ".input1"], str(item_disp_tx))
             item_disp_height_scale_tx.attrs.input2[0] = item_srf_height
             item_disp_height_scale_tx.attrs.input2[1] = item_srf_height
             item_disp_height_scale_tx.attrs.input2[2] = item_srf_height
-    
-            item_disp_offset_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-                                                         "Global", str(ctx))
+
+            item_disp_offset_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX,
+                                                       "TextureAdd",
+                                                       "Global", str(ctx))
             item_disp_offset_tx.attrs.input2[0] = -0.5 * item_srf_height + 0.5
             item_disp_offset_tx.attrs.input2[1] = -0.5 * item_srf_height + 0.5
             item_disp_offset_tx.attrs.input2[2] = -0.5 * item_srf_height + 0.5
@@ -555,7 +566,7 @@ def quick_blend(items, **kwargs):
             ix.application.check_for_events()
             ix.cmds.SetTexture([str(blend_tx) + ".layer_1_color"], str(item_disp_offset_txs[0]))
             for item in items[1:]:
-                item_index = items.index(item) + 2
+                item_index = items.index(item) + 1
                 ix.cmds.SetValue(str(blend_tx) + ".enable_layer_{}".format(str(item_index)), [str(1)])
                 ix.application.check_for_events()
                 ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))],
@@ -567,10 +578,10 @@ def quick_blend(items, **kwargs):
 
     else:
         ix.log_warning("ERROR: Couldn't mix the selected items. \n"
-                       "Make sure to select either two texture items or two PhysicalMaterials. \n"
+                       "Make sure to select either two or more Texture items, Normal Maps, Displacement Maps or PhysicalMaterials. \n"
                        "Texture items can be of any type. Materials can only be of Physical category.")
         return False
-    
+
 
 def toggle_map_file_stream(tx, **kwargs):
     """Switches from TextureMapFile to TextureStreamedMapFile."""
@@ -684,7 +695,8 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
-        command_string = r'"{}" -v -u --oiio --resize --threads {} "{}" -o "{}"'.format(converter_path, thread_count, file_path, new_file_path)
+        command_string = r'"{}" -v -u --oiio --resize --threads {} "{}" -o "{}"'.format(converter_path, thread_count,
+                                                                                        file_path, new_file_path)
         logging.debug('Command string:')
         logging.debug(command_string)
     else:
