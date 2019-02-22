@@ -157,6 +157,8 @@ Convert images to tx or other formats. TextureMapFiles will be converted to Text
 ### Quick Blend
 Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
 
+![Quick_Blend Image](http://remuno.nl/wp-content/uploads/2019/02/quick_blend.png)
+
 ### Mask
 Mask out selected blend nodes with common masking selectors. If nothing in the list is selected it will create just the masks.
 
@@ -192,6 +194,8 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **22-02-19** Added Mask
+- **22-02-19** Added Quick Blend
 - **11-02-19** Added Cavity Textures Support
 - **11-02-19** Added Texture Converter
 - **11-02-19** Automated enabling Command Port for Bridge communication
