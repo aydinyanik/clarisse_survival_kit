@@ -2,7 +2,9 @@ import logging
 import collections
 
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
-IMAGE_FORMATS = ('tx', 'exr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
+IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
+RAW_IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr')
+
 FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
                            'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
                            'roughness': r'(?:_Roughness|^roughness$)',
@@ -81,16 +83,16 @@ TRIPLANAR_SUFFIX = "_triplanar"
 DISPLACEMENT_SUFFIX = "_displacement_tx"
 DISPLACEMENT_MAP_SUFFIX = "_displacement_map"
 OCCLUSION_SUFFIX = "_ao_tx"
-OCCLUSION_RESCALE_SUFFIX = "_ao_rescale_tx"
 OCCLUSION_BLEND_SUFFIX = "_ao_blend_tx"
 CAVITY_SUFFIX = "_cavity_tx"
 CAVITY_BLEND_SUFFIX = "_cavity_blend_tx"
-CAVITY_RESCALE_SUFFIX = "_cavity_rescale_tx"
+CAVITY_REMAP_SUFFIX = "_cavity_remap_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
 PREVIEW_SUFFIX = "_preview"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
 DEFAULT_PLANT_DISPLACEMENT_HEIGHT = 0.01
 DEFAULT_UV_SCALE = (1, 1)
+DEFAULT_OBJ_SCALE = .01
 DEFAULT_IOR = 1.5
 DEFAULT_METALLIC_IOR = 5
 DEFAULT_SPECULAR_STRENGTH = .2
@@ -116,16 +118,15 @@ SUFFIXES = {
     'displacement': DISPLACEMENT_SUFFIX,
     'displacement_map': DISPLACEMENT_MAP_SUFFIX,
     'ao': OCCLUSION_SUFFIX,
-    'ao_rescale': OCCLUSION_RESCALE_SUFFIX,
     'ao_blend': OCCLUSION_BLEND_SUFFIX,
     'cavity': CAVITY_SUFFIX,
-    'cavity_rescale': CAVITY_RESCALE_SUFFIX,
+    'cavity_remap': CAVITY_REMAP_SUFFIX,
     'cavity_blend': CAVITY_BLEND_SUFFIX,
     'preview': PREVIEW_SUFFIX
 }
 
 TEXTURE_CONTEXTS = {
-    'diffuse': ['diffuse', 'ao', 'ao_rescale', 'ao_blend', 'cavity', 'cavity_rescale', 'cavity_blend'],
+    'diffuse': ['diffuse', 'ao', 'ao_blend', 'cavity', 'cavity_remap', 'cavity_blend'],
     'specular': ['specular'],
     'roughness': ['roughness', 'gloss'],
     'refraction': ['refraction'],
@@ -219,6 +220,7 @@ WORLD_POSITION_SUFFIX = "_world_pos_tx"
 WORLD_POSITION_REORDER_SUFFIX = "_wp_reorder_tx"
 HEIGHT_GRADIENT_SUFFIX = "_height_gradient_tx"
 DISPLACEMENT_BLEND_SUFFIX = "_displacement_blend_tx"
+BLEND_SUFFIX = "_blend_tx"
 MULTI_BLEND_SUFFIX = "_multi_blend_tx"
 MOISTURE_SUFFIX = "_moisture"
 MOISTURE_CTX = "moisture"

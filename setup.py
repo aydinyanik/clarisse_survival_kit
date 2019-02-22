@@ -21,7 +21,7 @@ def setup_shelf(shelf_path, slot=0):
     logging.debug("--------------------------------------")
     logging.debug("Log start: " + log_start)
 
-    with open("./" + package_name + "/shelf.json") as json_file:
+    with open(os.path.join(script_dir, package_name, 'shelf.json')) as json_file:
         json_data = json.load(json_file)
     shelf_title = json_data.get('category')
     logging.debug("Setting up shelf: " + shelf_title)
@@ -192,7 +192,8 @@ class PostInstallCommand(install):
 
 
 long_description = ''
-with open("README.md", "r") as fh:
+script_dir = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(script_dir, "README.md"), "r") as fh:
     long_description = fh.read()
 
 package_name = "clarisse_survival_kit"

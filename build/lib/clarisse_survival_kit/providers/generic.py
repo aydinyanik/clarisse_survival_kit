@@ -92,8 +92,9 @@ def import_geometry(asset_directory, target_ctx=None, surface=None, clip_opacity
 
     for geo_file in geometry:
         filename, extension = os.path.splitext(geo_file)
-        if extension == ".obj":
-            polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(target_ctx))
+        if extension in [".obj", ".lwo"]:
+            polyfile = ix.cmds.CreateObject(os.path.splitext(os.path.basename(geo_file))[0],
+                                            "GeometryPolyfile", "Global", str(target_ctx))
             ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.normpath(os.path.join(asset_directory, geo_file))])
             # Megascans .obj files are saved in cm, Clarisse imports them as meters.
             polyfile.attrs.scale_offset[0] = obj_scale

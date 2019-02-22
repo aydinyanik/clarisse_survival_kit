@@ -22,6 +22,7 @@ def toggle_tx_stream_gui():
                     new_selection.append(tx)
         ix.end_command_batch()
         ix.selection.deselect_all()
+        ix.application.check_for_events()
         for selection in new_selection:
             ix.selection.add(selection)
     else:

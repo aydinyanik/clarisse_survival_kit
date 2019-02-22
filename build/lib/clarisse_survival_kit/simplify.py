@@ -18,6 +18,7 @@ def toggle_surface_complexity_gui():
         ix.end_command_batch()
         for selection in selection_copy:
             ix.selection.add(selection)
+        ix.application.check_for_events()
     else:
         ix.log_warning("Please select either a Physical Standard material or its parent context.")
 

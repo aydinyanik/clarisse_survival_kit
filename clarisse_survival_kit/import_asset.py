@@ -76,10 +76,12 @@ def import_asset_gui(**kwargs):
                                                     triplanar_blend=triplanar_blend_field.get_value(),
                                                     ior=ior_field.get_value(),
                                                     metallic_ior=metallic_ior_field.get_value(),
+                                                    obj_scale=obj_scale_field.get_value(),
                                                     resolution=resolution,
                                                     lod=lod,
                                                     ix=ix)
                         if surface:
+                            ix.application.check_for_events()
                             ix.selection.deselect_all()
                             ix.selection.add(surface.mtl)
                     else:
@@ -90,7 +92,7 @@ def import_asset_gui(**kwargs):
 
     # Window creation
     clarisse_win = ix.application.get_event_window()
-    window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 640)  # Parent, X position, Y position, Width, Height
+    window = ix.api.GuiWindow(clarisse_win, 900, 450, 400, 670)  # Parent, X position, Y position, Width, Height
     window.set_title('Asset importer')  # Window name
 
     # Main widget creation
@@ -206,13 +208,20 @@ def import_asset_gui(**kwargs):
     metallic_ior_field.set_increment(0.1)
     metallic_ior_field.enable_slider_range(True)
 
-    close_button = ix.api.GuiPushButton(panel, 10, 610, 100, 22, "Close")
-    run_button = ix.api.GuiPushButton(panel, 130, 610, 250, 22, "Import")
+    obj_scale_label = ix.api.GuiLabel(panel, 10, 610, 150, 22, "OBJ scale:")
+    obj_scale_field = ix.api.GuiNumberField(panel, 145, 610, 150, "")
+    obj_scale_field.set_slider_range(0, 1000)
+    obj_scale_field.set_increment(.01)
+    obj_scale_field.enable_slider_range(True)
+
+    close_button = ix.api.GuiPushButton(panel, 10, 640, 100, 22, "Close")
+    run_button = ix.api.GuiPushButton(panel, 130, 640, 250, 22, "Import")
 
     # init values
     triplanar_blend_field.set_value(0.5)
     ior_field.set_value(DEFAULT_IOR)
     metallic_ior_field.set_value(DEFAULT_METALLIC_IOR)
+    obj_scale_field.set_value(DEFAULT_OBJ_SCALE)
 
     clip_opacity_checkbox.set_value(True)
 
