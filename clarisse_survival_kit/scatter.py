@@ -41,6 +41,7 @@ def generate_decimated_pointcloud_gui():
                                                triplanar_blend=triplanar_blend_checkbox.get_value(),
                                                ao_blend=ao_blend_checkbox.get_value(), ix=ix)
             if pc:
+                ix.application.check_for_events()
                 ix.selection.deselect_all()
                 ix.selection.add(pc)
                 ix.end_command_batch()

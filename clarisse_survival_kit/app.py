@@ -801,8 +801,6 @@ def mask_blend_nodes(blend_nodes, ctx=None, mix_name='mix',
     """Generates masks on the selected blend textures/materials."""
     logging.debug("Masking blend items...")
     ix = get_ix(kwargs.get("ix"))
-    if not blend_nodes:
-        return None
     if not ctx:
         ctx = ix.application.get_working_context()
     if not check_context(ctx, ix=ix):
@@ -870,10 +868,6 @@ def mask_blend_nodes(blend_nodes, ctx=None, mix_name='mix',
 
     for blend_node in blend_nodes:
         ix.cmds.SetTexture([str(blend_node) + ".mix"], str(multi_blend_tx))
-        # if blend_node.is_kindof('TextureBlend'):
-        #     pass
-        # if blend_node.is_kindof('MaterialPhysicalBlend'):
-        #     ix.cmds.SetTexture([str(blend_node) + ".mix"], str(multi_blend_tx))
 
     logging.debug("Done adding selectors!!!")
     return multi_blend_tx

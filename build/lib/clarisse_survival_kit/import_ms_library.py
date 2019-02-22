@@ -41,6 +41,7 @@ def import_ms_library_gui():
                 if os.path.isdir(directory):
                     import_ms_library(directory, target_ctx=None, custom_assets=cat_custom_checkbox.get_value(),
                                       skip_categories=skip_categories, lod=lod, resolution=resolution, ix=ix)
+                    ix.application.check_for_events()
                 else:
                     ix.log_warning("Invalid directory: %s" % directory)
             else:

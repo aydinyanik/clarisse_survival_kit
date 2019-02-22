@@ -51,7 +51,7 @@
     },
     {
       "title": "Quick Blend",
-      "description": "Creates a blend node when two textures are selected or a MaterialPhysical blend node if two Physical materials are selected.",
+      "description": "Creates a blend or multiblend mix when two or more Textures(any type), Normal Maps, Displacement Maps are selected or a MaterialPhysicalBlend or MaterialPhysicalMultiBlend node if two or more Physical materials are selected.",
       "script_filename": "blend.py",
       "icon_filename": "blend.png"
     },

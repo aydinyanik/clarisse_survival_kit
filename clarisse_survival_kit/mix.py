@@ -77,6 +77,7 @@ def mix_surface_gui():
                                        assign_mtls=assign_mtls_checkbox.get_value(),
                                        ix=ix)
                 if mix_ctx:
+                    ix.application.check_for_events()
                     ix.selection.deselect_all()
                     ix.selection.add(mix_ctx)
                 ix.end_command_batch()
