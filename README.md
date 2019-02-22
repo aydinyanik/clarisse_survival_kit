@@ -154,6 +154,12 @@ Convert images to tx or other formats. TextureMapFiles will be converted to Text
 
 ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
 
+### Quick Blend
+Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
+
+### Mask
+Mask out selected blend nodes with common masking selectors. If nothing in the list is selected it will create just the masks.
+
 ### Custom Settings & Logging
 By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
 
