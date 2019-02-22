@@ -306,7 +306,8 @@ class Surface:
             values[5] = str((1 if single_channel else 0))
         self.ix.cmds.SetValues(attrs, values)
         self.ix.application.check_for_events()
-        if not color_space:
+        extension = os.path.splitext(filename)[-1].strip('.')
+        if not color_space or (single_channel and extension.lower() in RAW_IMAGE_FORMATS):
             self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(1)])
         else:
             self.ix.cmds.SetValue(str(tx) + ".file_color_space", [str(color_space)])
@@ -554,18 +555,25 @@ class Surface:
                            invert=invert, connection=connection)
             logging.debug("Texture recreated as: " + str(self.get(index)))
             tx = self.get(index)
-        attrs = self.ix.api.CoreStringArray(3 if streamed else 4)
-        attrs[0] = str(tx) + ".file_color_space"
-        attrs[1] = str(tx) + ".filename"
-        attrs[2] = str(tx) + ".invert"
-        values = self.ix.api.CoreStringArray(3 if streamed else 4)
-        values[0] = str(color_space)
-        values[1] = filename
-        values[2] = str((1 if invert else 0))
+        attrs = self.ix.api.CoreStringArray(2 if streamed else 3)
+        attrs[0] = str(tx) + ".filename"
+        attrs[1] = str(tx) + ".invert"
+        values = self.ix.api.CoreStringArray(2 if streamed else 3)
+        values[0] = filename
+        values[1] = str((1 if invert else 0))
+        extension = os.path.splitext(filename)[-1].strip('.')
         if not streamed:
-            attrs[3] = str(tx) + ".single_channel_file_behavior"
-            values[3] = str((1 if single_channel else 0))
+            attrs[2] = str(tx) + ".single_channel_file_behavior"
+            values[2] = str((1 if single_channel else 0))
         self.ix.cmds.SetValues(attrs, values)
+
+        if not color_space or (single_channel and extension.lower() in RAW_IMAGE_FORMATS):
+            self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(1)])
+        else:
+            self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(0)])
+            self.ix.application.check_for_events()
+            self.ix.cmds.SetValues([str(color_space)], [str(tx) + ".file_color_space"])
+
         if connection:
             tx_attr = self.mtl.get_attribute(connection).get_texture()
             if not tx_attr:

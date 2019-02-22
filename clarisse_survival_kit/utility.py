@@ -721,7 +721,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             new_udim_file_path = new_file_path.replace('<UDIM>', str(udim_match.group(0)))
             udim_command_string = udim_command_string.replace(new_file_path, new_udim_file_path)
             logging.debug(udim_command_string)
-            conversion = subprocess.Popen(command_string, stdout=subprocess.PIPE, shell=True)
+            conversion = subprocess.Popen(udim_command_string, stdout=subprocess.PIPE, shell=True)
             out, err = conversion.communicate()
             logging.debug(str(out))
             logging.debug(str(err))

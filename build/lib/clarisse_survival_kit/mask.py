@@ -45,16 +45,15 @@ def mask_gui():
             blend_items = []
             for i in range(0, count):
                 blend_items.append(ix.get_item(selection_list.get_item_name(i)))
-            if tx:
-                mask_blend_nodes(blend_items,
-                                 mix_name=name_txt.get_text(),
-                                 height_blend=height_blend_checkbox.get_value(),
-                                 fractal_blend=fractal_blend_checkbox.get_value(),
-                                 scope_blend=scope_blend_checkbox.get_value(),
-                                 slope_blend=slope_blend_checkbox.get_value(),
-                                 triplanar_blend=triplanar_blend_checkbox.get_value(),
-                                 ao_blend=ao_blend_checkbox.get_value(),
-                                 ix=ix)
+            mask_blend_nodes(blend_items,
+                             mix_name=name_txt.get_text(),
+                             height_blend=height_blend_checkbox.get_value(),
+                             fractal_blend=fractal_blend_checkbox.get_value(),
+                             scope_blend=scope_blend_checkbox.get_value(),
+                             slope_blend=slope_blend_checkbox.get_value(),
+                             triplanar_blend=triplanar_blend_checkbox.get_value(),
+                             ao_blend=ao_blend_checkbox.get_value(),
+                             ix=ix)
             ix.application.check_for_events()
             ix.end_command_batch()
 
@@ -74,8 +73,8 @@ def mask_gui():
 
     textures = get_blend_nodes()
     selection_list = ix.api.GuiListView(panel, 10, 40, 580, 90)
-    for tx in textures:
-        selection_list.add_item(str(tx))
+    for texture in textures:
+        selection_list.add_item(str(texture))
     selection_list.set_mouse_over_selection(False)
     add_button = ix.api.GuiPushButton(panel, 10, 140, 450, 22, "Add selected")
     remove_button = ix.api.GuiPushButton(panel, 480, 140, 100, 22, "Remove")

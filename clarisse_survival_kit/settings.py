@@ -2,7 +2,9 @@ import logging
 import collections
 
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
-IMAGE_FORMATS = ('tx', 'exr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
+IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
+RAW_IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr')
+
 FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
                            'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
                            'roughness': r'(?:_Roughness|^roughness$)',
@@ -84,7 +86,7 @@ OCCLUSION_SUFFIX = "_ao_tx"
 OCCLUSION_BLEND_SUFFIX = "_ao_blend_tx"
 CAVITY_SUFFIX = "_cavity_tx"
 CAVITY_BLEND_SUFFIX = "_cavity_blend_tx"
-CAVITY_REMAP_SUFFIX = "_cavity_map_tx"
+CAVITY_REMAP_SUFFIX = "_cavity_remap_tx"
 SINGLE_CHANNEL_SUFFIX = "_single_channel"
 PREVIEW_SUFFIX = "_preview"
 DEFAULT_DISPLACEMENT_HEIGHT = .1
