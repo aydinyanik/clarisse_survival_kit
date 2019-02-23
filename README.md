@@ -158,6 +158,7 @@ Convert images to tx or other formats. TextureMapFiles will be converted to Text
 Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
 
 ![Quick_Blend Image](http://remuno.nl/wp-content/uploads/2019/02/quick_blend.png)
+[Check out the Quick Blend video on Vimeo](https://vimeo.com/319181380)
 
 ### Mask
 Mask out selected blend nodes with common masking selectors. If nothing in the list is selected it will create just the masks.
