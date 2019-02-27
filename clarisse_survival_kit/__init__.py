@@ -1,10 +1,10 @@
+#!/usr/bin/env python2
 import sys
 import os
 import logging
 import datetime
 import site
 import platform
-import importlib
 
 sys.dont_write_bytecode = True
 

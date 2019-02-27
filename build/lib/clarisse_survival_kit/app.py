@@ -171,11 +171,10 @@ def moisten_surface(ctx,
     diffuse_blend_tx.attrs.mode = 7
     ix.cmds.SetTexture([str(diffuse_blend_tx) + ".mix"], str(multi_blend_tx))
 
-    connected_attrs = ix.api.OfAttrVector()
-    get_attrs_connected_to_texture(diffuse_tx, connected_attrs, ix=ix)
-    for i_attr in range(0, connected_attrs.get_count()):
-        logging.debug("Replace attr: " + str(connected_attrs[i_attr]))
-        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(diffuse_blend_tx))
+    connected_attrs = get_attrs_connected_to_texture(diffuse_tx, ix=ix)
+    for attr in connected_attrs:
+        logging.debug("Replace attr: " + str(attr))
+        ix.cmds.SetTexture([attr], str(diffuse_blend_tx))
     ix.cmds.SetTexture([str(diffuse_blend_tx) + ".input2"], str(diffuse_tx))
 
     # Setup specular blend
@@ -190,11 +189,10 @@ def moisten_surface(ctx,
     specular_blend_tx.attrs.input1[2] = specular_multiplier
     specular_blend_tx.attrs.mode = 8
 
-    connected_attrs = ix.api.OfAttrVector()
-    get_attrs_connected_to_texture(specular_tx, connected_attrs, ix=ix)
-    for i_attr in range(0, connected_attrs.get_count()):
-        logging.debug("Replace attr: " + str(connected_attrs[i_attr]))
-        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(specular_blend_tx))
+    connected_attrs = get_attrs_connected_to_texture(specular_tx, ix=ix)
+    for attr in connected_attrs:
+        logging.debug("Replace attr: " + attr)
+        ix.cmds.SetTexture([attr], str(specular_blend_tx))
     ix.cmds.SetTexture([str(specular_blend_tx) + ".input2"], str(specular_tx))
 
     # Setup roughness blend
@@ -209,11 +207,10 @@ def moisten_surface(ctx,
     roughness_blend_tx.attrs.input1[2] = roughness_multiplier
     roughness_blend_tx.attrs.mode = 7
 
-    connected_attrs = ix.api.OfAttrVector()
-    get_attrs_connected_to_texture(roughness_tx, connected_attrs, ix=ix)
-    for i_attr in range(0, connected_attrs.get_count()):
-        logging.debug("Replace attr: " + str(connected_attrs[i_attr]))
-        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(roughness_blend_tx))
+    connected_attrs = get_attrs_connected_to_texture(roughness_tx, ix=ix)
+    for attr in connected_attrs:
+        logging.debug("Replace attr: " + attr)
+        ix.cmds.SetTexture([attr], str(roughness_blend_tx))
     ix.cmds.SetTexture([str(roughness_blend_tx) + ".input2"], str(roughness_tx))
 
     # Setup IOR blend
@@ -642,10 +639,10 @@ def toggle_surface_complexity(ctx, **kwargs):
                                                "Global", str(ctx))
         ix.cmds.SetTexture([new_preview_mtl.get_full_name() + ".front_color"],
                            str(diffuse_tx))
-        connected_attrs = ix.api.OfAttrVector()
-        get_attrs_connected_to_texture(mtl, connected_attrs, ix=ix)
-        for i in range(0, connected_attrs.get_count()):
-            ix.cmds.SetValues([connected_attrs[i].get_full_name()], [str(new_preview_mtl)])
+
+        connected_attrs = get_attrs_connected_to_texture(mtl, ix=ix)
+        for attr in connected_attrs:
+            ix.cmds.SetValues([attr], [str(new_preview_mtl)])
         ix.selection.select(mtl)
         ix.application.select_next_outputs()
         for sel in ix.selection:
@@ -658,10 +655,10 @@ def toggle_surface_complexity(ctx, **kwargs):
                         ix.cmds.SetValues([sel.get_full_name() + ".materials" + str([j])], [str(new_preview_mtl)])
     else:
         logging.debug("Reverting back to complex mode...")
-        connected_attrs = ix.api.OfAttrVector()
-        get_attrs_connected_to_texture(preview_mtl, connected_attrs, ix=ix)
-        for i in range(0, connected_attrs.get_count()):
-            ix.cmds.SetValues([connected_attrs[i].get_full_name()], [mtl.get_full_name()])
+
+        connected_attrs = get_attrs_connected_to_texture(preview_mtl, ix=ix)
+        for attr in connected_attrs:
+            ix.cmds.SetValues([attr], [str(mtl)])
         ix.selection.select(preview_mtl)
         ix.application.select_next_outputs()
         for sel in ix.selection:

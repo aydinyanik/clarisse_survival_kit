@@ -20,10 +20,20 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         
         ## Installation
         
-        **Make sure Clarisse is not running while installing the kit**
+        **Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
         
-        CSK requires Python 2.7 to be installed.
-        Make sure pip is installed which comes with the Python installation. To be sure you can download Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure pip is checked.
+        CSK requires Python 2.7 to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure **pip** gets installed.
+        
+        ### Windows Environment Variables Setup
+        To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
+        
+        Follow the steps described in the picture below. Make sure to add the following entries to your **Path** environment variable(don't confuse it with PythonPath).
+        - C:\Python27
+        - C:\Python27\Scripts
+        - C:\Python27\Lib\site-packages
+        
+        ![Environment_Variables Image](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png)
+        Click [here](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png) for a larger version of the image above.
         
         The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
         
@@ -43,15 +53,21 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         ```sh
         pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
         ```
+        Use the -U setting to upgrade if you have an existing installation and want to upgrade:
+        
+        ```sh
+        pip install -U https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
+        ```
+        
         **Option 2: Local**
         ```sh
         pip install .\clarisse_survival_kit-1.0.0.tar.gz
         ```
         **Option 3: Setup.py**
         
-        **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse.
+        **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
         
-        Download the zip by clicking the big green button, extract the files and run the following command via the command line:
+        Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
         ```sh
         python setup.py install
         ```
@@ -77,7 +93,9 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         The kit provides the following scripts:
         ### Import Asset
           - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
-          - Import meshes(.abc/.obj/.lwo) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
+          - Import meshes(.abc/.obj) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
+          
+          ![Auto_Material_Setup_Image](http://remuno.nl/wp-content/uploads/2019/02/auto_material_setup.png)
           
           [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
         
@@ -89,6 +107,8 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         Packing channels is not supported. Assets that are exported outside of the library will work fine.
         
         [Video: Megascans Bridge Communication](https://vimeo.com/315113262)
+        
+        ![Bridge_Communication_Image](http://remuno.nl/wp-content/uploads/2019/02/bridge_communication.png)
         
         ### Mix Multiple Surfaces
          - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -140,6 +160,17 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         ### Texture Converter
         Convert images to tx or other formats. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx. Currently you can't convert tx back to non streamed textures.
         
+        ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
+        
+        ### Quick Blend
+        Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
+        
+        ![Quick_Blend Image](http://remuno.nl/wp-content/uploads/2019/02/quick_blend.png)
+        [Check out the Quick Blend video on Vimeo](https://vimeo.com/319181380)
+        
+        ### Mask
+        Mask out selected blend nodes with common masking selectors. If nothing in the list is selected it will create just the masks.
+        
         ### Custom Settings & Logging
         By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
         
@@ -172,6 +203,9 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         
         # Changelog
         
+        - **22-02-19** Added Mask
+        - **22-02-19** Added Quick Blend
+        - **11-02-19** Added Cavity Textures Support
         - **11-02-19** Added Texture Converter
         - **11-02-19** Automated enabling Command Port for Bridge communication
         - **11-02-19** Added LOD and Resolution Picker
@@ -188,7 +222,7 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         
         
         # TODO
-        - Cavity map support
+        - Nothing
         
         Got any ideas? Did I miss anything important? Let me know.
         

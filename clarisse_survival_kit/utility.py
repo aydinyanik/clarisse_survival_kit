@@ -6,6 +6,7 @@ import subprocess
 import platform
 import glob
 import bisect
+import codecs
 
 from clarisse_survival_kit.settings import *
 
@@ -237,7 +238,7 @@ def get_disp_from_context(ctx, **kwargs):
     return disp
 
 
-def get_attrs_connected_to_texture(texture_item, connected_attrs, **kwargs):
+def get_attrs_connected_to_texture(texture_item, **kwargs):
     """
     This searches for occourences of the selected texture item in other textures.
     Original function was written by Isotropix. I made a modification so it also searches for strings.
@@ -255,6 +256,8 @@ def get_attrs_connected_to_texture(texture_item, connected_attrs, **kwargs):
     # last parameter 'False' means no recursivity on getting dependencies
     ix.application.get_factory().get_items_outputs(items, output_items, False)
 
+    connected_attrs = []
+
     # checks retrieved dependencies
     for i_output in range(0, output_items.get_count()):
         out_item = output_items[i_output]
@@ -263,9 +266,25 @@ def get_attrs_connected_to_texture(texture_item, connected_attrs, **kwargs):
             attr_count = out_obj.get_attribute_count()
             for i_attr in range(0, attr_count):
                 attr = out_obj.get_attribute(i_attr)
-                if (attr.is_textured() and str(attr.get_texture()) == str(texture_item)) or \
-                        (str(attr.get_object()) == str(texture_item)):
-                    connected_attrs.add(attr)
+                attr_str = str(attr)
+                attr_type = int(attr.get_type())
+                attr_container = int(attr.get_container())
+                if attr_type in [5, 6]:
+                    if attr_container in [1, 2]:
+                        objects = ix.api.OfObjectVector()
+                        attr.get_values(objects)
+                        for i_obj in range(0, objects.get_count()):
+                            if str(objects[i_obj]) == str(texture_item):
+                                connected_attrs.append(attr_str + '[{}]'.format(str(i_obj)))
+                    elif str(attr.get_object()) == str(texture_item):
+                        connected_attrs.append(attr_str)
+                elif attr_type in [3, 4]:
+                    if str(attr.get_string()) == str(texture_item):
+                        connected_attrs.append(attr_str)
+                elif attr.is_textured() and str(attr.get_texture()) == str(texture_item):
+                    connected_attrs.append(attr_str)
+    return connected_attrs
+
 
 
 def get_textures_connected_to_texture(texture_item, **kwargs):
@@ -393,12 +412,11 @@ def tx_to_triplanar(tx, blend=0.5, object_space=0, **kwargs):
     ctx = tx.get_context()
     triplanar = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar", "Global",
                                      str(ctx))
-    connected_attrs = ix.api.OfAttrVector()
 
-    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
+    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
+    for attr in connected_attrs:
+        ix.cmds.SetTexture([attr], str(triplanar))
 
-    for i_attr in range(0, connected_attrs.get_count()):
-        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(triplanar))
     ix.cmds.SetTexture([str(triplanar) + ".right"], str(tx))
     ix.cmds.SetTexture([str(triplanar) + ".left"], str(tx))
     ix.cmds.SetTexture([str(triplanar) + ".top"], str(tx))
@@ -417,12 +435,9 @@ def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
     ctx = tx.get_context()
     blur = ix.cmds.CreateObject(tx.get_contextual_name() + BLUR_SUFFIX, "TextureBlur", "Global", str(ctx))
 
-    connected_attrs = ix.api.OfAttrVector()
-
-    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
-
-    for i_attr in range(0, connected_attrs.get_count()):
-        ix.cmds.SetTexture([connected_attrs[i_attr].get_full_name()], blur.get_full_name())
+    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
+    for attr in connected_attrs:
+        ix.cmds.SetTexture([attr], str(blur))
     ix.cmds.SetTexture([str(blur) + ".color"], str(tx))
     blur.attrs.radius = radius
     blur.attrs.quality = quality
@@ -473,12 +488,9 @@ def quick_blend(items, **kwargs):
             blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
                                             "Global", str(ctx))
 
-        connected_attrs = ix.api.OfAttrVector()
-
-        get_attrs_connected_to_texture(item_a, connected_attrs, ix=ix)
-
-        for i_attr in range(0, connected_attrs.get_count()):
-            ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(blend_tx))
+        connected_attrs = get_attrs_connected_to_texture(item_a, ix=ix)
+        for attr in connected_attrs:
+            ix.cmds.SetTexture([attr], str(blend_tx))
 
         if len(items) == 2:
             ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_a))
@@ -505,12 +517,9 @@ def quick_blend(items, **kwargs):
             blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX,
                                              "MaterialPhysicalMultiblend", "Global", str(ctx))
 
-        connected_attrs = ix.api.OfAttrVector()
-
-        get_attrs_connected_to_texture(item_a, connected_attrs, ix=ix)
-
-        for i_attr in range(0, connected_attrs.get_count()):
-            ix.cmds.SetValue(str(connected_attrs[i_attr]), [str(blend_mtl)])
+        connected_attrs = get_attrs_connected_to_texture(item_a, ix=ix)
+        for attr in connected_attrs:
+            ix.cmds.SetValue(attr, [str(blend_mtl)])
 
         if len(items) == 2:
             ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(item_a)])
@@ -622,16 +631,22 @@ def toggle_map_file_stream(tx, **kwargs):
         logging.error('ERROR: No (streamed) map file was selected.')
         return None
 
-    connected_attrs = ix.api.OfAttrVector()
-    get_attrs_connected_to_texture(tx, connected_attrs, ix=ix)
-
-    for i_attr in range(0, connected_attrs.get_count()):
-        ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(out_tx))
+    logging.debug('Rehooking attributes')
+    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
+    for attr in connected_attrs:
+        logging.debug(attr)
+        attr_obj = ix.get_item(attr)
+        if attr_obj.get_type() in [5, 6]:
+            ix.cmds.SetValues([str(attr)], [str(out_tx)])
+        else:
+            ix.cmds.SetTexture([str(attr)], str(out_tx))
 
     # Transfer all attributes
+    filename_sys_value = []
     for i in range(0, tx.get_attribute_count()):
         attr_name = str(tx.get_attribute(i)).split('.')[-1]
-        if attr_name in ['master_input', 'output_layer', 'u_repeat_mode', 'v_repeat_mode']:
+        if attr_name in ['master_input', 'output_layer', 'u_repeat_mode', 'v_repeat_mode',
+                         'detect_sequence', 'sequence_mode', 'default_color', 'interpolation_mode', ]:
             continue
         # Check if the stream map file has the same attributes.
         # .single_channel_file_behavior isn't available in streamed map files.
@@ -644,10 +659,19 @@ def toggle_map_file_stream(tx, **kwargs):
             attr_type = attr.get_type_name(attr.get_type())
             logging.debug("Attr type: " + attr_type)
             if attr_type == 'TYPE_STRING':
-                value = [attr.get_string()]
-                if value and attr_name == 'filename':
-                    udim_file = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", os.path.split(value[0])[-1], count=1)
-                    value = [os.path.join(os.path.split(value[0])[0], udim_file)]
+                value = [r'{}'.format(attr.get_string())]
+                logging.debug(str(value))
+                if value and attr_name in ['filename', 'filename_sys']:
+                    directory, filename = os.path.split(r"{}".format(value[0]))
+                    directory = directory.replace("\\", "/")
+                    logging.debug(directory)
+                    udim_file = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", filename, count=1)
+                    logging.debug(udim_file)
+                    if attr_name == 'filename_sys':
+                        value = filename_sys_value
+                    else:
+                        value = [r"{}/{}".format(directory, udim_file)]
+                        filename_sys_value = value
             elif attr_type == 'TYPE_BOOL':
                 value_bool = attr.get_bool()
                 value = [str(1) if value_bool else str(0)]

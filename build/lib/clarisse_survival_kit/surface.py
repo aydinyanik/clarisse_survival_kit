@@ -158,10 +158,9 @@ class Surface:
                 tx_to_triplanar(tx, blend=triplanar_blend, object_space=object_space, ix=self.ix)
             if tx.is_kindof("TextureTriplanar") and projection != "triplanar":
                 input_tx = self.ix.get_item(str(tx) + ".right").get_texture()
-                connected_attrs = self.ix.api.OfAttrVector()
-                get_attrs_connected_to_texture(tx, connected_attrs, ix=self.ix)
-                for i_attr in range(0, connected_attrs.get_count()):
-                    self.ix.cmds.SetTexture([str(connected_attrs[i_attr])], str(input_tx))
+                connected_attrs = get_attrs_connected_to_texture(tx, ix=self.ix)
+                for attr in connected_attrs:
+                    self.ix.cmds.SetTexture([attr], str(input_tx))
                 self.ix.cmds.DeleteItems([str(tx)])
         self.projection = projection
         self.object_space = object_space
