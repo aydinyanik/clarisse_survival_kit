@@ -152,11 +152,15 @@ Converts the selected Map Files to Streamed Map Files and vice versa. If the tex
 ### Texture Converter
 Convert images to tx or other formats and vice versa. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx.
 
+**Notice: MakeTX is currently not working on osx. Do not use this script on osx.**
+
 ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
 [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
 
 ### Reconvert Selected Textures
 Scans the selected textures or child textures in the selected context for newer source files in the same directory. Source files that have a more recent date_modified timestamp get reconverted to the same extension of the selected texture maps.
+
+**Notice: MakeTX is currently not working on osx. Do not use this script on osx.**
 
 ### Quick Blend
 Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
