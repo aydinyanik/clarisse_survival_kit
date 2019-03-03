@@ -92,7 +92,7 @@ def import_geometry(asset_directory, target_ctx=None, surface=None, clip_opacity
 
     for geo_file in geometry:
         filename, extension = os.path.splitext(geo_file)
-        if extension in [".obj", ".lwo"]:
+        if extension.lower() in [".obj", ".lwo"]:
             polyfile = ix.cmds.CreateObject(os.path.splitext(os.path.basename(geo_file))[0],
                                             "GeometryPolyfile", "Global", str(target_ctx))
             ix.cmds.SetValue(str(polyfile) + ".filename", [os.path.normpath(os.path.join(asset_directory, geo_file))])
@@ -109,7 +109,7 @@ def import_geometry(asset_directory, target_ctx=None, surface=None, clip_opacity
                         geo.assign_clip_map(surface.get('opacity').get_module(), i)
                     if surface.get('displacement') and surface.get('displacement_map'):
                         geo.assign_displacement(surface.get('displacement_map').get_module(), i)
-        elif extension == ".abc":
+        elif extension.lower() == ".abc":
             abc_reference = ix.cmds.CreateFileReference(str(target_ctx),
                                                         [os.path.normpath(os.path.join(asset_directory, geo_file))])
             geo_items.append(abc_reference)

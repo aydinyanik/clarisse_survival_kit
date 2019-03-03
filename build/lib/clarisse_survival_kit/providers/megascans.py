@@ -115,7 +115,7 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
     lod_files = {}
     for f in files:
         filename, extension = os.path.splitext(f)
-        if extension == ".obj":
+        if extension.lower() == ".obj":
             if filename.lower().endswith('_high'):
                 if not lod_files.get(-1):
                     lod_files[-1] = []
@@ -128,7 +128,7 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
                         lod_files[lod_level] = []
                     lod_files[lod_level].append(os.path.normpath(os.path.join(asset_directory, f)))
             logging.debug("Found obj: " + f)
-        elif extension == ".abc":
+        elif extension.lower() == ".abc":
             abc_reference = ix.cmds.CreateFileReference(str(ctx),
                                                         [os.path.normpath(os.path.join(asset_directory, f))])
 
@@ -201,7 +201,7 @@ def import_atlas(asset_directory, target_ctx=None, lod=None, clip_opacity=True, 
     polyfiles = []
     for key, f in enumerate(files):
         filename, extension = os.path.splitext(f)
-        if extension == ".obj":
+        if extension.lower() == ".obj":
             logging.debug("Found obj: " + f)
             polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global",
                                             str(ctx))
@@ -214,7 +214,7 @@ def import_atlas(asset_directory, target_ctx=None, lod=None, clip_opacity=True, 
                 if surface.get('displacement') and use_displacement:
                     geo.assign_displacement(surface.get('displacement').get_module(), i)
             polyfiles.append(polyfile)
-        elif extension == ".abc":
+        elif extension.lower() == ".abc":
             logging.debug("Found abc: " + f)
             abc_reference = ix.cmds.CreateFileReference(str(ctx),
                                                         [os.path.normpath(os.path.join(asset_directory, f))])
@@ -327,7 +327,7 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
             # Search for models files and apply material
             for f in files:
                 filename, extension = os.path.splitext(f)
-                if extension == ".obj":
+                if extension.lower() == ".obj":
                     logging.debug("Found obj: " + f)
                     filename, extension = os.path.splitext(f)
                     polyfile = ix.cmds.CreateObject(filename, "GeometryPolyfile", "Global", str(plant_root_ctx))
@@ -350,7 +350,7 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
                             lod_level_match = re.sub('.*?([0-9]*)$', r'\1', filename)
                             if int(lod_level_match) in ATLAS_LOD_DISPLACEMENT_LEVELS and use_displacement:
                                 geo.assign_displacement(atlas_surface.get('displacement_map').get_module(), i)
-                elif extension == ".abc":
+                elif extension.lower() == ".abc":
                     logging.debug("Found abc: " + f)
                     abc_reference = ix.cmds.CreateFileReference(str(plant_root_ctx),
                                                                 [os.path.normpath(os.path.join(variation_dir, f))])
