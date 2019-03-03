@@ -89,7 +89,7 @@ def converter_gui():
 
     extensions_label = ix.api.GuiLabel(panel, 10, 100, 150, 22, "Extension: ")
     extension_list = ix.api.GuiListButton(panel, 180, 100, 120, 22)
-    for extension in IMAGE_FORMATS:
+    for extension in [x for x in IMAGE_FORMATS if x != 'png']:
         extension_list.add_item(extension)
     extension_list.set_selected_item_by_index(0)
 
