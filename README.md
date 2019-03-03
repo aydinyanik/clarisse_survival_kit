@@ -150,7 +150,10 @@ Import the whole library or specified categories. If you need individual assets 
 Converts the selected Map Files to Streamed Map Files and vice versa. If the texture is single channel it will generate a reorder node for you. UDIM tokens are automatically added in the filename if they exist. Almost all settings are copied over.
 
 ### Texture Converter
-Convert images to tx or other formats. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx. Currently you can't convert tx back to non streamed textures.
+Convert images to tx or other formats and vice versa. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx.
+
+### Reconvert Texturres
+Scans the selected textures or child textures in the selected context for newer source files in the same directory. Source files that have a more recent date_modified timestamp get reconverted to the same extension of the selected texture maps.
 
 ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
 [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
