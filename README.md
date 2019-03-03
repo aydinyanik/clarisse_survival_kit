@@ -155,7 +155,7 @@ Convert images to tx or other formats and vice versa. TextureMapFiles will be co
 ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
 [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
 
-### Reconvert Textures
+### Reconvert Selected Textures
 Scans the selected textures or child textures in the selected context for newer source files in the same directory. Source files that have a more recent date_modified timestamp get reconverted to the same extension of the selected texture maps.
 
 ### Quick Blend
@@ -199,6 +199,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **22-02-19** Added Reconvert Selected Textures and Stream Toggle adjustments
 - **22-02-19** Added Mask
 - **22-02-19** Added Quick Blend
 - **11-02-19** Added Cavity Textures Support
