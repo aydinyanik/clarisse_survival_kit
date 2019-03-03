@@ -304,7 +304,7 @@ class Surface:
         self.ix.cmds.SetValues(attrs, values)
         self.ix.application.check_for_events()
         extension = os.path.splitext(filename)[-1].strip('.')
-        if not color_space or (single_channel and extension.lower() in RAW_IMAGE_FORMATS):
+        if not color_space or single_channel:
             self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(1)])
         else:
             self.ix.cmds.SetValue(str(tx) + ".file_color_space", [str(color_space)])
@@ -564,7 +564,7 @@ class Surface:
             values[2] = str((1 if single_channel else 0))
         self.ix.cmds.SetValues(attrs, values)
 
-        if not color_space or (single_channel and extension.lower() in RAW_IMAGE_FORMATS):
+        if not color_space or single_channel:
             self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(1)])
         else:
             self.ix.cmds.SetValue(str(tx) + ".use_raw_data", [str(0)])

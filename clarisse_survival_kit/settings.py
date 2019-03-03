@@ -3,7 +3,7 @@ import collections
 
 # File handling. If multiple extensions exist in the folder the most left extension will be picked.
 IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
-RAW_IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr')
+
 
 FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
                            'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
