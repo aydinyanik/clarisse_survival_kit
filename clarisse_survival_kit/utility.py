@@ -822,20 +822,34 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         conversion_file_arguments = command_arguments
         command_arguments['old_file'] = conversion_file
         command_arguments['new_file'] = os.path.splitext(conversion_file)[0] + '.' + extension
+        if target_folder != file_dir:
+            command_arguments['new_file'] = os.path.join(target_folder, os.path.basename(command_arguments['new_file']))
+        else:
+            pass
         if command_arguments['old_file'] == command_arguments['new_file']:
+            logging.debug('File ignored because input same as output: ' + conversion_file)
             continue
         formatted_command_string = command_string.format(**conversion_file_arguments)
         logging.debug(formatted_command_string)
         conversion = subprocess.Popen(formatted_command_string, stdout=subprocess.PIPE, shell=True)
         out, err = conversion.communicate()
-        logging.debug(str(out))
-        logging.debug(str(err))
+        if out.strip():
+            logging.debug(str(out))
+            print out
+        if err:
+            logging.debug(str(err))
+            print err
+        if err or not os.path.exists(command_arguments['new_file']) or \
+                        os.path.getsize(command_arguments['new_file']) < 10:
+            error_msg = 'ERROR: File has not been converted. Failed to find new converted file: ' + \
+                        command_arguments['new_file']
+            print error_msg
+            ix.log_error(error_msg)
+            return tx
         try:
             os.utime(command_arguments['new_file'], None)
         except Exception:
             pass
-        print out
-        print err
 
     if replace:
         tx.attrs.filename = os.path.normpath(new_file_path)
