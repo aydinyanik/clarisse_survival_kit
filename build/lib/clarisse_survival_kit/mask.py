@@ -85,6 +85,7 @@ def mask_gui():
     fractal_blend_label = ix.api.GuiLabel(panel, 10, 210, 150, 22,
                                           "Fractal blend: ")
     fractal_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 210, "")
+    fractal_blend_checkbox.set_value(True)
     triplanar_blend_label = ix.api.GuiLabel(panel, 10, 240, 150, 22,
                                             "Triplanar blend: ")
     triplanar_blend_checkbox = ix.api.GuiCheckbox(panel, 205, 240, "")

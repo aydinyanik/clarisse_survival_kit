@@ -3,7 +3,7 @@
   "shelf_items": [
     {
       "title": "Import Asset",
-      "description": "Imports a Megascans asset or generic texture item as a new context.",
+      "description": "Imports a Megascans asset or generic texture item as a new context. Geometry gets imported also and materials are automatically assigned.",
       "script_filename": "import_asset.py",
       "icon_filename": "import_asset.png"
     },
@@ -84,6 +84,12 @@
       "description": "Converts selected textures to another file type.",
       "script_filename": "converter.py",
       "icon_filename": "converter.png"
+    },
+    {
+      "title": "Reconvert Selected Textures",
+      "description": "Scans each of the selected textures folder for updated source files and reconverts them if needed.",
+      "script_filename": "reconvert.py",
+      "icon_filename": "reconvert.png"
     },
     {
       "title": "Import Megascans Library",

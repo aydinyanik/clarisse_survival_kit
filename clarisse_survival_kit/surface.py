@@ -158,9 +158,7 @@ class Surface:
                 tx_to_triplanar(tx, blend=triplanar_blend, object_space=object_space, ix=self.ix)
             if tx.is_kindof("TextureTriplanar") and projection != "triplanar":
                 input_tx = self.ix.get_item(str(tx) + ".right").get_texture()
-                connected_attrs = get_attrs_connected_to_texture(tx, ix=self.ix)
-                for attr in connected_attrs:
-                    self.ix.cmds.SetTexture([attr], str(input_tx))
+                replace_connections(input_tx, tx, ignored_attributes=['runtime_materials', ], ix=self.ix)
                 self.ix.cmds.DeleteItems([str(tx)])
         self.projection = projection
         self.object_space = object_space

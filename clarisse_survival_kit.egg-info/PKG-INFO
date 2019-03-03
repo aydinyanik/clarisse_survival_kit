@@ -161,6 +161,7 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         Convert images to tx or other formats. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx. Currently you can't convert tx back to non streamed textures.
         
         ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
+        [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
         
         ### Quick Blend
         Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.

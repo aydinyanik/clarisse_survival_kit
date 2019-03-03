@@ -96,6 +96,7 @@ class ms_Init(threading.Thread):
             socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket_.bind((host, port))
             print "Socket bound"
+            print "Listening to incoming Bridge requests..."
             while True:
                 socket_.listen(5)
                 client, addr = socket_.accept()

@@ -17,9 +17,6 @@ def get_selected_textures(items=None):
         elif item.get_class_name() in kind:
             if str(item).endswith(PREVIEW_SUFFIX):
                 continue
-            if str(item.attrs.filename[0]).endswith('tx'):
-                ix.log_warning('Cannot convert tx to other formats.')
-                continue
             textures.append(item)
     return textures
 
@@ -66,7 +63,6 @@ def converter_gui():
                 if tx:
                     convert_tx(tx, extension=extension_list.get_selected_item_name(),
                                replace=replace_checkbox.get_value(), target_folder=directory, ix=ix)
-                # progress = (i + 1) / count
                 progress.step(i)
                 ix.application.check_for_events()
             progress.destroy()

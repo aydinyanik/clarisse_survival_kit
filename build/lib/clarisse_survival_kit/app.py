@@ -171,10 +171,7 @@ def moisten_surface(ctx,
     diffuse_blend_tx.attrs.mode = 7
     ix.cmds.SetTexture([str(diffuse_blend_tx) + ".mix"], str(multi_blend_tx))
 
-    connected_attrs = get_attrs_connected_to_texture(diffuse_tx, ix=ix)
-    for attr in connected_attrs:
-        logging.debug("Replace attr: " + str(attr))
-        ix.cmds.SetTexture([attr], str(diffuse_blend_tx))
+    replace_connections(diffuse_blend_tx, diffuse_tx, ignored_attributes=['runtime_materials', ], ix=ix)
     ix.cmds.SetTexture([str(diffuse_blend_tx) + ".input2"], str(diffuse_tx))
 
     # Setup specular blend
@@ -189,10 +186,7 @@ def moisten_surface(ctx,
     specular_blend_tx.attrs.input1[2] = specular_multiplier
     specular_blend_tx.attrs.mode = 8
 
-    connected_attrs = get_attrs_connected_to_texture(specular_tx, ix=ix)
-    for attr in connected_attrs:
-        logging.debug("Replace attr: " + attr)
-        ix.cmds.SetTexture([attr], str(specular_blend_tx))
+    replace_connections(specular_blend_tx, specular_tx, ignored_attributes=['runtime_materials', ], ix=ix)
     ix.cmds.SetTexture([str(specular_blend_tx) + ".input2"], str(specular_tx))
 
     # Setup roughness blend
@@ -207,10 +201,7 @@ def moisten_surface(ctx,
     roughness_blend_tx.attrs.input1[2] = roughness_multiplier
     roughness_blend_tx.attrs.mode = 7
 
-    connected_attrs = get_attrs_connected_to_texture(roughness_tx, ix=ix)
-    for attr in connected_attrs:
-        logging.debug("Replace attr: " + attr)
-        ix.cmds.SetTexture([attr], str(roughness_blend_tx))
+    replace_connections(roughness_blend_tx, roughness_tx, ignored_attributes=['runtime_materials', ], ix=ix)
     ix.cmds.SetTexture([str(roughness_blend_tx) + ".input2"], str(roughness_tx))
 
     # Setup IOR blend
@@ -637,39 +628,14 @@ def toggle_surface_complexity(ctx, **kwargs):
         diffuse_tx = ix.get_item(str(mtl) + '.diffuse_front_color').get_texture()
         new_preview_mtl = ix.cmds.CreateObject(surface_name + PREVIEW_MATERIAL_SUFFIX, "MaterialPhysicalDiffuse",
                                                "Global", str(ctx))
-        ix.cmds.SetTexture([new_preview_mtl.get_full_name() + ".front_color"],
+        ix.cmds.SetTexture([str(new_preview_mtl) + ".front_color"],
                            str(diffuse_tx))
 
-        connected_attrs = get_attrs_connected_to_texture(mtl, ix=ix)
-        for attr in connected_attrs:
-            ix.cmds.SetValues([attr], [str(new_preview_mtl)])
-        ix.selection.select(mtl)
-        ix.application.select_next_outputs()
-        for sel in ix.selection:
-            if sel.is_kindof("Geometry"):
-                shading_group = sel.get_module().get_geometry().get_shading_group_names()
-                count = shading_group.get_count()
-                for j in range(count):
-                    shaders = sel.attrs.materials[j]
-                    if shaders == mtl:
-                        ix.cmds.SetValues([sel.get_full_name() + ".materials" + str([j])], [str(new_preview_mtl)])
+        replace_connections(new_preview_mtl, mtl, ignored_attributes=['runtime_materials', ], ix=ix)
     else:
         logging.debug("Reverting back to complex mode...")
-
-        connected_attrs = get_attrs_connected_to_texture(preview_mtl, ix=ix)
-        for attr in connected_attrs:
-            ix.cmds.SetValues([attr], [str(mtl)])
-        ix.selection.select(preview_mtl)
-        ix.application.select_next_outputs()
-        for sel in ix.selection:
-            if sel.is_kindof("Geometry"):
-                shading_group = sel.get_module().get_geometry().get_shading_group_names()
-                count = shading_group.get_count()
-                for j in range(count):
-                    shaders = sel.attrs.materials[j]
-                    if shaders == preview_mtl:
-                        ix.cmds.SetValues([sel.get_full_name() + ".materials" + str([j])], [str(mtl)])
-        ix.cmds.DeleteItems([preview_mtl.get_full_name()])
+        replace_connections(mtl, preview_mtl, ignored_attributes=['runtime_materials', ], ix=ix)
+        ix.cmds.DeleteItems([str(preview_mtl)])
     ix.selection.deselect_all()
     logging.debug("Done toggling surface complexity!!!")
 

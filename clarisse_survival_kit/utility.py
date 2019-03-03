@@ -6,7 +6,7 @@ import subprocess
 import platform
 import glob
 import bisect
-import codecs
+import datetime
 
 from clarisse_survival_kit.settings import *
 
@@ -238,74 +238,119 @@ def get_disp_from_context(ctx, **kwargs):
     return disp
 
 
-def get_attrs_connected_to_texture(texture_item, **kwargs):
+def get_attrs_connected_to_item(item, **kwargs):
     """
     This searches for occourences of the selected texture item in other textures.
-    Original function was written by Isotropix. I made a modification so it also searches for strings.
-    The MaterialPhysicalBlend doesn't use SetTextures(), but SetValues().
-    The only way to retrieve the connected values were by using get_string().
     """
     ix = get_ix(kwargs.get("ix"))
-    # Script by Isotropix
-    # temporary variables needed to call get_items_outputs on the factory
-    items = ix.api.OfItemArray(1)
-    items[0] = texture_item
-    output_items = ix.api.OfItemVector()
-
-    # let's call the get_items_outputs like in the context selection toolbar;
-    # last parameter 'False' means no recursivity on getting dependencies
-    ix.application.get_factory().get_items_outputs(items, output_items, False)
 
     connected_attrs = []
+    if not item:
+        return connected_attrs
 
+    items = ix.api.OfItemArray(1)
+    items[0] = item
+    output_items = ix.api.OfItemVector()
+
+    ix.application.get_factory().get_items_outputs(items, output_items, False)
+
+    logging.debug('Retrieving connected attributes')
     # checks retrieved dependencies
     for i_output in range(0, output_items.get_count()):
         out_item = output_items[i_output]
         if out_item.is_object():
             out_obj = out_item.to_object()
-            attr_count = out_obj.get_attribute_count()
-            for i_attr in range(0, attr_count):
-                attr = out_obj.get_attribute(i_attr)
-                attr_str = str(attr)
-                attr_type = int(attr.get_type())
-                attr_container = int(attr.get_container())
-                if attr_type in [5, 6]:
-                    if attr_container in [1, 2]:
-                        objects = ix.api.OfObjectVector()
-                        attr.get_values(objects)
-                        for i_obj in range(0, objects.get_count()):
-                            if str(objects[i_obj]) == str(texture_item):
-                                connected_attrs.append(attr_str + '[{}]'.format(str(i_obj)))
-                    elif str(attr.get_object()) == str(texture_item):
+            if out_obj.is_kindof('ShadingLayer'):
+                connected_attrs.append(out_obj)
+            else:
+                attr_count = out_obj.get_attribute_count()
+                for i_attr in range(0, attr_count):
+                    attr = out_obj.get_attribute(i_attr)
+                    attr_str = str(attr)
+                    attr_type = attr.get_type()
+                    attr_container = attr.get_container()
+                    if attr_type in [5, 6]:
+                        if attr_container in [1, 2]:
+                            objects = ix.api.OfObjectVector()
+                            attr.get_values(objects)
+                            for i_obj in range(0, objects.get_count()):
+                                if str(objects[i_obj]) == str(item):
+                                    connected_attrs.append(attr_str + '[{}]'.format(str(i_obj)))
+                        elif str(attr.get_object()) == str(item):
+                            connected_attrs.append(attr_str)
+                    elif attr_type in [3, 4]:
+                        if str(attr.get_string()) == str(item):
+                            connected_attrs.append(attr_str)
+                    elif attr.is_textured() and str(attr.get_texture()) == str(item):
                         connected_attrs.append(attr_str)
-                elif attr_type in [3, 4]:
-                    if str(attr.get_string()) == str(texture_item):
-                        connected_attrs.append(attr_str)
-                elif attr.is_textured() and str(attr.get_texture()) == str(texture_item):
-                    connected_attrs.append(attr_str)
     return connected_attrs
 
 
+def replace_connections(new_item, old_item, source_item=None, ignored_attributes=(), ignored_classes=(), **kwargs):
+    """Swap existing material/texture connections with another."""
+    ix = get_ix(kwargs.get("ix"))
 
-def get_textures_connected_to_texture(texture_item, **kwargs):
+    if not source_item:
+        source_item = old_item
+
+    connected_attrs = get_attrs_connected_to_item(source_item, ix=ix)
+    logging.debug('Swapping {} item connections'.format(str(len(connected_attrs))))
+    for attr in connected_attrs:
+        logging.debug(str(attr))
+        if type(attr).__name__ == 'PyOfObject':
+            if attr.get_class_name() in ignored_classes:
+                continue
+            if attr.is_kindof('ShadingLayer'):
+                logging.debug('Attribute is Shading Layer')
+                columns = ["material", "clip_map", "displacement"]
+                sl_module = attr.get_module()
+                rules = sl_module.get_rules()
+                for row in range(0, rules.get_count()):
+                    for column in columns:
+                        if str(sl_module.get_rule_value(row, column)) == str(old_item):
+                            logging.debug('Swapping rule value index: {}, column: {}'.format(row, column))
+                            sl_module.set_rule_value(row, column, str(new_item))
+                            ix.application.check_for_events()
+        else:
+            attr_obj = ix.get_item(attr)
+            attr_name = attr_obj.get_name()
+            logging.debug('Attribute name: ' + attr_name)
+            parent_obj = attr_obj.get_parent_object()
+            logging.debug('Parent node: ' + str(parent_obj))
+            logging.debug('Parent class: ' + parent_obj.get_class_name())
+            if attr_name in ignored_attributes:
+                logging.debug('Ignoring attribute')
+                continue
+            if attr_obj.get_type() in [5, 6]:
+                logging.debug('Type: Object reference')
+                ix.cmds.SetValues([str(attr)], [str(new_item)])
+            else:
+                logging.debug('Type: Texture')
+                ix.cmds.SetTexture([str(attr)], str(new_item))
+
+
+def get_textures_connected_to_texture(item, **kwargs):
     """Returns the connected textures to the specified texture as a list."""
     ix = get_ix(kwargs.get("ix"))
-    # Script by Isotropix
-    # temporary variables needed to call get_items_outputs on the factory
+    logging.debug('Get textures connected to texture called')
+    logging.debug(str(item))
+    textures = []
+    if not item:
+        return textures
+
     items = ix.api.OfItemArray(1)
-    items[0] = texture_item
+    items[0] = item
     output_items = ix.api.OfItemVector()
 
-    # let's call the get_items_outputs like in the context selection toolbar;
-    # last parameter 'False' means no recursivity on getting dependencies
     ix.application.get_factory().get_items_outputs(items, output_items, False)
 
     # checks retrieved dependencies
-    textures = []
     for i_output in range(0, output_items.get_count()):
         out_item = output_items[i_output]
+        logging.debug(str(out_item))
         if out_item.is_object():
             out_obj = out_item.to_object()
+            logging.debug(str(out_obj))
             textures.append(out_obj)
     return textures
 
@@ -410,22 +455,20 @@ def tx_to_triplanar(tx, blend=0.5, object_space=0, **kwargs):
     logging.debug("Converting texture to triplanar: " + str(tx))
     ix = get_ix(kwargs.get("ix"))
     ctx = tx.get_context()
-    triplanar = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX, "TextureTriplanar", "Global",
-                                     str(ctx))
+    triplanar_tx = ix.cmds.CreateObject(tx.get_contextual_name() + TRIPLANAR_SUFFIX,
+                                        "TextureTriplanar", "Global", str(ctx))
 
-    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
-    for attr in connected_attrs:
-        ix.cmds.SetTexture([attr], str(triplanar))
+    replace_connections(triplanar_tx, tx, ignored_attributes=['runtime_materials', ], ix=ix)
 
-    ix.cmds.SetTexture([str(triplanar) + ".right"], str(tx))
-    ix.cmds.SetTexture([str(triplanar) + ".left"], str(tx))
-    ix.cmds.SetTexture([str(triplanar) + ".top"], str(tx))
-    ix.cmds.SetTexture([str(triplanar) + ".bottom"], str(tx))
-    ix.cmds.SetTexture([str(triplanar) + ".front"], str(tx))
-    ix.cmds.SetTexture([str(triplanar) + ".back"], str(tx))
-    ix.cmds.SetValues([str(triplanar) + '.blend', str(triplanar) + '.object_space'],
+    ix.cmds.SetTexture([str(triplanar_tx) + ".right"], str(tx))
+    ix.cmds.SetTexture([str(triplanar_tx) + ".left"], str(tx))
+    ix.cmds.SetTexture([str(triplanar_tx) + ".top"], str(tx))
+    ix.cmds.SetTexture([str(triplanar_tx) + ".bottom"], str(tx))
+    ix.cmds.SetTexture([str(triplanar_tx) + ".front"], str(tx))
+    ix.cmds.SetTexture([str(triplanar_tx) + ".back"], str(tx))
+    ix.cmds.SetValues([str(triplanar_tx) + '.blend', str(triplanar_tx) + '.object_space'],
                       [str(blend), str(object_space)])
-    return triplanar
+    return triplanar_tx
 
 
 def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
@@ -435,9 +478,7 @@ def blur_tx(tx, radius=0.01, quality=DEFAULT_BLUR_QUALITY, **kwargs):
     ctx = tx.get_context()
     blur = ix.cmds.CreateObject(tx.get_contextual_name() + BLUR_SUFFIX, "TextureBlur", "Global", str(ctx))
 
-    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
-    for attr in connected_attrs:
-        ix.cmds.SetTexture([attr], str(blur))
+    replace_connections(blur, tx, ignored_attributes=['runtime_materials', ], ix=ix)
     ix.cmds.SetTexture([str(blur) + ".color"], str(tx))
     blur.attrs.radius = radius
     blur.attrs.quality = quality
@@ -488,9 +529,7 @@ def quick_blend(items, **kwargs):
             blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
                                             "Global", str(ctx))
 
-        connected_attrs = get_attrs_connected_to_texture(item_a, ix=ix)
-        for attr in connected_attrs:
-            ix.cmds.SetTexture([attr], str(blend_tx))
+        replace_connections(blend_tx, item_a, ignored_attributes=['runtime_materials', ], ix=ix)
 
         if len(items) == 2:
             ix.cmds.SetTexture([str(blend_tx) + ".input1"], str(item_a))
@@ -517,9 +556,7 @@ def quick_blend(items, **kwargs):
             blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX,
                                              "MaterialPhysicalMultiblend", "Global", str(ctx))
 
-        connected_attrs = get_attrs_connected_to_texture(item_a, ix=ix)
-        for attr in connected_attrs:
-            ix.cmds.SetValue(attr, [str(blend_mtl)])
+        replace_connections(blend_mtl, item_a, ignored_attributes=['runtime_materials', ], ix=ix)
 
         if len(items) == 2:
             ix.cmds.SetValue(str(blend_mtl) + ".input1", [str(item_a)])
@@ -602,6 +639,8 @@ def toggle_map_file_stream(tx, **kwargs):
         return None
     temp_name = 'temp_' + ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for i in range(8))
     delete_items = [str(tx)]
+    reorder_tx = None
+
     if tx.is_kindof('TextureMapFile'):
         new_tx = ix.cmds.CreateObject(temp_name, "TextureStreamedMapFile", "Global", str(ctx))
         default_color_space = ix.api.ColorIO.get_color_space_names()[0]
@@ -623,23 +662,22 @@ def toggle_map_file_stream(tx, **kwargs):
         ix.application.check_for_events()
         out_tx = new_tx
 
-        if ix.item_exists(str(ctx) + '/' + tx_name + SINGLE_CHANNEL_SUFFIX):
-            reorder_tx = ix.get_item(str(ctx) + '/' + tx_name + SINGLE_CHANNEL_SUFFIX)
-            delete_items.append(str(reorder_tx))
-            new_tx.attrs.single_channel_file_behavior[0] = 1
+        connected_textures = get_textures_connected_to_texture(tx, ix=ix)
+        for connected_texture in connected_textures:
+            logging.debug(str(connected_texture))
+            if connected_texture.is_kindof('TextureReorder'):
+                if connected_texture.attrs.channel_order.attr.get_string() == 'rrrr':
+                    logging.debug('Found matching reorder node')
+                    reorder_tx = connected_texture
+                    delete_items.append(str(reorder_tx))
+                    new_tx.attrs.single_channel_file_behavior[0] = 1
     else:
         logging.error('ERROR: No (streamed) map file was selected.')
         return None
 
-    logging.debug('Rehooking attributes')
-    connected_attrs = get_attrs_connected_to_texture(tx, ix=ix)
-    for attr in connected_attrs:
-        logging.debug(attr)
-        attr_obj = ix.get_item(attr)
-        if attr_obj.get_type() in [5, 6]:
-            ix.cmds.SetValues([str(attr)], [str(out_tx)])
-        else:
-            ix.cmds.SetTexture([str(attr)], str(out_tx))
+    source_item = reorder_tx if tx.is_kindof('TextureStreamedMapFile') else None
+
+    replace_connections(out_tx, tx, source_item=source_item, ignored_attributes=['runtime_materials', ], ix=ix)
 
     # Transfer all attributes
     filename_sys_value = []
@@ -665,7 +703,26 @@ def toggle_map_file_stream(tx, **kwargs):
                     directory, filename = os.path.split(r"{}".format(value[0]))
                     directory = directory.replace("\\", "/")
                     logging.debug(directory)
-                    udim_file = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", filename, count=1)
+                    name, extension = os.path.splitext(filename)
+                    switch_extension = ''
+                    if filename:
+                        files = glob.glob(r"{}/{}.*".format(directory, name.replace('<UDIM>', '*')))
+                        if len(files) > 1:
+                            other_extensions = []
+                            for f in files:
+                                if not f.endswith(extension):
+                                    f_name, f_extension = os.path.splitext(f)
+                                    if f_extension.lstrip('.') not in other_extensions:
+                                        other_extensions.append(f_extension.lstrip('.'))
+                            for other_extension in other_extensions:
+                                if not switch_extension:
+                                    switch_extension = other_extension
+                                else:
+                                    if IMAGE_FORMATS.index(other_extension) > IMAGE_FORMATS.index(switch_extension):
+                                        switch_extension = other_extension
+                    if not switch_extension:
+                        switch_extension = extension.lstrip('.')
+                    udim_file = re.sub(r"((?<!\d)\d{4}(?!\d))", "<UDIM>", name + '.' + switch_extension, count=1)
                     logging.debug(udim_file)
                     if attr_name == 'filename_sys':
                         value = filename_sys_value
@@ -691,8 +748,8 @@ def toggle_map_file_stream(tx, **kwargs):
     return new_tx
 
 
-def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
-    """Converts the selected texture."""
+def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **kwargs):
+    """Converts the selected texture. Update argument will force newer files to be reconverted."""
     logging.debug("Converting texture: {} to .{}".format(str(tx), extension))
     ix = get_ix(kwargs.get("ix"))
 
@@ -700,16 +757,16 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
     file_dir = os.path.split(os.path.join(file_path))[0]
     if not target_folder:
         target_folder = file_dir
-    filename, ext = os.path.splitext(os.path.basename(file_path))
-    if ext.lstrip(".") == "tx":
-        ix.log_warning("Cannot convert .tx file back to other formats.")
-        return None
+    source_filename, source_ext = os.path.splitext(os.path.basename(file_path))
+
     new_file_path = os.path.normpath(
-        os.path.join(target_folder, filename + '.' + extension))
+        os.path.join(target_folder, source_filename + '.' + extension))
 
     thread_count = ix.application.get_max_thread_count()
     if thread_count > 32:
         thread_count = 32
+
+    command_arguments = {'threads': thread_count}
 
     if extension == 'tx':
         executable_name = 'maketx'
@@ -719,44 +776,64 @@ def convert_tx(tx, extension, target_folder=None, replace=True, **kwargs):
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
-        command_string = r'"{}" -v -u --oiio --resize --threads {} "{}" -o "{}"'.format(converter_path, thread_count,
-                                                                                        file_path, new_file_path)
+        command_arguments['converter'] = converter_path
+        command_string = r'"{converter}" -v -u --oiio --resize --threads {threads} "{old_file}" -o "{new_file}"'
         logging.debug('Command string:')
         logging.debug(command_string)
     else:
         executable_name = 'iconvert'
+        if tx.is_kindof('TextureStreamedMapFile') and source_ext in ['.tx', '.tex'] and replace:
+            tx = toggle_map_file_stream(tx, ix=ix)
         if platform.system() == "Windows":
             executable_name += '.exe'
         converter_path = os.path.normpath(
             os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
-        command_string = r'"{}" --threads 0 "{}" "{}"'.format(converter_path, file_path, new_file_path)
+        command_arguments['converter'] = converter_path
+        command_string = r'"{converter}" --threads 0 "{old_file}" "{new_file}"'
         logging.debug('Command string:')
         logging.debug(command_string)
 
-    if "<UDIM>" in file_path:
-        udim_filename_split = file_path.split("<UDIM>")
-        udim_files = glob.glob(os.path.join(file_dir, udim_filename_split[0] + '*' + udim_filename_split[1]))
-        logging.debug(str(udim_filename_split))
-        logging.debug(str(udim_files))
-        for udim_file in udim_files:
-            udim_command_string = command_string.replace(file_path, udim_file)
-            udim_match = re.search(r"((?<!\d)\d{4}(?!\d))", os.path.split(udim_file)[-1])
-            logging.debug(udim_match.group(0))
-            new_udim_file_path = new_file_path.replace('<UDIM>', str(udim_match.group(0)))
-            udim_command_string = udim_command_string.replace(new_file_path, new_udim_file_path)
-            logging.debug(udim_command_string)
-            conversion = subprocess.Popen(udim_command_string, stdout=subprocess.PIPE, shell=True)
-            out, err = conversion.communicate()
-            logging.debug(str(out))
-            logging.debug(str(err))
-            print out
-            print err
+    # Search for source and newer files that need to be updated
+    conversion_files = []
+    source_files = glob.glob(os.path.join(file_dir, source_filename.replace('<UDIM>', '*')) + source_ext)
+    logging.debug('Source files:')
+    logging.debug('\n'.join(source_files))
+    other_files = glob.glob(os.path.join(file_dir, source_filename.replace('<UDIM>', '*')) + '.*')
+    logging.debug('Other files:')
+    logging.debug('\n'.join(other_files))
+    if not source_files == other_files and update:
+        for f in other_files:
+            matching_source = os.path.splitext(f)[0] + source_ext
+            other_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(f))
+            source_mtime = datetime.datetime.fromtimestamp(os.path.getmtime(matching_source))
+            if other_mtime >= source_mtime:
+                logging.debug('Found newer or equal file in directy: ' + f)
+                logging.debug('Time of file a: ' + str(other_mtime))
+                logging.debug('Time of file b: ' + str(source_mtime))
+                print 'Found newer or equal file in directory: ' + f
+                conversion_files.append(f)
     else:
-        logging.debug(command_string)
-        conversion = subprocess.Popen(command_string, stdout=subprocess.PIPE, shell=True)
+        conversion_files = source_files
+
+    logging.debug('Conversion files:')
+    logging.debug('\n'.join(conversion_files))
+
+    for conversion_file in conversion_files:
+        conversion_file_arguments = command_arguments
+        command_arguments['old_file'] = conversion_file
+        command_arguments['new_file'] = os.path.splitext(conversion_file)[0] + '.' + extension
+        if command_arguments['old_file'] == command_arguments['new_file']:
+            continue
+        formatted_command_string = command_string.format(**conversion_file_arguments)
+        logging.debug(formatted_command_string)
+        conversion = subprocess.Popen(formatted_command_string, stdout=subprocess.PIPE, shell=True)
         out, err = conversion.communicate()
         logging.debug(str(out))
         logging.debug(str(err))
+        try:
+            os.utime(command_arguments['new_file'], None)
+        except Exception:
+            pass
         print out
         print err
 
