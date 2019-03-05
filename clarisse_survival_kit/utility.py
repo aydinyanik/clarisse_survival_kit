@@ -767,15 +767,20 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         thread_count = 32
 
     command_arguments = {'threads': thread_count}
+    clarisse_dir = ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string()
 
     if extension == 'tx':
         executable_name = 'maketx'
-        if platform.system() == "Windows":
+        if platform.system().lower() == "windows":
             executable_name += '.exe'
+        elif platform.system().lower().startswith("linux"):
+            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+        elif platform.system().lower() == "darwin":
+            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+
         if not tx.is_kindof('TextureStreamedMapFile') and replace:
             tx = toggle_map_file_stream(tx, ix=ix)
-        converter_path = os.path.normpath(
-            os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
+        converter_path = os.path.normpath(os.path.join(clarisse_dir, executable_name))
         command_arguments['converter'] = converter_path
         command_string = r'"{converter}" -v -u --oiio --resize --threads {threads} "{old_file}" -o "{new_file}"'
         logging.debug('Command string:')
