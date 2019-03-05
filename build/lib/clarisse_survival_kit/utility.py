@@ -791,8 +791,11 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
             tx = toggle_map_file_stream(tx, ix=ix)
         if platform.system() == "Windows":
             executable_name += '.exe'
-        converter_path = os.path.normpath(
-            os.path.join(ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string(), executable_name))
+        elif platform.system().lower().startswith("linux"):
+            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+        elif platform.system().lower() == "darwin":
+            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+        converter_path = os.path.normpath(os.path.join(clarisse_dir, executable_name))
         command_arguments['converter'] = converter_path
         command_string = r'"{converter}" --threads 0 "{old_file}" "{new_file}"'
         logging.debug('Command string:')
