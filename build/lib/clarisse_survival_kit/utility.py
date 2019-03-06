@@ -238,97 +238,6 @@ def get_disp_from_context(ctx, **kwargs):
     return disp
 
 
-def get_attrs_connected_to_item(item, **kwargs):
-    """
-    This searches for occourences of the selected texture item in other textures.
-    """
-    ix = get_ix(kwargs.get("ix"))
-
-    connected_attrs = []
-    if not item:
-        return connected_attrs
-
-    items = ix.api.OfItemArray(1)
-    items[0] = item
-    output_items = ix.api.OfItemVector()
-
-    ix.application.get_factory().get_items_outputs(items, output_items, False)
-
-    logging.debug('Retrieving connected attributes')
-    # checks retrieved dependencies
-    for i_output in range(0, output_items.get_count()):
-        out_item = output_items[i_output]
-        if out_item.is_object():
-            out_obj = out_item.to_object()
-            if out_obj.is_kindof('ShadingLayer'):
-                connected_attrs.append(out_obj)
-            else:
-                attr_count = out_obj.get_attribute_count()
-                for i_attr in range(0, attr_count):
-                    attr = out_obj.get_attribute(i_attr)
-                    attr_str = str(attr)
-                    attr_type = attr.get_type()
-                    attr_container = attr.get_container()
-                    if attr_type in [5, 6]:
-                        if attr_container in [1, 2]:
-                            objects = ix.api.OfObjectVector()
-                            attr.get_values(objects)
-                            for i_obj in range(0, objects.get_count()):
-                                if str(objects[i_obj]) == str(item):
-                                    connected_attrs.append(attr_str + '[{}]'.format(str(i_obj)))
-                        elif str(attr.get_object()) == str(item):
-                            connected_attrs.append(attr_str)
-                    elif attr_type in [3, 4]:
-                        if str(attr.get_string()) == str(item):
-                            connected_attrs.append(attr_str)
-                    elif attr.is_textured() and str(attr.get_texture()) == str(item):
-                        connected_attrs.append(attr_str)
-    return connected_attrs
-
-
-def replace_connections(new_item, old_item, source_item=None, ignored_attributes=(), ignored_classes=(), **kwargs):
-    """Swap existing material/texture connections with another."""
-    ix = get_ix(kwargs.get("ix"))
-
-    if not source_item:
-        source_item = old_item
-
-    connected_attrs = get_attrs_connected_to_item(source_item, ix=ix)
-    logging.debug('Swapping {} item connections'.format(str(len(connected_attrs))))
-    for attr in connected_attrs:
-        logging.debug(str(attr))
-        if type(attr).__name__ == 'PyOfObject':
-            if attr.get_class_name() in ignored_classes:
-                continue
-            if attr.is_kindof('ShadingLayer'):
-                logging.debug('Attribute is Shading Layer')
-                columns = ["material", "clip_map", "displacement"]
-                sl_module = attr.get_module()
-                rules = sl_module.get_rules()
-                for row in range(0, rules.get_count()):
-                    for column in columns:
-                        if str(sl_module.get_rule_value(row, column)) == str(old_item):
-                            logging.debug('Swapping rule value index: {}, column: {}'.format(row, column))
-                            sl_module.set_rule_value(row, column, str(new_item))
-                            ix.application.check_for_events()
-        else:
-            attr_obj = ix.get_item(attr)
-            attr_name = attr_obj.get_name()
-            logging.debug('Attribute name: ' + attr_name)
-            parent_obj = attr_obj.get_parent_object()
-            logging.debug('Parent node: ' + str(parent_obj))
-            logging.debug('Parent class: ' + parent_obj.get_class_name())
-            if attr_name in ignored_attributes:
-                logging.debug('Ignoring attribute')
-                continue
-            if attr_obj.get_type() in [5, 6]:
-                logging.debug('Type: Object reference')
-                ix.cmds.SetValues([str(attr)], [str(new_item)])
-            else:
-                logging.debug('Type: Texture')
-                ix.cmds.SetTexture([str(attr)], str(new_item))
-
-
 def get_textures_connected_to_texture(item, **kwargs):
     """Returns the connected textures to the specified texture as a list."""
     ix = get_ix(kwargs.get("ix"))
@@ -629,8 +538,107 @@ def quick_blend(items, **kwargs):
         return False
 
 
+def get_attrs_connected_to_item(item, **kwargs):
+    """
+    This searches for occourences of the selected texture item in other textures or objects/shading rules.
+    """
+    ix = get_ix(kwargs.get("ix"))
+
+    connected_attrs = []
+    if not item:
+        return connected_attrs
+
+    items = ix.api.OfItemArray(1)
+    items[0] = item
+    output_items = ix.api.OfItemVector()
+
+    ix.application.get_factory().get_items_outputs(items, output_items, False)
+
+    logging.debug('Retrieving connected attributes')
+    # checks retrieved dependencies
+    for i_output in range(0, output_items.get_count()):
+        out_item = output_items[i_output]
+        if out_item.is_object():
+            out_obj = out_item.to_object()
+            # Shading layers need to be handled differently
+            if out_obj.is_kindof('ShadingLayer'):
+                connected_attrs.append(str(out_obj))
+            else:
+                attr_count = out_obj.get_attribute_count()
+                for i_attr in range(0, attr_count):
+                    attr = out_obj.get_attribute(i_attr)
+                    attr_str = str(attr)
+                    attr_type = attr.get_type()
+                    attr_container = attr.get_container()
+                    # Object references
+                    if attr_type in [5, 6]:
+                        if attr_container in [1, 2]:
+                            objects = ix.api.OfObjectVector()
+                            attr.get_values(objects)
+                            for i_obj in range(0, objects.get_count()):
+                                if str(objects[i_obj]) == str(item):
+                                    connected_attrs.append(attr_str + '[{}]'.format(str(i_obj)))
+                        elif str(attr.get_object()) == str(item):
+                            connected_attrs.append(attr_str)
+                    # String references
+                    elif attr_type in [3, 4]:
+                        if str(attr.get_string()) == str(item):
+                            connected_attrs.append(attr_str)
+                    # Texture inputs
+                    elif attr.is_textured() and str(attr.get_texture()) == str(item):
+                        connected_attrs.append(attr_str)
+    return connected_attrs
+
+
+def replace_connections(new_item, old_item, source_item=None, ignored_attributes=(), ignored_classes=(), **kwargs):
+    """Swap existing material/texture connections with another."""
+    ix = get_ix(kwargs.get("ix"))
+
+    if not source_item:
+        source_item = old_item
+
+    connected_attrs = get_attrs_connected_to_item(source_item, ix=ix)
+    logging.debug('Swapping {} item connections'.format(str(len(connected_attrs))))
+    for connected_attr in connected_attrs:
+        logging.debug(str(connected_attr))
+        attr = ix.get_item(connected_attr)
+        # Ignore object if in ignored classes
+        if hasattr(connected_attr, 'get_class_name') and connected_attr.get_class_name() in ignored_classes:
+            continue
+        # You mustn't fetch shading layer inputs directly via attributes. You need to use get_rule_value
+        elif hasattr(connected_attr, 'is_kindof') and connected_attr.is_kindof('ShadingLayer'):
+            logging.debug('Attribute is Shading Layer')
+            columns = ["material", "clip_map", "displacement"]
+            sl_module = connected_attr.get_module()
+            rules = sl_module.get_rules()
+            for row in range(0, rules.get_count()):
+                for column in columns:
+                    if str(sl_module.get_rule_value(row, column)) == str(old_item):
+                        logging.debug('Swapping rule value index: {}, column: {}'.format(row, column))
+                        sl_module.set_rule_value(row, column, str(new_item))
+                        ix.application.check_for_events()
+        # Attributes
+        else:
+            attr_name = attr.get_name()
+            logging.debug('Attribute name: ' + attr_name)
+            parent_obj = attr.get_parent_object()
+            logging.debug('Parent node: ' + str(parent_obj))
+            logging.debug('Parent class: ' + parent_obj.get_class_name())
+            if attr_name in ignored_attributes:
+                logging.debug('Ignoring attribute')
+                continue
+            # Object references
+            if attr.get_type() in [5, 6]:
+                logging.debug('Type: Object reference')
+                ix.cmds.SetValues([str(connected_attr)], [str(new_item)])
+            # Texture connections
+            else:
+                logging.debug('Type: Texture')
+                ix.cmds.SetTexture([str(connected_attr)], str(new_item))
+
+
 def toggle_map_file_stream(tx, **kwargs):
-    """Switches from TextureMapFile to TextureStreamedMapFile."""
+    """Switches from TextureMapFile to TextureStreamedMapFile and vice versa."""
     ix = get_ix(kwargs.get("ix"))
     ctx = tx.get_context()
     tx_name = tx.get_contextual_name()
@@ -857,6 +865,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         try:
             os.utime(command_arguments['new_file'], None)
         except Exception:
+            logging.debug('******ERROR couldn\'t set utime in file******')
             pass
 
     if replace:
