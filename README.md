@@ -1,4 +1,4 @@
-![Donations Received](https://img.shields.io/badge/Donations%20Received-Just%201-green.svg?style=for-the-badge)
+![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%202-green.svg?style=for-the-badge)
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
 
