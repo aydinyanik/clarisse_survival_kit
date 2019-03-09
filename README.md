@@ -14,7 +14,7 @@
 
 **Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
 
-CSK requires Python 2.7 to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure **pip** gets installed.
+CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure **pip** gets installed.
 
 ### Windows Environment Variables Setup
 To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
