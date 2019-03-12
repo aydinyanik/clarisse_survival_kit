@@ -64,6 +64,8 @@ Download the zip by clicking the big green button, extract the files and run the
 python setup.py install
 ```
 
+![OSX_Image](http://remuno.nl/wp-content/uploads/2019/03/mac_installation.jpg)
+
 The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
 
 On Windows you can find the shelf_installation.log file here:
