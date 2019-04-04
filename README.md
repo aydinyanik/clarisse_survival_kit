@@ -43,6 +43,8 @@ pip install setuptools
 ```
 ### Step 3: The next step is to install the kit:
 
+**OSX users should use Option 3.**
+
 With pip you can download the installation files automatically by passing a link to the tarball or by downloading the tarball yourself and refer it locally:
 
 **Option 1: Online**
@@ -65,7 +67,7 @@ pip install .\clarisse_survival_kit-1.0.0.tar.gz
 
 Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
 ```sh
-python setup.py install
+sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
 ```
 
 ![OSX_Image](http://remuno.nl/wp-content/uploads/2019/03/mac_installation.jpg)
