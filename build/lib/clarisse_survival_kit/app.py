@@ -770,7 +770,7 @@ def mask_blend_nodes(blend_nodes, ctx=None, mix_name='mix',
         return None
 
     selectors_ctx = ix.cmds.CreateContext(MIX_SELECTORS_NAME, "Global", str(ctx))
-    
+
     multi_blend_tx = ix.cmds.CreateObject(mix_name + MULTI_BLEND_SUFFIX, "TextureMultiBlend",
                                           "Global", str(ctx))
     # Setup fractal noise
@@ -834,3 +834,392 @@ def mask_blend_nodes(blend_nodes, ctx=None, mix_name='mix',
 
     logging.debug("Done adding selectors!!!")
     return multi_blend_tx
+
+
+def create_tiled_terrain(divisions_x, divisions_y, ctx=None, tile_flip_x=False, tile_flip_y=False,
+                         tile_pattern=r".*_x(?P<tile_x>\d+)_y(?P<tile_y>\d+)\.", **kwargs):
+    """Generates a tiled displaced terrain from the selected heightmap."""
+    logging.debug("Generating tiled terrain...")
+    ix = get_ix(kwargs.get("ix"))
+    if not ctx:
+        ctx = ix.application.get_working_context()
+    if not check_context(ctx, ix=ix):
+        return None
+
+    heightmap_file = kwargs.pop('heightmap_file')
+    terrain_name = kwargs.pop('terrain_name')
+    terrain_ctx = ix.cmds.CreateContext(terrain_name, "Global", str(ctx))
+
+    dimensions = kwargs.pop('dimensions', (2048, 2048, 400))
+    terrain_width = float(dimensions[0])
+    terrain_length = float(dimensions[1])
+
+    directory, filename = os.path.split(heightmap_file)
+    multi_file_match = re.search(tile_pattern, r"{}".format(filename), re.IGNORECASE)
+    tiles = []
+    if multi_file_match:
+        glob_filename = re.sub(tile_pattern, r"*", r"{}".format(filename))
+        terrain_files = glob.glob(os.path.join(directory, glob_filename))
+        # Check the amount of tile divisions in X and Y
+        divisions_x = 0
+        divisions_y = 0
+        for terrain_file in terrain_files:
+            tile_match = re.search(tile_pattern, r"{}".format(terrain_file), re.IGNORECASE)
+            if tile_match:
+                tile_x = int(tile_match.group('tile_x'))
+                if tile_x > divisions_x:
+                    divisions_x = tile_x
+                tile_y = int(tile_match.group('tile_y'))
+                if tile_y > divisions_y:
+                    divisions_y = tile_y
+        # Because they start at 0 we must add 1
+        divisions_x += 1
+        divisions_y += 1
+
+        tile_width = float(dimensions[0]) / float(divisions_x)
+        tile_length = float(dimensions[1]) / float(divisions_y)
+        tile_dimensions = (tile_width, tile_length, dimensions[2])
+
+        for terrain_file in terrain_files:
+            tile_match = re.search(tile_pattern, r"{}".format(terrain_file), re.IGNORECASE)
+            if tile_match:
+                x = int(tile_match.group('tile_x'))
+                y = int(tile_match.group('tile_y'))
+                if tile_flip_x:
+                    pos_x = float(tile_width * -x) + (float(terrain_width) / 2) - float(tile_width / 2)
+                else:
+                    pos_x = float(tile_width * x) - (float(terrain_width) / 2) + float(tile_width / 2)
+
+                if tile_flip_y:
+                    pos_y = float(tile_length * y) - (float(terrain_length) / 2) + float(tile_length / 2)
+                else:
+                    pos_y = float(tile_length * -y) + (float(terrain_length) / 2) - float(tile_length / 2)
+
+                position = (pos_x, 0, pos_y)
+                terrain_tile = create_terrain(terrain_file, terrain_name='{}_x{}_y{}'.format(terrain_name, x, y),
+                                              ctx=terrain_ctx, dimensions=tile_dimensions,
+                                              position=position, **kwargs)
+                tiles.append(terrain_tile)
+    else:
+        tile_width = float(dimensions[0]) / divisions_x
+        tile_length = float(dimensions[1]) / divisions_y
+        tile_dimensions = (tile_width, tile_length, dimensions[2])
+
+        for y in range(0, divisions_y):
+            for x in range(0, divisions_x):
+                u_offset = ((divisions_x - 1) * 0.5) - x
+                v_offset = ((divisions_y - 1) * 0.5) - y
+                position = (float(tile_width * x) - (float(terrain_width) / 2) + float(tile_width / 2), 0,
+                            float(tile_length * -y) + (float(terrain_length) / 2) - float(tile_length / 2))
+                # num_tiles = tile offset
+                # 2 = -0.5, 0.5
+                # 3 = -1, 0, 1
+                # 4 = -1.5, -0.5, 0.5, 1.5
+                # 5 = -2, -1, 0, 1, 2
+                # 6 = -2.5, -1.5, -0.5, 0.5, 1.5, 2.5
+                terrain_tile = create_terrain(heightmap_file, terrain_name='{}_x{}_y{}'.format(terrain_name, x, y),
+                                              u_offset=u_offset, v_offset=v_offset, u_scale=divisions_x,
+                                              v_scale=divisions_y, ctx=terrain_ctx, dimensions=tile_dimensions,
+                                              position=position, **kwargs)
+                tiles.append(terrain_tile)
+
+    terrain_root_ctrl = ix.cmds.CombineItems(tiles, str(terrain_ctx))
+    ix.cmds.RenameItem(str(terrain_root_ctrl), 'terrain_master_ctrl')
+    ix.cmds.SetValue(str(terrain_root_ctrl) + ".display_pickable", ['0'])
+    ix.cmds.SetValue(str(terrain_root_ctrl) + ".highlight_mode", ['1'])
+    # Proxy switch boolean
+    # ix.cmds.CreateCustomAttribute([str(terrain_root_ctrl)], "show_tiles", 0,
+    #                               ["container", "vhint", "group", "count", "allow_expression"],
+    #                               ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+    # ix.cmds.CreateCustomAttribute([str(terrain_root_ctrl)], "lod_center_object", 3,
+    #                               ["container", "vhint", "group", "count", "allow_expression"],
+    #                               ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+    # ix.cmds.CreateCustomAttribute([str(terrain_root_ctrl)], "lod_radius", 2,
+    #                               ["container", "vhint", "group", "count", "allow_expression"],
+    #                               ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+    #
+    # ix.cmds.SetValue(str(terrain_root_ctrl) + ".lod_radius", ['1024'])
+
+    # terrain_root_ctrl = ix.cmds.CreateObject("terrain_master_ctrl", "Locator", "Global", str(terrain_ctx))
+    ix.application.check_for_events()
+    for tile in tiles:
+        ix.cmds.SetValue(str(tile) + ".unseen_by_renderer", ['1'])
+        ix.cmds.LockAttributes([str(tile) + ".translate"], True)
+        ix.cmds.LockAttributes([str(tile) + ".rotate"], True)
+        ix.cmds.LockAttributes([str(tile) + ".scale"], True)
+        # TODO: string expressions are broken in 4.0 SP1. Wait for fix in version > SP2
+        # distance_expr = "output_var = 0.0;\n"
+        # distance_expr += "lod_object = get_string(get_context(get_context()) + '/terrain_master_ctrl.lod_center_object');\n"
+        # distance_expr += "testvar = log_info(lod_object);\n"
+        # distance_expr += "if (lod_object != ''){\n"
+        # distance_expr += "p1 = get_vec3(lod_object + '.translate');\n"
+        # distance_expr += "p2 = get_vec3('translate');\n"
+        # distance_expr += "lod_radius = get_double(get_context(get_context()) + '/terrain_master_ctrl.lod_radius');\n"
+        # distance_expr += "testvar1 = log_info(lod_radius);\n"
+        # distance_expr += "obj_distance = dist(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);\n"
+        # distance_expr += "testvar2 = log_info(obj_distance);\n"
+        # distance_expr += "if (obj_distance > lod_radius){\noutput_var = 1.0;\n}\n"
+        # distance_expr += "}\n"
+        # distance_expr += "output_var"
+        # print distance_expr
+        # ix.cmds.SetExpression([str(tile) + ".proxy_control_by_lod"], [distance_expr])
+
+        # show_tiles_expr = "out = 0;\n"
+        #
+        # ix.cmds.SetExpression([str(tile) + ".unseen_by_renderer"], [show_tiles_expr])
+    return terrain_root_ctrl
+
+
+def create_terrain(heightmap_file, terrain_name='terrain', ctx=None,
+                   dimensions=('2048', '2048', '400'),
+                   stream=True,
+                   animated=False,
+                   adaptive_spans=2048,
+                   spans=1024,
+                   proxy_adaptive_spans=1024,
+                   proxy_spans=256,
+                   generate_proxy=True,
+                   repeat='edge',
+                   displacement_mode=0,
+                   use_midpoint=True,
+                   position=(0, 0, 0),
+                   u_offset=0.0, v_offset=0.0, u_scale=1.0, v_scale=1.0,
+                   **kwargs):
+    """Generates a displaced terrain from the selected heightmap. Dimensions are stored as [w,l,h]."""
+    logging.debug("Generating terrain...")
+    ix = get_ix(kwargs.get("ix"))
+    if not ctx:
+        ctx = ix.application.get_working_context()
+    if not check_context(ctx, ix=ix):
+        return None
+
+    if not os.path.isfile(heightmap_file):
+        ix.log_warning('Invalid heightmap file specified.')
+        return None
+
+    terrain_geo_items = []
+
+    terrain_ctx = ix.cmds.CreateContext(terrain_name, "Global", str(ctx))
+
+    spans_x = spans
+    spans_y = spans
+    proxy_spans_x = proxy_spans
+    proxy_spans_y = proxy_spans
+    # Check if resolution is non-uniform and rescale spans to maintain quads.
+    if not dimensions[0] == dimensions[1]:
+        if dimensions[0] > dimensions[1]:
+            spans_y = int(float(dimensions[1]) / (dimensions[0]) * spans)
+            proxy_spans_y = int(float(dimensions[1]) / (dimensions[0]) * proxy_spans)
+        if dimensions[0] < dimensions[1]:
+            spans_x = int(float(dimensions[0]) / (dimensions[1]) * spans)
+            proxy_spans_x = int(float(dimensions[0]) / (dimensions[1]) * proxy_spans)
+
+    terrain_geo = ix.cmds.CreateObject("terrain_geo", "GeometryPolygrid", "Global", str(terrain_ctx))
+    ix.cmds.SetValue(str(terrain_geo) + ".displacement_adaptive_span_count", [str(adaptive_spans)])
+    ix.cmds.SetValue(str(terrain_geo) + ".size[0]", [str(dimensions[0])])
+    ix.cmds.SetValue(str(terrain_geo) + ".size[1]", [str(dimensions[1])])
+    ix.cmds.SetValue(str(terrain_geo) + ".spans[0]", [str(spans_x)])
+    ix.cmds.SetValue(str(terrain_geo) + ".spans[1]", [str(spans_y)])
+    ix.cmds.SetValue(str(terrain_geo) + ".unseen_by_renderer", [str(1)])
+    ix.cmds.SetValue(str(terrain_geo) + ".display_visible", [str(0)])
+    terrain_geo_items.append(terrain_geo)
+
+    if generate_proxy:
+        proxy_geo = ix.cmds.Instantiate([str(terrain_geo)])[0]
+        ix.cmds.LocalizeAttributes([str(proxy_geo) + ".displacement_adaptive_span_count", str(proxy_geo) + ".spans"],
+                                   True)
+        ix.cmds.SetValue(str(proxy_geo) + ".displacement_adaptive_span_count", [str(int(proxy_adaptive_spans))])
+        ix.cmds.SetValue(str(proxy_geo) + ".spans[0]", [str(proxy_spans_x)])
+        ix.cmds.SetValue(str(proxy_geo) + ".spans[1]", [str(proxy_spans_y)])
+        ix.application.check_for_events()
+        ix.cmds.RenameItem(str(proxy_geo), 'proxy_geo')
+        ix.application.check_for_events()
+        terrain_geo_items.append(proxy_geo)
+    else:
+        proxy_geo = None
+    reorder_tx = None
+
+    if stream:
+        tx = ix.cmds.CreateObject('heightmap', "TextureStreamedMapFile", "Global", str(terrain_ctx))
+        if displacement_mode == 0:
+            reorder_tx = ix.cmds.CreateObject('heightmap' + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
+                                              "Global", str(terrain_ctx))
+            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+            ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(tx))
+        attrs = ix.api.CoreStringArray(6)
+        attrs[0] = str(tx) + ".interpolation_mode"
+        attrs[1] = str(tx) + ".mipmap_mode"
+        attrs[2] = str(tx) + ".u_repeat_mode"
+        attrs[3] = str(tx) + ".v_repeat_mode"
+        attrs[4] = str(tx) + ".use_raw_data"
+        attrs[5] = str(tx) + ".filename"
+        values = ix.api.CoreStringArray(6)
+        values[0] = str(3)
+        values[1] = str(3)
+        values[2] = str(2 if repeat == 'edge' else 3)
+        values[3] = str(2 if repeat == 'edge' else 3)
+        values[4] = str(1)
+        values[5] = r'{}'.format(heightmap_file)
+        ix.cmds.SetValues(attrs, values)
+    else:
+        tx = ix.cmds.CreateObject('heightmap', "TextureMapFile", "Global", str(terrain_ctx))
+        attrs = ix.api.CoreStringArray(5)
+        attrs[0] = str(tx) + ".single_channel_file_behavior"
+        attrs[1] = str(tx) + ".u_repeat_mode"
+        attrs[2] = str(tx) + ".v_repeat_mode"
+        attrs[3] = str(tx) + ".use_raw_data"
+        attrs[4] = str(tx) + ".filename"
+        values = ix.api.CoreStringArray(5)
+        values[0] = str(1)
+        values[1] = str(1 if repeat == 'edge' else 0)
+        values[2] = str(1 if repeat == 'edge' else 0)
+        values[3] = str(1)
+        values[4] = r'{}'.format(heightmap_file)
+        ix.cmds.SetValues(attrs, values)
+
+    # set projection scale
+    if 1 not in [u_scale, v_scale]:
+        attrs = ix.api.CoreStringArray(4)
+        attrs[0] = str(tx) + ".uv_translate[0]"
+        attrs[1] = str(tx) + ".uv_translate[1]"
+        attrs[2] = str(tx) + ".uv_scale[0]"
+        attrs[3] = str(tx) + ".uv_scale[1]"
+        values = ix.api.CoreStringArray(4)
+        values[0] = str(u_offset)
+        values[1] = str(v_offset)
+        values[2] = str(u_scale)
+        values[3] = str(v_scale)
+        ix.cmds.SetValues(attrs, values)
+
+    if animated:
+        ix.cmds.SetValue(str(tx) + ".sequence_mode", [str(1)])
+        tx.call_action("detect_sequence")
+        ix.application.check_for_events()
+        ix.cmds.SetValue(str(tx) + ".pre_behavior", [str(2)])
+        ix.cmds.SetValue(str(tx) + ".post_behavior", [str(2)])
+
+    disp = ix.cmds.CreateObject(terrain_name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
+                                "Global", str(terrain_ctx))
+    attrs = ix.api.CoreStringArray(6)
+    attrs[0] = str(disp) + ".bound[0]"
+    attrs[1] = str(disp) + ".bound[1]"
+    attrs[2] = str(disp) + ".bound[2]"
+    attrs[3] = str(disp) + ".front_value"
+    attrs[4] = str(disp) + ".front_offset"
+    attrs[5] = str(disp) + ".front_direction"
+    values = ix.api.CoreStringArray(6)
+    values[0] = str(dimensions[2] * 1.1)
+    values[1] = str(dimensions[2] * 1.1)
+    values[2] = str(dimensions[2] * 1.1)
+    values[3] = str(dimensions[2])
+    values[4] = str(-0.5 if use_midpoint else 0)
+    values[5] = str(displacement_mode)
+    ix.cmds.SetValues(attrs, values)
+    ix.application.check_for_events()
+    ix.cmds.SetTexture([str(disp) + ".front_value"], str(reorder_tx if reorder_tx else tx))
+
+    if generate_proxy:
+        switcher_grp = ix.cmds.CreateObject(terrain_name + GROUP_SUFFIX, "Group", "Global", str(terrain_ctx))
+        terrain_ctrl = ix.cmds.CombineItems([str(switcher_grp)], str(terrain_ctx))
+        ix.cmds.RenameItem(str(terrain_ctrl), 'terrain_ctrl')
+        attrs = ix.api.CoreStringArray(3)
+        attrs[0] = str(terrain_ctrl) + ".translate_offset[0]"
+        attrs[1] = str(terrain_ctrl) + ".translate_offset[1]"
+        attrs[2] = str(terrain_ctrl) + ".translate_offset[2]"
+        values = ix.api.CoreStringArray(3)
+        values[0] = str(position[0])
+        values[1] = str(position[1])
+        values[2] = str(position[2])
+        ix.cmds.SetValues(attrs, values)
+
+        # Proxy switch boolean
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "proxy", 0,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "proxy_control_by_lod", 0,
+        #                               ["container", "vhint", "group", "count", "allow_expression"],
+        #                               ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Heightmap filename
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "filename", 4,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Width
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "terrain_width", 2,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Length
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "terrain_length", 2,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Height
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "terrain_height", 2,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Displacement spans
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "adaptive_spans", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Polygrid spans
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "spans_x", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "spans_y", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Proxy adaptive spans
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "proxy_adaptive_spans", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        # Proxy spans
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "proxy_spans_x", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+        ix.cmds.CreateCustomAttribute([str(terrain_ctrl)], "proxy_spans_y", 1,
+                                      ["container", "vhint", "group", "count", "allow_expression"],
+                                      ["CONTAINER_SINGLE", "VISUAL_HINT_DEFAULT", "Terrain", "1", "0"])
+
+        ix.cmds.SetValue(str(terrain_ctrl) + ".proxy", [str(1)])
+        # ix.cmds.SetValue(str(terrain_ctrl) + ".proxy_control_by_lod", [str(0)])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".filename", [heightmap_file])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".terrain_width", [str(dimensions[0])])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".terrain_length", [str(dimensions[1])])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".terrain_height", [str(dimensions[2])])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".adaptive_spans", [str(adaptive_spans)])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".spans_x", [str(spans_x)])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".spans_y", [str(spans_y)])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".proxy_adaptive_spans", [str(int(proxy_adaptive_spans))])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".proxy_spans_x", [str(int(proxy_spans_x))])
+        ix.cmds.SetValue(str(terrain_ctrl) + ".proxy_spans_y", [str(int(proxy_spans_y))])
+
+        ix.application.check_for_events()
+        ix.cmds.SetExpression([str(switcher_grp) + ".inclusion_rule[0]"],
+                              ["get_double('terrain_ctrl.proxy') == 0 ? './terrain_geo' : './proxy_geo'"])
+        ix.cmds.SetExpression([str(terrain_geo) + ".size[0]"],
+                              ["get_double('terrain_ctrl.terrain_width')"])
+        ix.cmds.SetExpression([str(terrain_geo) + ".size[1]"],
+                              ["get_double('terrain_ctrl.terrain_length')"])
+        ix.cmds.SetExpression([str(disp) + ".front_value"],
+                              ["get_double('terrain_ctrl.terrain_height')"])
+        ix.cmds.SetExpression([str(tx) + ".filename"],
+                              ["get_string('terrain_ctrl.filename')"])
+        ix.cmds.SetExpression([str(terrain_geo) + ".displacement_adaptive_span_count"],
+                              ["get_double('terrain_ctrl.adaptive_spans')"])
+        ix.cmds.SetExpression([str(terrain_geo) + ".spans[0]"],
+                              ["get_double('terrain_ctrl.spans_x')"])
+        ix.cmds.SetExpression([str(terrain_geo) + ".spans[1]"],
+                              ["get_double('terrain_ctrl.spans_y')"])
+        ix.cmds.SetExpression([str(proxy_geo) + ".displacement_adaptive_span_count"],
+                              ["get_double('terrain_ctrl.proxy_adaptive_spans')"])
+        ix.cmds.SetExpression([str(proxy_geo) + ".spans[0]"],
+                              ["get_double('terrain_ctrl.proxy_spans_x')"])
+        ix.cmds.SetExpression([str(proxy_geo) + ".spans[1]"],
+                              ["get_double('terrain_ctrl.proxy_spans_y')"])
+    else:
+        terrain_ctrl = terrain_geo
+
+    for geometry in terrain_geo_items:
+        geo = geometry.get_module()
+        for i in range(geo.get_shading_group_count()):
+            geo.assign_displacement(disp.get_module(), i)
+
+    return terrain_ctrl

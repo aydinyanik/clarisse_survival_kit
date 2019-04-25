@@ -102,6 +102,12 @@
       "description": "Starts the Megascans Bridge listener for incoming requests. Make sure Command Port is enabled.",
       "script_filename": "ms_bridge_gui.py",
       "icon_filename": "ms_bridge_gui.png"
+    },
+    {
+      "title": "Setup Heightmap",
+      "description": "Imports a heightmap and displaces it on a polygrid. Can also generate a low resolution proxy.",
+      "script_filename": "terrain.py",
+      "icon_filename": "terrain.png"
     }
   ]
 }

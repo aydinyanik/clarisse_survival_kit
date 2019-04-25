@@ -37,6 +37,8 @@ clarisse_survival_kit/simplify.py
 clarisse_survival_kit/stream_toggle.png
 clarisse_survival_kit/stream_toggle.py
 clarisse_survival_kit/surface.py
+clarisse_survival_kit/terrain.png
+clarisse_survival_kit/terrain.py
 clarisse_survival_kit/tint.png
 clarisse_survival_kit/tint.py
 clarisse_survival_kit/triplanar.png
