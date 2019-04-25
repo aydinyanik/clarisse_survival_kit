@@ -210,6 +210,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Changelog
 
+- **25-04-19** Added Heightmap Wizard
 - **03-03-19** Added Reconvert Selected Textures and Stream Toggle adjustments
 - **22-02-19** Added Mask
 - **22-02-19** Added Quick Blend
