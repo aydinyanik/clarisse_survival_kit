@@ -897,7 +897,7 @@ def create_tiled_terrain(divisions_x, divisions_y, ctx=None, tile_flip_x=False, 
 
                 position = (pos_x, 0, pos_y)
                 terrain_tile = create_terrain(terrain_file, terrain_name='{}_x{}_y{}'.format(terrain_name, x, y),
-                                              ctx=terrain_ctx, dimensions=tile_dimensions,
+                                              ctx=terrain_ctx, dimensions=tile_dimensions, unseen_by_renderer=True,
                                               position=position, **kwargs)
                 tiles.append(terrain_tile)
     else:
@@ -920,7 +920,7 @@ def create_tiled_terrain(divisions_x, divisions_y, ctx=None, tile_flip_x=False, 
                 terrain_tile = create_terrain(heightmap_file, terrain_name='{}_x{}_y{}'.format(terrain_name, x, y),
                                               u_offset=u_offset, v_offset=v_offset, u_scale=divisions_x,
                                               v_scale=divisions_y, ctx=terrain_ctx, dimensions=tile_dimensions,
-                                              position=position, **kwargs)
+                                              position=position, unseen_by_renderer=True, **kwargs)
                 tiles.append(terrain_tile)
 
     terrain_root_ctrl = ix.cmds.CombineItems(tiles, str(terrain_ctx))
@@ -984,6 +984,7 @@ def create_terrain(heightmap_file, terrain_name='terrain', ctx=None,
                    use_midpoint=True,
                    position=(0, 0, 0),
                    u_offset=0.0, v_offset=0.0, u_scale=1.0, v_scale=1.0,
+                   unseen_by_renderer=False,
                    **kwargs):
     """Generates a displaced terrain from the selected heightmap. Dimensions are stored as [w,l,h]."""
     logging.debug("Generating terrain...")
@@ -1020,8 +1021,9 @@ def create_terrain(heightmap_file, terrain_name='terrain', ctx=None,
     ix.cmds.SetValue(str(terrain_geo) + ".size[1]", [str(dimensions[1])])
     ix.cmds.SetValue(str(terrain_geo) + ".spans[0]", [str(spans_x)])
     ix.cmds.SetValue(str(terrain_geo) + ".spans[1]", [str(spans_y)])
-    ix.cmds.SetValue(str(terrain_geo) + ".unseen_by_renderer", [str(1)])
-    ix.cmds.SetValue(str(terrain_geo) + ".display_visible", [str(0)])
+    if unseen_by_renderer:
+        ix.cmds.SetValue(str(terrain_geo) + ".unseen_by_renderer", [str(1)])
+        ix.cmds.SetValue(str(terrain_geo) + ".display_visible", [str(0)])
     terrain_geo_items.append(terrain_geo)
 
     if generate_proxy:
