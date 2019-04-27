@@ -18,7 +18,7 @@ CSK works with Clarisse 3.5, 3.6 and 4.0.
 
 ## Installation
 
-**Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
+**Make sure Clarisse is not running while installing the kit. CSK won't work for some scripts on the PLE version, because of Python restrictions.**
 
 ### Windows Environment Variables Setup
 To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
