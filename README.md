@@ -178,6 +178,8 @@ Mask out selected blend nodes with common masking selectors. If nothing in the l
 ### Heightmap Wizard
 Creates a displaced terrain from a heightmap. You can split the terrain in tiles or you can use premade tiles from applications such as World Creator and World Machine. Each terrain tile can have different quality settings to optimize speed and memory.
 
+[Video: Heightmap Wizard](https://vimeo.com/332546691)
+
 ### Custom Settings & Logging
 By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
 
