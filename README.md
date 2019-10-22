@@ -1,9 +1,3 @@
-![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%202-green.svg?style=for-the-badge)
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
-
->This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
-
 # Clarisse Survival Kit
 
 ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
@@ -231,9 +225,17 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 - **13-01-19** Fixed many bugs and tweaked usability.
 - **12-01-19** Added multi mix feature.
 
+# Donate
+![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%203-green.svg?style=for-the-badge)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
+
+>This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
 
 # TODO
-- Nothing
+I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
+
+![CSK_New_Interface](http://remuno.nl/wp-content/uploads/2019/10/csk_new_interface.png)
 
 Got any ideas? Did I miss anything important? Let me know.
 
