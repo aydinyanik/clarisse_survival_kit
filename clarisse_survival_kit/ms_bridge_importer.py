@@ -37,6 +37,7 @@ class ClarisseNet:
         self.status = self.Status.Error
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             self._socket.connect((host, port))
         except:
             raise ValueError('Failed to connect to ' + host + ':' + str(port))
@@ -94,6 +95,7 @@ class ms_Init(threading.Thread):
         try:
             print "Making socket on port " + str(port)
             socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             socket_.bind((host, port))
             print "Socket bound"
             print "Listening to incoming Bridge requests..."
@@ -113,8 +115,8 @@ class ms_Init(threading.Thread):
                         else:
                             self.importer(self.TotalData)
                             break
-        except:
-            pass
+        except Exception as e:
+            print('Error Line : {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
 
 
 def send_to_command_port(assets):
