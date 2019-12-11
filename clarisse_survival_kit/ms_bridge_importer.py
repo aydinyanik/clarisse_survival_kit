@@ -115,8 +115,8 @@ class ms_Init(threading.Thread):
                         else:
                             self.importer(self.TotalData)
                             break
-        except:
-            pass
+        except Exception as e:
+            print('Error Line : {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
 
 
 def send_to_command_port(assets):
