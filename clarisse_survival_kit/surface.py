@@ -352,22 +352,30 @@ class Surface:
                 disp_tx = self.get('displacement_reorder')
             else:
                 disp_tx = self.get('displacement')
+        subtract = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_NORMALIZE_SUFFIX, "TextureSubtract",
+                                             "Global", str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(subtract) + ".input1"], str(disp_tx))
+        self.ix.cmds.SetValues([str(subtract) + ".input2"], ["0.5"])
+        multiply = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MULTIPLIER_SUFFIX, "TextureMultiply",
+                                             "Global", str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(multiply) + ".input1"], str(subtract))
+        self.ix.cmds.SetValues([str(multiply) + ".input2"], [str(self.height * self.displacement_multiplier)])
         disp = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
                                          "Global", str(self.ctx))
-        attrs = self.ix.api.CoreStringArray(5)
+        attrs = self.ix.api.CoreStringArray(3)
         attrs[0] = str(disp) + ".bound[0]"
         attrs[1] = str(disp) + ".bound[1]"
         attrs[2] = str(disp) + ".bound[2]"
-        attrs[3] = str(disp) + ".front_value"
-        attrs[4] = str(disp) + ".front_offset"
-        values = self.ix.api.CoreStringArray(5)
-        values[0] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[1] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[2] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[3] = str(self.height * self.displacement_multiplier)
-        values[4] = str(-0.5)
+        # attrs[3] = str(disp) + ".front_value"
+        # attrs[4] = str(disp) + ".front_offset"
+        values = self.ix.api.CoreStringArray(3)
+        values[0] = str(self.height * self.displacement_multiplier)
+        values[1] = str(self.height * self.displacement_multiplier)
+        values[2] = str(self.height * self.displacement_multiplier)
+        # values[3] = str(self.height * self.displacement_multiplier)
+        # values[4] = str(-0.5)
         self.ix.cmds.SetValues(attrs, values)
-        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_tx))
+        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(multiply))
         self.textures['displacement_map'] = disp
         return disp
 

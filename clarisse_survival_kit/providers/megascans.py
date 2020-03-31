@@ -84,9 +84,9 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         logging.debug('Streamed maps: ')
         logging.debug(str(streamed_maps))
 
-    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=scan_area[0], tile=tileable,
+    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=1, tile=tileable,
                       object_space=object_space, triplanar_blend=triplanar_blend, ior=ior, specular_strength=1,
-                      displacement_multiplier=0.1)
+                      displacement_multiplier=0.2)
     mtl = surface.create_mtl(asset_name, target_ctx)
     surface.create_textures(textures, color_spaces=color_spaces,
                             streamed_maps=streamed_maps, clip_opacity=clip_opacity)
