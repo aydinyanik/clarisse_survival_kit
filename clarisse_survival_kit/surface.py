@@ -1,4 +1,3 @@
-from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.utility import *
 
 PROJECTIONS = ['planar', 'cylindrical', 'spherical', 'cubic', 'camera', 'parametric', 'uv']
@@ -154,7 +153,7 @@ class Surface:
                     values[1] = str(repeat_mode)
                     self.ix.cmds.SetValues(attrs, values)
             if (tx.is_kindof("TextureMapFile") or tx.is_kindof("TextureStreamedMapFile")) and \
-                            self.projection != "triplanar" and projection == "triplanar":
+                    self.projection != "triplanar" and projection == "triplanar":
                 tx_to_triplanar(tx, blend=triplanar_blend, object_space=object_space, ix=self.ix)
             if tx.is_kindof("TextureTriplanar") and projection != "triplanar":
                 input_tx = self.ix.get_item(str(tx) + ".right").get_texture()
@@ -352,14 +351,16 @@ class Surface:
                 disp_tx = self.get('displacement_reorder')
             else:
                 disp_tx = self.get('displacement')
-        subtract = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_NORMALIZE_SUFFIX, "TextureSubtract",
-                                             "Global", str(self.get_sub_ctx('displacement')))
-        self.ix.cmds.SetTexture([str(subtract) + ".input1"], str(disp_tx))
-        self.ix.cmds.SetValues([str(subtract) + ".input2"], ["0.5"])
-        multiply = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MULTIPLIER_SUFFIX, "TextureMultiply",
-                                             "Global", str(self.get_sub_ctx('displacement')))
-        self.ix.cmds.SetTexture([str(multiply) + ".input1"], str(subtract))
-        self.ix.cmds.SetValues([str(multiply) + ".input2"], [str(self.height * self.displacement_multiplier)])
+        disp_offset_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_OFFSET_SUFFIX, "TextureSubtract",
+                                                   "Global", str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(disp_offset_tx) + ".input1"], str(disp_tx))
+        self.ix.cmds.SetValues([str(disp_offset_tx) + ".input2"], ["-0.5"])
+        disp_height_scale_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                                                         "TextureMultiply", "Global",
+                                                         str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(disp_height_scale_tx) + ".input1"], str(disp_offset_tx))
+        self.ix.cmds.SetValues([str(disp_height_scale_tx) + ".input2"],
+                               [str(self.height * self.displacement_multiplier)])
         disp = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
                                          "Global", str(self.ctx))
         attrs = self.ix.api.CoreStringArray(3)
@@ -375,7 +376,7 @@ class Surface:
         # values[3] = str(self.height * self.displacement_multiplier)
         # values[4] = str(-0.5)
         self.ix.cmds.SetValues(attrs, values)
-        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(multiply))
+        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_height_scale_tx))
         self.textures['displacement_map'] = disp
         return disp
 
