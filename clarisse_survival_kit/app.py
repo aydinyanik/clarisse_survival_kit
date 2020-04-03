@@ -278,6 +278,7 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
 
     uv_scale = DEFAULT_UV_SCALE
     surface_height = DEFAULT_DISPLACEMENT_HEIGHT
+    displacement_offset = DEFAULT_DISPLACEMENT_OFFSET
     tileable = True
     color_spaces = kwargs.get('color_spaces', DEFAULT_COLOR_SPACES)
     clip_opacity = kwargs.get('clip_opacity', True)
@@ -287,7 +288,6 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     object_space = kwargs.get('object_space', 0)
     triplanar_blend = kwargs.get('triplanar_blend', 0.5)
     projection_type = kwargs.get('projection_type', 'triplanar')
-    displacement_multiplier = 1
 
     for provider_name in provider_names:
         logging.debug("Checking if provider matches inspection: " + provider_name)
@@ -300,8 +300,8 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
                 surface_height = report.get('surface_height')
             if report.get('tileable'):
                 tileable = report.get('tileable')
-            if report.get('displacement_multiplier'):
-                displacement_multiplier = report.get('displacement_multiplier')
+            if report.get('displacement_offset'):
+                displacement_offset = report.get('displacement_offset')
             break
         else:
             logging.debug('Provider %s did not pass inspection' % provider_name)
@@ -347,7 +347,7 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     surface.update_ior(ior, metallic_ior=metallic_ior)
     surface.update_textures(update_textures, color_spaces=color_spaces, streamed_maps=streamed_maps)
     surface.update_names(surface_name)
-    surface.update_displacement(surface_height, displacement_multiplier=displacement_multiplier)
+    surface.update_displacement(surface_height, displacement_offset=displacement_offset)
     surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
     surface.update_projection(projection=projection_type, uv_scale=uv_scale,
                               triplanar_blend=triplanar_blend, object_space=object_space, tile=True)

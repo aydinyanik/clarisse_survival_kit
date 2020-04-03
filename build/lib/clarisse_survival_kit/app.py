@@ -347,7 +347,7 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     surface.update_ior(ior, metallic_ior=metallic_ior)
     surface.update_textures(update_textures, color_spaces=color_spaces, streamed_maps=streamed_maps)
     surface.update_names(surface_name)
-    surface.update_displacement(surface_height, displacement_multiplier=displacement_multiplier)
+    surface.update_displacement(surface_height, displacement_offset=displacement_multiplier)
     surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
     surface.update_projection(projection=projection_type, uv_scale=uv_scale,
                               triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
