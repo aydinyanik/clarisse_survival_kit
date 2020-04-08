@@ -583,7 +583,7 @@ class Surface:
                 self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(connection_tx))
         return tx
 
-    def update_displacement(self, height, displacement_offset=0):
+    def update_displacement(self, height, displacement_offset=0.5):
         """Updates a Displacement map with new height settings."""
         logging.debug("Updating displacement...")
         disp = self.get('displacement_map')
@@ -592,7 +592,7 @@ class Surface:
             attrs[0] = str(disp) + ".bound[0]"
             attrs[1] = str(disp) + ".bound[1]"
             attrs[2] = str(disp) + ".bound[2]"
-            values = self.ix.api.CoreStringArray(5)
+            values = self.ix.api.CoreStringArray(3)
             values[0] = str(height)
             values[1] = str(height)
             values[2] = str(height)
@@ -602,9 +602,13 @@ class Surface:
         connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
         for connected_tx in connected_txs:
             if connected_tx.get_contextual_name().endswith(DISPLACEMENT_HEIGHT_SCALE_SUFFIX):
-                connected_tx.attrs.input2[0] = height * self.uv_scale[0]
-                connected_tx.attrs.input2[1] = height * self.uv_scale[0]
-                connected_tx.attrs.input2[2] = height * self.uv_scale[0]
+                connected_tx.attrs.input2[0] = height
+                connected_tx.attrs.input2[1] = height
+                connected_tx.attrs.input2[2] = height
+            elif connected_tx.get_contextual_name().endswith(DISPLACEMENT_OFFSET_SUFFIX):
+                connected_tx.attrs.input2[0] = displacement_offset * -1
+                connected_tx.attrs.input2[1] = displacement_offset * -1
+                connected_tx.attrs.input2[2] = displacement_offset * -1
 
     def update_opacity(self, clip_opacity, found_textures, update_textures):
         """Connect/Disconnect the opacity texture depending if clip_opacity is set to False/True."""

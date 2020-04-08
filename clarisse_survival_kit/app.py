@@ -296,8 +296,6 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
         if report:
             if report.get('scan_area'):
                 uv_scale = report.get('scan_area')
-            if report.get('surface_height'):
-                surface_height = report.get('surface_height')
             if report.get('tileable'):
                 tileable = report.get('tileable')
             if report.get('displacement_offset'):
