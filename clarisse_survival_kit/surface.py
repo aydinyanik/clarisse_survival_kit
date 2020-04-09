@@ -21,7 +21,7 @@ class Surface:
         self.double_sided = kwargs.get('double_sided', False)
         self.textures = {}
         self.streamed_maps = []
-        self.displacement_offset = kwargs.get('displacement_offset', 1)
+        self.displacement_offset = kwargs.get('displacement_offset', 0.5)
 
     def create_mtl(self, name, target_ctx):
         """Creates a new PhysicalStandard material and context."""

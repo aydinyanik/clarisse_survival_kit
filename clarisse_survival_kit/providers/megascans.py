@@ -62,7 +62,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
     if not json_data:
         ix.log_warning('Could not find a Megascans JSON file. Defaulting to standard settings.')
     surface_height = json_data.get('surface_height', DEFAULT_DISPLACEMENT_HEIGHT)
-    displacement_offset = json_data.get('displacement_offset', DEFAULT_DISPLACEMENT_OFFSET)
+    displacement_offset = DEFAULT_DISPLACEMENT_OFFSET
     logging.debug('Surface height JSON test: ' + str(surface_height))
     scan_area = json_data.get('scan_area', DEFAULT_UV_SCALE)
     logging.debug('Scan area JSON test: ' + str(scan_area))
@@ -85,7 +85,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         logging.debug('Streamed maps: ')
         logging.debug(str(streamed_maps))
 
-    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=0.2, tile=tileable,
+    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=scan_area[0]*0.1, tile=tileable,
                       object_space=object_space, triplanar_blend=triplanar_blend, ior=ior, specular_strength=1,
                       displacement_offset=displacement_offset)
     mtl = surface.create_mtl(asset_name, target_ctx)
