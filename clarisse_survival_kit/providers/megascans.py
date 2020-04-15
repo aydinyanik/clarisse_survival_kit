@@ -69,6 +69,10 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
     tileable = json_data.get('tileable', True)
     asset_name = os.path.basename(os.path.normpath(asset_directory))
     logging.debug('Asset name: ' + asset_name)
+    if scan_area[0] >= 2:
+        height = 0.2
+    else:
+        height = 0.02
 
     # All assets except 3dplant have the material in the root directory of the asset.
     logging.debug('Searching for textures: ')
@@ -85,7 +89,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
         logging.debug('Streamed maps: ')
         logging.debug(str(streamed_maps))
 
-    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=scan_area[0]*0.1, tile=tileable,
+    surface = Surface(ix, projection=projection_type, uv_scale=scan_area, height=height, tile=tileable,
                       object_space=object_space, triplanar_blend=triplanar_blend, ior=ior, specular_strength=1,
                       displacement_offset=displacement_offset)
     mtl = surface.create_mtl(asset_name, target_ctx)
