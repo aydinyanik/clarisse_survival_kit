@@ -94,7 +94,7 @@ def setup_shelf(shelf_path, slot=0):
     for required_shelf_item in required_shelf_items:
         if not required_shelf_item.get('title') in existing_items:
             logging.debug("Adding shelf item: " + required_shelf_item.get('title'))
-            sitepackages_folders = site.getsitepackages()
+            sitepackages_folders = site.getsitepackages() + [site.getusersitepackages()]
             script_filename = ''
             icon_filename = ''
             for sitepackages_folder in sitepackages_folders:

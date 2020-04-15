@@ -55,7 +55,7 @@ if user_path:
         from user_settings import PACKAGE_PATH
         os.environ["CSK_PACKAGE_PATH"] = PACKAGE_PATH
     except ImportError:
-        sitepackages_folders = site.getsitepackages()
+        sitepackages_folders = site.getsitepackages() + [site.getusersitepackages()]
         for sitepackages_folder in sitepackages_folders:
             if os.path.isdir(sitepackages_folder):
                 sub_folders = os.listdir(sitepackages_folder)
