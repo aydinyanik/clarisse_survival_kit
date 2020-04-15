@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.1
 Name: clarisse-survival-kit
 Version: 1.0.0
 Summary: Provides utility functions to import common assets such as Megascans assets and Substance textures.
@@ -6,23 +6,21 @@ Home-page: https://github.com/aydinyanik/clarisse_survival_kit
 Author: Aydin Yanik
 Author-email: aydinyanik@gmail.com
 License: UNKNOWN
-Description: ![Donations Received](https://img.shields.io/badge/Donations%20Received-Just%201-green.svg?style=for-the-badge)
-        
-        [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
-        
-        >This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
-        
-        # Clarisse Survival Kit
+Description: # Clarisse Survival Kit
         
         ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
         
         >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
         
+        ## Requirements
+        
+        CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed.
+        
+        CSK works with Clarisse 3.5, 3.6 and 4.0.
+        
         ## Installation
         
-        **Make sure Clarisse is not running while installing the kit. CSK won't work on the PLE version, because of Python restrictions.**
-        
-        CSK requires Python 2.7 to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2715/) and make sure **pip** gets installed.
+        **Make sure Clarisse is not running while installing the kit. CSK won't work for some scripts on the PLE version, because of Python restrictions.**
         
         ### Windows Environment Variables Setup
         To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
@@ -47,6 +45,8 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         ```
         ### Step 3: The next step is to install the kit:
         
+        **OSX users should use Option 3.**
+        
         With pip you can download the installation files automatically by passing a link to the tarball or by downloading the tarball yourself and refer it locally:
         
         **Option 1: Online**
@@ -63,14 +63,16 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         ```sh
         pip install .\clarisse_survival_kit-1.0.0.tar.gz
         ```
-        **Option 3: Setup.py**
+        **Option 3 (OSX users should use this method): Setup.py**
         
         **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
         
         Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
         ```sh
-        python setup.py install
+        sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
         ```
+        
+        ![OSX_Image](http://remuno.nl/wp-content/uploads/2019/03/mac_installation.jpg)
         
         The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
         
@@ -175,6 +177,11 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         ### Mask
         Mask out selected blend nodes with common masking selectors. If nothing in the list is selected it will create just the masks.
         
+        ### Heightmap Wizard
+        Creates a displaced terrain from a heightmap. You can split the terrain in tiles or you can use premade tiles from applications such as World Creator and World Machine. Each terrain tile can have different quality settings to optimize speed and memory.
+        
+        [Video: Heightmap Wizard](https://vimeo.com/332546691)
+        
         ### Custom Settings & Logging
         By default logging is disabled. If you get crashes you can enable logging in your user settings file and it will generate a log which will help me fix the bug if you send it to me. The log doesn't contain any information about your computer. It only logs which functions were called with which variables. To enable logging add the following lines to your user_settings.py file:
         
@@ -207,6 +214,7 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         
         # Changelog
         
+        - **25-04-19** Added Heightmap Wizard
         - **03-03-19** Added Reconvert Selected Textures and Stream Toggle adjustments
         - **22-02-19** Added Mask
         - **22-02-19** Added Quick Blend
@@ -225,9 +233,17 @@ Description: ![Donations Received](https://img.shields.io/badge/Donations%20Rece
         - **13-01-19** Fixed many bugs and tweaked usability.
         - **12-01-19** Added multi mix feature.
         
+        # Donate
+        ![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%203-green.svg?style=for-the-badge)
+        
+        [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
+        
+        >This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
         
         # TODO
-        - Nothing
+        I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
+        
+        ![CSK_New_Interface](http://remuno.nl/wp-content/uploads/2019/10/csk_new_interface.png)
         
         Got any ideas? Did I miss anything important? Let me know.
         
@@ -243,4 +259,3 @@ Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 2
 Classifier: License :: OSI Approved :: GPLv3
 Classifier: Operating System :: OS Independent
-Description-Content-Type: text/markdown
