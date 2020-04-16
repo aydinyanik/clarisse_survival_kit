@@ -298,8 +298,6 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
                 uv_scale = report.get('scan_area')
             if report.get('tileable'):
                 tileable = report.get('tileable')
-            if report.get('displacement_offset'):
-                displacement_offset = report.get('displacement_offset')
             break
         else:
             logging.debug('Provider %s did not pass inspection' % provider_name)
