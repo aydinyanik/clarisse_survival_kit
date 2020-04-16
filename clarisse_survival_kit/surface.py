@@ -597,6 +597,10 @@ class Surface:
             values[1] = str(height)
             values[2] = str(height)
             self.ix.cmds.SetValues(attrs, values)
+            if disp.attrs.front_value != 1:
+                disp.attrs.front_value = height
+            if disp.attrs.front_offset != 0:
+                disp.attrs.front_offset = displacement_offset * -1
         self.height = height
         self.displacement_offset = displacement_offset
         connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
@@ -606,9 +610,9 @@ class Surface:
                 connected_tx.attrs.input2[1] = height
                 connected_tx.attrs.input2[2] = height
             elif connected_tx.get_contextual_name().endswith(DISPLACEMENT_OFFSET_SUFFIX):
-                connected_tx.attrs.input2[0] = displacement_offset * -1
-                connected_tx.attrs.input2[1] = displacement_offset * -1
-                connected_tx.attrs.input2[2] = displacement_offset * -1
+                connected_tx.attrs.input2[0] = displacement_offset
+                connected_tx.attrs.input2[1] = displacement_offset
+                connected_tx.attrs.input2[2] = displacement_offset
 
     def update_opacity(self, clip_opacity, found_textures, update_textures):
         """Connect/Disconnect the opacity texture depending if clip_opacity is set to False/True."""

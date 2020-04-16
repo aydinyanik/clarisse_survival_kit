@@ -306,6 +306,10 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
             if selected_provider:
                 ix.log_warning('Content provider could not find asset in the specified directory.')
                 return None
+    if uv_scale[0] >= 2 and uv_scale[1] >= 2:
+        surface_height = 0.2
+    else:
+        surface_height = 0.02
 
     surface_directory = os.path.normpath(surface_directory)
     if not os.path.isdir(surface_directory):
