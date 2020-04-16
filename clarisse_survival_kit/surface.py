@@ -597,9 +597,9 @@ class Surface:
             values[1] = str(height)
             values[2] = str(height)
             self.ix.cmds.SetValues(attrs, values)
-            if disp.attrs.front_value != 1:
+            if disp.attrs.front_value[0] != 1:
                 disp.attrs.front_value = height
-            if disp.attrs.front_offset != 0:
+            if disp.attrs.front_offset[0] != 0:
                 disp.attrs.front_offset = displacement_offset * -1
         self.height = height
         self.displacement_offset = displacement_offset
