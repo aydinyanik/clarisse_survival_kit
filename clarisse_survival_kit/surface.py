@@ -351,10 +351,10 @@ class Surface:
                 disp_tx = self.get('displacement_reorder')
             else:
                 disp_tx = self.get('displacement')
-        disp_offset_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+        disp_offset_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_OFFSET_SUFFIX, "TextureSubtract",
                                                    "Global", str(self.get_sub_ctx('displacement')))
         self.ix.cmds.SetTexture([str(disp_offset_tx) + ".input1"], str(disp_tx))
-        self.ix.cmds.SetValues([str(disp_offset_tx) + ".input2"], [str(self.displacement_offset*-1)])
+        self.ix.cmds.SetValues([str(disp_offset_tx) + ".input2"], [str(self.displacement_offset)])
         disp_height_scale_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
                                                          "TextureMultiply", "Global",
                                                          str(self.get_sub_ctx('displacement')))

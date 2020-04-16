@@ -499,11 +499,11 @@ def quick_blend(items, **kwargs):
             item_disp_height_scale_tx.attrs.input2[2] = item_srf_height
 
             item_disp_offset_tx = ix.cmds.CreateObject(item.get_contextual_name() + DISPLACEMENT_OFFSET_SUFFIX,
-                                                       "TextureAdd",
+                                                       "TextureSubtract",
                                                        "Global", str(ctx))
-            item_disp_offset_tx.attrs.input2[0] = -0.5 * item_srf_height + 0.5
-            item_disp_offset_tx.attrs.input2[1] = -0.5 * item_srf_height + 0.5
-            item_disp_offset_tx.attrs.input2[2] = -0.5 * item_srf_height + 0.5
+            item_disp_offset_tx.attrs.input2[0] = item_srf_height + 0.5
+            item_disp_offset_tx.attrs.input2[1] = item_srf_height + 0.5
+            item_disp_offset_tx.attrs.input2[2] = item_srf_height + 0.5
             ix.cmds.SetTexture([str(item_disp_offset_tx) + ".input1"], str(item_disp_height_scale_tx))
             item_disp_offset_txs.append(item_disp_offset_tx)
 

@@ -69,7 +69,7 @@ def import_surface(asset_directory, target_ctx=None, ior=DEFAULT_IOR, projection
     tileable = json_data.get('tileable', True)
     asset_name = os.path.basename(os.path.normpath(asset_directory))
     logging.debug('Asset name: ' + asset_name)
-    if scan_area[0] >= 2:
+    if scan_area[0] >= 2 and scan_area[1] >= 2:
         height = 0.2
     else:
         height = 0.02

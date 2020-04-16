@@ -490,6 +490,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
                                                              "TextureAdd", "Global", str(mix_selectors_ctx))
             base_disp_tx_front_value = ix.get_item(str(base_disp) + ".front_value")
             base_disp_tx = base_disp_tx_front_value.get_texture()
+            legacy_mode = False
             if base_srf_height != 1:
                 print "Base surface height: " + str(base_srf_height)
                 base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
@@ -506,7 +507,11 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
                 base_disp_offset_tx.attrs.input2[1] = -0.5 * base_srf_height + 0.5
                 base_disp_offset_tx.attrs.input2[2] = -0.5 * base_srf_height + 0.5
                 ix.cmds.SetTexture([str(base_disp_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+                legacy_mode = True
             else:
+                base_disp_blend_offset_tx.attrs.input2[0] = 1
+                base_disp_blend_offset_tx.attrs.input2[1] = 1
+                base_disp_blend_offset_tx.attrs.input2[2] = 1
                 ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_tx))
                 base_disp_offset_tx = base_disp_tx
 
@@ -533,7 +538,11 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
                 cover_disp_offset_tx.attrs.input2[1] = -0.5 * cover_srf_height + 0.5
                 cover_disp_offset_tx.attrs.input2[2] = -0.5 * cover_srf_height + 0.5
                 ix.cmds.SetTexture([str(cover_disp_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+                legacy_mode = True
             else:
+                cover_disp_blend_offset_tx.attrs.input2[0] = 1
+                cover_disp_blend_offset_tx.attrs.input2[1] = 1
+                cover_disp_blend_offset_tx.attrs.input2[2] = 1
                 ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_tx))
                 cover_disp_offset_tx = cover_disp_tx
 
@@ -569,7 +578,8 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             mix_disp.attrs.bound[1] = 1
             mix_disp.attrs.bound[2] = 1
             mix_disp.attrs.front_value = 1
-            mix_disp.attrs.front_offset = -0.5
+            if legacy_mode:
+                mix_disp.attrs.front_offset = -0.5
             ix.cmds.SetTexture([str(mix_disp) + ".front_value"], str(disp_multi_blend_tx))
         if assign_mtls:
             mtls = get_all_mtls_from_context(srf_ctx, ix=ix)
