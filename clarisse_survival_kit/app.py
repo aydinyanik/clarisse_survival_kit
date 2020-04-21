@@ -278,6 +278,7 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
 
     uv_scale = DEFAULT_UV_SCALE
     surface_height = DEFAULT_DISPLACEMENT_HEIGHT
+    displacement_offset = DEFAULT_DISPLACEMENT_OFFSET
     tileable = True
     color_spaces = kwargs.get('color_spaces', DEFAULT_COLOR_SPACES)
     clip_opacity = kwargs.get('clip_opacity', True)
@@ -287,7 +288,6 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     object_space = kwargs.get('object_space', 0)
     triplanar_blend = kwargs.get('triplanar_blend', 0.5)
     projection_type = kwargs.get('projection_type', 'triplanar')
-    displacement_multiplier = 1
 
     for provider_name in provider_names:
         logging.debug("Checking if provider matches inspection: " + provider_name)
@@ -296,18 +296,18 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
         if report:
             if report.get('scan_area'):
                 uv_scale = report.get('scan_area')
-            if report.get('surface_height'):
-                surface_height = report.get('surface_height')
             if report.get('tileable'):
                 tileable = report.get('tileable')
-            if report.get('displacement_multiplier'):
-                displacement_multiplier = report.get('displacement_multiplier')
             break
         else:
             logging.debug('Provider %s did not pass inspection' % provider_name)
             if selected_provider:
                 ix.log_warning('Content provider could not find asset in the specified directory.')
                 return None
+    if uv_scale[0] >= 2 and uv_scale[1] >= 2:
+        surface_height = 0.2
+    else:
+        surface_height = 0.02
 
     surface_directory = os.path.normpath(surface_directory)
     if not os.path.isdir(surface_directory):
@@ -347,7 +347,7 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     surface.update_ior(ior, metallic_ior=metallic_ior)
     surface.update_textures(update_textures, color_spaces=color_spaces, streamed_maps=streamed_maps)
     surface.update_names(surface_name)
-    surface.update_displacement(surface_height, displacement_multiplier=displacement_multiplier)
+    surface.update_displacement(surface_height, displacement_offset=displacement_offset)
     surface.update_opacity(clip_opacity=clip_opacity, found_textures=textures, update_textures=update_textures)
     surface.update_projection(projection=projection_type, uv_scale=uv_scale,
                               triplanar_blend=triplanar_blend, object_space=object_space, tile=True)
@@ -488,47 +488,65 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             # Base surface
             print "Setting up surface 1"
             base_srf_height = base_disp.attrs.front_value[0]
-            print "Base surface height: " + str(base_srf_height)
-            base_disp_tx_front_value = ix.get_item(str(base_disp) + ".front_value")
-            base_disp_tx = base_disp_tx_front_value.get_texture()
-            base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-                                                             "TextureMultiply", "Global", str(mix_selectors_ctx))
-            ix.cmds.SetTexture([str(base_disp_height_scale_tx) + ".input1"], str(base_disp_tx))
-
-            base_disp_height_scale_tx.attrs.input2[0] = base_srf_height
-            base_disp_height_scale_tx.attrs.input2[1] = base_srf_height
-            base_disp_height_scale_tx.attrs.input2[2] = base_srf_height
             base_disp_blend_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
                                                              "TextureAdd", "Global", str(mix_selectors_ctx))
-            ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
-            base_disp_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-                                                       "Global", str(mix_selectors_ctx))
-            base_disp_offset_tx.attrs.input2[0] = -0.5 * base_srf_height + 0.5
-            base_disp_offset_tx.attrs.input2[1] = -0.5 * base_srf_height + 0.5
-            base_disp_offset_tx.attrs.input2[2] = -0.5 * base_srf_height + 0.5
-            ix.cmds.SetTexture([str(base_disp_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+            base_disp_tx_front_value = ix.get_item(str(base_disp) + ".front_value")
+            base_disp_tx = base_disp_tx_front_value.get_texture()
+            legacy_mode = False
+            if base_srf_height != 1:
+                print "Base surface height: " + str(base_srf_height)
+                base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                                                                 "TextureMultiply", "Global", str(mix_selectors_ctx))
+                ix.cmds.SetTexture([str(base_disp_height_scale_tx) + ".input1"], str(base_disp_tx))
+
+                base_disp_height_scale_tx.attrs.input2[0] = base_srf_height
+                base_disp_height_scale_tx.attrs.input2[1] = base_srf_height
+                base_disp_height_scale_tx.attrs.input2[2] = base_srf_height
+                ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+                base_disp_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+                                                           "Global", str(mix_selectors_ctx))
+                base_disp_offset_tx.attrs.input2[0] = -0.5 * base_srf_height + 0.5
+                base_disp_offset_tx.attrs.input2[1] = -0.5 * base_srf_height + 0.5
+                base_disp_offset_tx.attrs.input2[2] = -0.5 * base_srf_height + 0.5
+                ix.cmds.SetTexture([str(base_disp_offset_tx) + ".input1"], str(base_disp_height_scale_tx))
+                legacy_mode = True
+            else:
+                base_disp_blend_offset_tx.attrs.input2[0] = 1
+                base_disp_blend_offset_tx.attrs.input2[1] = 1
+                base_disp_blend_offset_tx.attrs.input2[2] = 1
+                ix.cmds.SetTexture([str(base_disp_blend_offset_tx) + ".input1"], str(base_disp_tx))
+                base_disp_offset_tx = base_disp_tx
 
             # Surface 2
             print "Setting up surface 2"
             cover_srf_height = cover_disp.attrs.front_value[0]
-            print "Surface 2 height: " + str(cover_srf_height)
-            cover_disp_tx_front_value = ix.get_item(str(cover_disp) + ".front_value")
-            cover_disp_tx = cover_disp_tx_front_value.get_texture()
-            cover_disp_height_scale_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
-                                                              "TextureMultiply", "Global", str(mix_selectors_ctx))
-            ix.cmds.SetTexture([str(cover_disp_height_scale_tx) + ".input1"], str(cover_disp_tx))
-            cover_disp_height_scale_tx.attrs.input2[0] = cover_srf_height
-            cover_disp_height_scale_tx.attrs.input2[1] = cover_srf_height
-            cover_disp_height_scale_tx.attrs.input2[2] = cover_srf_height
+
             cover_disp_blend_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
                                                               "TextureAdd", "Global", str(mix_selectors_ctx))
-            ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
-            cover_disp_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
-                                                        "Global", str(mix_selectors_ctx))
-            cover_disp_offset_tx.attrs.input2[0] = -0.5 * cover_srf_height + 0.5
-            cover_disp_offset_tx.attrs.input2[1] = -0.5 * cover_srf_height + 0.5
-            cover_disp_offset_tx.attrs.input2[2] = -0.5 * cover_srf_height + 0.5
-            ix.cmds.SetTexture([str(cover_disp_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+            cover_disp_tx_front_value = ix.get_item(str(cover_disp) + ".front_value")
+            cover_disp_tx = cover_disp_tx_front_value.get_texture()
+            if cover_srf_height != 1:
+                print "Surface 2 height: " + str(cover_srf_height)
+                cover_disp_height_scale_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                                                                  "TextureMultiply", "Global", str(mix_selectors_ctx))
+                ix.cmds.SetTexture([str(cover_disp_height_scale_tx) + ".input1"], str(cover_disp_tx))
+                cover_disp_height_scale_tx.attrs.input2[0] = cover_srf_height
+                cover_disp_height_scale_tx.attrs.input2[1] = cover_srf_height
+                cover_disp_height_scale_tx.attrs.input2[2] = cover_srf_height
+                ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+                cover_disp_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_OFFSET_SUFFIX, "TextureAdd",
+                                                            "Global", str(mix_selectors_ctx))
+                cover_disp_offset_tx.attrs.input2[0] = -0.5 * cover_srf_height + 0.5
+                cover_disp_offset_tx.attrs.input2[1] = -0.5 * cover_srf_height + 0.5
+                cover_disp_offset_tx.attrs.input2[2] = -0.5 * cover_srf_height + 0.5
+                ix.cmds.SetTexture([str(cover_disp_offset_tx) + ".input1"], str(cover_disp_height_scale_tx))
+                legacy_mode = True
+            else:
+                cover_disp_blend_offset_tx.attrs.input2[0] = 1
+                cover_disp_blend_offset_tx.attrs.input2[1] = 1
+                cover_disp_blend_offset_tx.attrs.input2[2] = 1
+                ix.cmds.SetTexture([str(cover_disp_blend_offset_tx) + ".input1"], str(cover_disp_tx))
+                cover_disp_offset_tx = cover_disp_tx
 
             disp_branch_selector = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BRANCH_SUFFIX, "TextureBranch",
                                                         "Global", str(mix_selectors_ctx))
@@ -562,7 +580,8 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             mix_disp.attrs.bound[1] = 1
             mix_disp.attrs.bound[2] = 1
             mix_disp.attrs.front_value = 1
-            mix_disp.attrs.front_offset = -0.5
+            if legacy_mode:
+                mix_disp.attrs.front_offset = -0.5
             ix.cmds.SetTexture([str(mix_disp) + ".front_value"], str(disp_multi_blend_tx))
         if assign_mtls:
             mtls = get_all_mtls_from_context(srf_ctx, ix=ix)

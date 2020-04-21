@@ -1,4 +1,3 @@
-from clarisse_survival_kit.settings import *
 from clarisse_survival_kit.utility import *
 
 PROJECTIONS = ['planar', 'cylindrical', 'spherical', 'cubic', 'camera', 'parametric', 'uv']
@@ -22,7 +21,7 @@ class Surface:
         self.double_sided = kwargs.get('double_sided', False)
         self.textures = {}
         self.streamed_maps = []
-        self.displacement_multiplier = kwargs.get('displacement_multiplier', 1)
+        self.displacement_offset = kwargs.get('displacement_offset', 0.5)
 
     def create_mtl(self, name, target_ctx):
         """Creates a new PhysicalStandard material and context."""
@@ -154,7 +153,7 @@ class Surface:
                     values[1] = str(repeat_mode)
                     self.ix.cmds.SetValues(attrs, values)
             if (tx.is_kindof("TextureMapFile") or tx.is_kindof("TextureStreamedMapFile")) and \
-                            self.projection != "triplanar" and projection == "triplanar":
+                    self.projection != "triplanar" and projection == "triplanar":
                 tx_to_triplanar(tx, blend=triplanar_blend, object_space=object_space, ix=self.ix)
             if tx.is_kindof("TextureTriplanar") and projection != "triplanar":
                 input_tx = self.ix.get_item(str(tx) + ".right").get_texture()
@@ -352,22 +351,28 @@ class Surface:
                 disp_tx = self.get('displacement_reorder')
             else:
                 disp_tx = self.get('displacement')
+        disp_offset_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_OFFSET_SUFFIX, "TextureSubtract",
+                                                   "Global", str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(disp_offset_tx) + ".input1"], str(disp_tx))
+        self.ix.cmds.SetValues([str(disp_offset_tx) + ".input2"], [str(self.displacement_offset)])
+        disp_height_scale_tx = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
+                                                         "TextureMultiply", "Global",
+                                                         str(self.get_sub_ctx('displacement')))
+        self.ix.cmds.SetTexture([str(disp_height_scale_tx) + ".input1"], str(disp_offset_tx))
+        self.ix.cmds.SetValues([str(disp_height_scale_tx) + ".input2"],
+                               [str(self.height)])
         disp = self.ix.cmds.CreateObject(self.name + DISPLACEMENT_MAP_SUFFIX, "Displacement",
                                          "Global", str(self.ctx))
-        attrs = self.ix.api.CoreStringArray(5)
+        attrs = self.ix.api.CoreStringArray(3)
         attrs[0] = str(disp) + ".bound[0]"
         attrs[1] = str(disp) + ".bound[1]"
         attrs[2] = str(disp) + ".bound[2]"
-        attrs[3] = str(disp) + ".front_value"
-        attrs[4] = str(disp) + ".front_offset"
-        values = self.ix.api.CoreStringArray(5)
-        values[0] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[1] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[2] = str(self.height * 1.1 * self.displacement_multiplier)
-        values[3] = str(self.height * self.displacement_multiplier)
-        values[4] = str(-0.5)
+        values = self.ix.api.CoreStringArray(3)
+        values[0] = str(self.height)
+        values[1] = str(self.height)
+        values[2] = str(self.height)
         self.ix.cmds.SetValues(attrs, values)
-        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_tx))
+        self.ix.cmds.SetTexture([str(disp) + ".front_value"], str(disp_height_scale_tx))
         self.textures['displacement_map'] = disp
         return disp
 
@@ -578,32 +583,36 @@ class Surface:
                 self.ix.cmds.SetTexture([str(self.mtl) + '.' + connection], str(connection_tx))
         return tx
 
-    def update_displacement(self, height, displacement_multiplier=1):
+    def update_displacement(self, height, displacement_offset=0.5):
         """Updates a Displacement map with new height settings."""
         logging.debug("Updating displacement...")
         disp = self.get('displacement_map')
         if disp:
-            attrs = self.ix.api.CoreStringArray(5)
+            attrs = self.ix.api.CoreStringArray(3)
             attrs[0] = str(disp) + ".bound[0]"
             attrs[1] = str(disp) + ".bound[1]"
             attrs[2] = str(disp) + ".bound[2]"
-            attrs[3] = str(disp) + ".front_value"
-            attrs[4] = str(disp) + ".front_offset"
-            values = self.ix.api.CoreStringArray(5)
-            values[0] = str(height * 1.1 * displacement_multiplier)
-            values[1] = str(height * 1.1 * displacement_multiplier)
-            values[2] = str(height * 1.1 * displacement_multiplier)
-            values[3] = str(height * displacement_multiplier)
-            values[4] = str(-0.5)
+            values = self.ix.api.CoreStringArray(3)
+            values[0] = str(height)
+            values[1] = str(height)
+            values[2] = str(height)
             self.ix.cmds.SetValues(attrs, values)
+            if disp.attrs.front_value[0] != 1:
+                disp.attrs.front_value = height
+            if disp.attrs.front_offset[0] != 0:
+                disp.attrs.front_offset = displacement_offset * -1
         self.height = height
-        self.displacement_multiplier = displacement_multiplier
+        self.displacement_offset = displacement_offset
         connected_txs = get_textures_connected_to_texture(self.get_out_tx('displacement'), ix=self.ix)
         for connected_tx in connected_txs:
             if connected_tx.get_contextual_name().endswith(DISPLACEMENT_HEIGHT_SCALE_SUFFIX):
-                connected_tx.attrs.input2[0] = height * self.uv_scale[0]
-                connected_tx.attrs.input2[1] = height * self.uv_scale[0]
-                connected_tx.attrs.input2[2] = height * self.uv_scale[0]
+                connected_tx.attrs.input2[0] = height
+                connected_tx.attrs.input2[1] = height
+                connected_tx.attrs.input2[2] = height
+            elif connected_tx.get_contextual_name().endswith(DISPLACEMENT_OFFSET_SUFFIX):
+                connected_tx.attrs.input2[0] = displacement_offset
+                connected_tx.attrs.input2[1] = displacement_offset
+                connected_tx.attrs.input2[2] = displacement_offset
 
     def update_opacity(self, clip_opacity, found_textures, update_textures):
         """Connect/Disconnect the opacity texture depending if clip_opacity is set to False/True."""
