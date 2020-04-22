@@ -82,7 +82,7 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
                     match = re.search(pattern, filename, re.IGNORECASE)
                     if match:
                         logging.debug("Image matches with: " + str(key))
-                        if resolution and resolution not in filename:
+                        if resolution and resolution not in filename and not 'preview' in filename.lower():
                             logging.debug("Found texture but without specified resolution: " + str(filename))
                             continue
                         lod_match = re.search(lod_match_template, filename, re.IGNORECASE)
