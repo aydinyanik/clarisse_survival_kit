@@ -136,6 +136,11 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
         elif extension.lower() == ".abc":
             abc_reference = ix.cmds.CreateFileReference(str(ctx),
                                                         [os.path.normpath(os.path.join(asset_directory, f))])
+            for item in get_items(abc_reference, kind=('GeometryAbcMesh', 'AbcXform'), ix=ix):
+                if not item.attrs.parent[0]:
+                    item.attrs.scale_offset[0] = .01
+                    item.attrs.scale_offset[1] = .01
+                    item.attrs.scale_offset[2] = .01
 
     if lod_files:
         logging.debug('Lod files:')
