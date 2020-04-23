@@ -82,7 +82,7 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
                     match = re.search(pattern, filename, re.IGNORECASE)
                     if match:
                         logging.debug("Image matches with: " + str(key))
-                        if resolution and resolution not in filename:
+                        if resolution and resolution not in filename and not 'preview' in filename.lower():
                             logging.debug("Found texture but without specified resolution: " + str(filename))
                             continue
                         lod_match = re.search(lod_match_template, filename, re.IGNORECASE)
@@ -321,7 +321,7 @@ def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
         sub_context = ctx.get_context(i)
         results.append(sub_context)
         # 0 is infinite
-        if current_depth <= max_depth or max_depth == 0:
+        if current_depth < max_depth or max_depth == 0:
             for result in get_sub_contexts(sub_context, name, max_depth, current_depth, ix=ix):
                 if result not in results:
                     results.append(result)
@@ -333,13 +333,15 @@ def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
     return results
 
 
-def get_items(ctx, kind=(), max_depth=0, current_depth=0, return_first_hit=False, **kwargs):
+def get_items(ctx, kind=(), max_depth=0, return_first_hit=False, **kwargs):
     """Gets all items recursively."""
     ix = get_ix(kwargs.get("ix"))
     result = []
+    current_depth = 1
     items = ix.api.OfItemVector()
-    sub_ctxs = get_sub_contexts(ctx, max_depth=max_depth, current_depth=current_depth, ix=ix)
-    sub_ctxs.insert(0, ctx)
+    sub_ctxs = [ctx]
+    if max_depth > 1 or max_depth == 0:
+        sub_ctxs.extend(get_sub_contexts(ctx, max_depth=max_depth, current_depth=current_depth, ix=ix))
     for sub_ctx in sub_ctxs:
         if sub_ctx.get_object_count():
             objects_array = ix.api.OfObjectArray(sub_ctx.get_object_count())
