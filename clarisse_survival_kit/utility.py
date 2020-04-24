@@ -664,7 +664,7 @@ def toggle_map_file_stream(tx, **kwargs):
             logging.debug("Creating reorder node...")
             reorder_tx = ix.cmds.CreateObject(tx_name + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
                                               "Global", str(ctx))
-            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrr1"])
             ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(new_tx))
             out_tx = reorder_tx
     elif tx.is_kindof('TextureStreamedMapFile'):
@@ -676,7 +676,7 @@ def toggle_map_file_stream(tx, **kwargs):
         for connected_texture in connected_textures:
             logging.debug(str(connected_texture))
             if connected_texture.is_kindof('TextureReorder'):
-                if connected_texture.attrs.channel_order.attr.get_string() == 'rrrr':
+                if connected_texture.attrs.channel_order.attr.get_string() in ['rrrr','rrr1']:
                     logging.debug('Found matching reorder node')
                     reorder_tx = connected_texture
                     delete_items.append(str(reorder_tx))
