@@ -1063,7 +1063,7 @@ def create_terrain(heightmap_file, terrain_name='terrain', ctx=None,
         if displacement_mode == 0:
             reorder_tx = ix.cmds.CreateObject('heightmap' + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
                                               "Global", str(terrain_ctx))
-            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+            ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrr1"])
             ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(tx))
         attrs = ix.api.CoreStringArray(6)
         attrs[0] = str(tx) + ".interpolation_mode"

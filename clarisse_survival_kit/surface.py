@@ -243,7 +243,7 @@ class Surface:
                 logging.debug("Creating reorder node...")
                 reorder_tx = self.ix.cmds.CreateObject(self.name + suffix + SINGLE_CHANNEL_SUFFIX, "TextureReorder",
                                                        "Global", str(target_ctx))
-                self.ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrrr"])
+                self.ix.cmds.SetValue(str(reorder_tx) + ".channel_order[0]", ["rrr1"])
                 self.ix.cmds.SetTexture([str(reorder_tx) + ".input"], str(tx))
                 self.textures[index + '_reorder'] = reorder_tx
         else:
