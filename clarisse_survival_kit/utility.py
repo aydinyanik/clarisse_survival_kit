@@ -784,9 +784,9 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         if platform.system().lower() == "windows":
             executable_name += '.exe'
         elif platform.system().lower().startswith("linux"):
-            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(clarisse_dir)
         elif platform.system().lower() == "darwin":
-            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(clarisse_dir)
 
         if not tx.is_kindof('TextureStreamedMapFile') and replace:
             tx = toggle_map_file_stream(tx, ix=ix)
@@ -802,9 +802,9 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         if platform.system() == "Windows":
             executable_name += '.exe'
         elif platform.system().lower().startswith("linux"):
-            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+            os.environ['LD_LIBRARY_PATH'] = os.path.normpath(clarisse_dir)
         elif platform.system().lower() == "darwin":
-            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(os.path.join(clarisse_dir, executable_name))
+            os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(clarisse_dir)
         converter_path = os.path.normpath(os.path.join(clarisse_dir, executable_name))
         command_arguments['converter'] = converter_path
         command_string = r'"{converter}" --threads 0 "{old_file}" "{new_file}"'
