@@ -6,7 +6,7 @@
 
 ## Requirements
 
-CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed.
+CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed. On Windows install it for **All Users**.
 
 CSK works with Clarisse 3.5, 3.6 and 4.0.
 
@@ -243,6 +243,8 @@ Got any ideas? Did I miss anything important? Let me know.
 [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
 
 ***Isotropix*** for their support and for creating Clarisse.
+
+[Til Strobl](http://www.movingmedia.de/) For his deep testing, bugfixes and quality of life changes.
 
 # License
 GNU GPLV3
