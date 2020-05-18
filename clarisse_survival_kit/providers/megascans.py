@@ -435,7 +435,7 @@ def get_json_data_from_directory(directory):
                             data['tileable'] = md['value']
                 if maps:
                     for mp in maps:
-                        if mp['type'] == 'displacement':
+                        if mp['type'] == 'displacement' and 'maxIntensity' in mp and 'minIntensity' in mp:
                             # getting average intensity, using 260 as max RGB since that's what Megascans is doing
                             data['displacement_offset'] = ((mp['maxIntensity'] + mp['minIntensity']) * 0.5) / 260.0
             break
