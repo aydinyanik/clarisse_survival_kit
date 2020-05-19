@@ -313,21 +313,21 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'),
                                                      resolution=resolution)
     if not billboard_textures:
-        ix.log_warning("No textures found in directory.")
-        return None
-    logging.debug("Billboard textures: ")
-    logging.debug(str(billboard_textures))
+        ix.log_warning("No Billboard textures found in directory.")
+    else:
+        logging.debug("Billboard textures: ")
+        logging.debug(str(billboard_textures))
 
-    streamed_maps = get_stream_map_files(billboard_textures)
-    logging.debug("Billboard streamed maps: ")
-    logging.debug(str(streamed_maps))
-    billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=scan_area[0],
-                                tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
-                                double_sided=True, specular_strength=1, displacement_multiplier=0.1)
-    billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
-    billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
-                                      clip_opacity=clip_opacity)
-    billboard_ctx = billboard_surface.ctx
+        streamed_maps = get_stream_map_files(billboard_textures)
+        logging.debug("Billboard streamed maps: ")
+        logging.debug(str(streamed_maps))
+        billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=scan_area[0],
+                                    tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
+                                    double_sided=True, specular_strength=1, displacement_multiplier=0.1)
+        billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
+        billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
+                                          clip_opacity=clip_opacity)
+        billboard_ctx = billboard_surface.ctx
 
     for dir_name in os.listdir(asset_directory):
         variation_dir = os.path.join(asset_directory, dir_name)
