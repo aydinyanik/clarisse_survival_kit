@@ -364,6 +364,11 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
                     logging.debug("Found abc: " + f)
                     abc_reference = ix.cmds.CreateFileReference(str(plant_root_ctx),
                                                                 [os.path.normpath(os.path.join(variation_dir, f))])
+                    for item in get_items(abc_reference, kind=('GeometryAbcMesh', 'AbcXform'), ix=ix):
+                        if not item.attrs.parent[0]:
+                            item.attrs.scale_offset[0] = .01
+                            item.attrs.scale_offset[1] = .01
+                            item.attrs.scale_offset[2] = .01
 
     shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
                                          str(plant_root_ctx))
