@@ -313,21 +313,21 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
     billboard_textures = get_textures_from_directory(os.path.join(asset_directory, 'Textures/Billboard/'),
                                                      resolution=resolution)
     if not billboard_textures:
-        ix.log_warning("No textures found in directory.")
-        return None
-    logging.debug("Billboard textures: ")
-    logging.debug(str(billboard_textures))
+        ix.log_warning("No Billboard textures found in directory.")
+    else:
+        logging.debug("Billboard textures: ")
+        logging.debug(str(billboard_textures))
 
-    streamed_maps = get_stream_map_files(billboard_textures)
-    logging.debug("Billboard streamed maps: ")
-    logging.debug(str(streamed_maps))
-    billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=scan_area[0],
-                                tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
-                                double_sided=True, specular_strength=1, displacement_multiplier=0.1)
-    billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
-    billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
-                                      clip_opacity=clip_opacity)
-    billboard_ctx = billboard_surface.ctx
+        streamed_maps = get_stream_map_files(billboard_textures)
+        logging.debug("Billboard streamed maps: ")
+        logging.debug(str(streamed_maps))
+        billboard_surface = Surface(ix, projection='uv', uv_scale=scan_area, height=scan_area[0],
+                                    tile=tileable, object_space=object_space, triplanar_blend=triplanar_blend, ior=ior,
+                                    double_sided=True, specular_strength=1, displacement_multiplier=0.1)
+        billboard_mtl = billboard_surface.create_mtl(BILLBOARD_CTX, plant_root_ctx)
+        billboard_surface.create_textures(billboard_textures, color_spaces=color_spaces, streamed_maps=streamed_maps,
+                                          clip_opacity=clip_opacity)
+        billboard_ctx = billboard_surface.ctx
 
     for dir_name in os.listdir(asset_directory):
         variation_dir = os.path.join(asset_directory, dir_name)
@@ -364,6 +364,11 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
                     logging.debug("Found abc: " + f)
                     abc_reference = ix.cmds.CreateFileReference(str(plant_root_ctx),
                                                                 [os.path.normpath(os.path.join(variation_dir, f))])
+                    for item in get_items(abc_reference, kind=('GeometryAbcMesh', 'AbcXform'), ix=ix):
+                        if not item.attrs.parent[0]:
+                            item.attrs.scale_offset[0] = .01
+                            item.attrs.scale_offset[1] = .01
+                            item.attrs.scale_offset[2] = .01
 
     shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
                                          str(plant_root_ctx))
@@ -435,7 +440,7 @@ def get_json_data_from_directory(directory):
                             data['tileable'] = md['value']
                 if maps:
                     for mp in maps:
-                        if mp['type'] == 'displacement':
+                        if mp['type'] == 'displacement' and 'maxIntensity' in mp and 'minIntensity' in mp:
                             # getting average intensity, using 260 as max RGB since that's what Megascans is doing
                             data['displacement_offset'] = ((mp['maxIntensity'] + mp['minIntensity']) * 0.5) / 260.0
             break
