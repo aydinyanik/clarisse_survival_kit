@@ -38,7 +38,9 @@ class ClarisseNet:
         self.status = self.Status.Error
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if platform.system().lower() != "windows":
+            if platform.system().lower() == "windows":
+                self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            else:
                 self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             self._socket.connect((host, port))
         except:
@@ -97,7 +99,9 @@ class ms_Init(threading.Thread):
         try:
             print "Making socket on port " + str(port)
             socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if platform.system().lower() != "windows":
+            if platform.system().lower() == "windows":
+                socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            else:
                 socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             socket_.bind((host, port))
             print "Socket bound"
