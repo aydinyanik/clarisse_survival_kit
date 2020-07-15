@@ -3,6 +3,7 @@ import json, sys, socket, time, threading, os
 import struct
 import socket
 import re
+import platform
 
 host, port = '127.0.0.1', 24981
 
@@ -37,7 +38,8 @@ class ClarisseNet:
         self.status = self.Status.Error
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            if platform.system().lower() != "windows":
+                self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             self._socket.connect((host, port))
         except:
             raise ValueError('Failed to connect to ' + host + ':' + str(port))
@@ -95,7 +97,8 @@ class ms_Init(threading.Thread):
         try:
             print "Making socket on port " + str(port)
             socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            if platform.system().lower() != "windows":
+                socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             socket_.bind((host, port))
             print "Socket bound"
             print "Listening to incoming Bridge requests..."

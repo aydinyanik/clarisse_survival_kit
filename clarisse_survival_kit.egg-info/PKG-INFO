@@ -1,4 +1,4 @@
-Metadata-Version: 1.1
+Metadata-Version: 2.1
 Name: clarisse-survival-kit
 Version: 1.0.0
 Summary: Provides utility functions to import common assets such as Megascans assets and Substance textures.
@@ -14,7 +14,7 @@ Description: # Clarisse Survival Kit
         
         ## Requirements
         
-        CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed.
+        CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed. On Windows install it for **All Users**.
         
         CSK works with Clarisse 3.5, 3.6 and 4.0.
         
@@ -252,6 +252,8 @@ Description: # Clarisse Survival Kit
         
         ***Isotropix*** for their support and for creating Clarisse.
         
+        [Til Strobl](http://www.movingmedia.de/) For his deep testing, bugfixes and quality of life changes.
+        
         # License
         GNU GPLV3
         
@@ -259,3 +261,4 @@ Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 2
 Classifier: License :: OSI Approved :: GPLv3
 Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown

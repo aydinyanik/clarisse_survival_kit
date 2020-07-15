@@ -406,12 +406,11 @@ class Surface:
             return False
         diffuse_tx = self.get_out_tx('diffuse')
         logging.debug('Hooking ao to: ' + str(diffuse_tx))
-        ao_blend_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_BLEND_SUFFIX, "TextureBlend", "Global",
+        ao_blend_tx = self.ix.cmds.CreateObject(self.name + OCCLUSION_BLEND_SUFFIX, "TextureMultiply", "Global",
                                                 str(self.get_sub_ctx('diffuse')))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(ao_tx))
         self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
-        self.ix.cmds.SetValue(str(ao_blend_tx) + ".mix", [str(DEFAULT_AO_BLEND_STRENGTH)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(ao_blend_tx))
         self.textures["ao_blend"] = ao_blend_tx
         return ao_blend_tx
@@ -432,12 +431,11 @@ class Surface:
         cavity_remap_tx = self.ix.cmds.CreateObject(self.name + CAVITY_REMAP_SUFFIX, "TextureRemap",
                                                     "Global", str(self.get_sub_ctx('diffuse')))
         self.ix.cmds.SetTexture([str(cavity_remap_tx) + ".input"], str(cavity_tx))
-        cavity_blend_tx = self.ix.cmds.CreateObject(self.name + CAVITY_BLEND_SUFFIX, "TextureBlend", "Global",
+        cavity_blend_tx = self.ix.cmds.CreateObject(self.name + CAVITY_BLEND_SUFFIX, "TextureMultiply", "Global",
                                                     str(self.get_sub_ctx('diffuse')))
         self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input1"], str(cavity_remap_tx))
         self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mode", [str(7)])
-        self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mix", [str(DEFAULT_CAVITY_BLEND_STRENGTH)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(cavity_blend_tx))
         self.ix.cmds.SetValues([str(cavity_remap_tx) + ".pass_through"], ["1"])
         self.textures["cavity_remap"] = cavity_remap_tx
