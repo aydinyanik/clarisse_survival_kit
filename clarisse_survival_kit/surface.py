@@ -410,7 +410,6 @@ class Surface:
                                                 str(self.get_sub_ctx('diffuse')))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(ao_blend_tx) + ".input1"], str(ao_tx))
-        self.ix.cmds.SetValue(str(ao_blend_tx) + ".mode", [str(7)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(ao_blend_tx))
         self.textures["ao_blend"] = ao_blend_tx
         return ao_blend_tx
@@ -435,7 +434,6 @@ class Surface:
                                                     str(self.get_sub_ctx('diffuse')))
         self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input2"], str(diffuse_tx))
         self.ix.cmds.SetTexture([str(cavity_blend_tx) + ".input1"], str(cavity_remap_tx))
-        self.ix.cmds.SetValue(str(cavity_blend_tx) + ".mode", [str(7)])
         self.ix.cmds.SetTexture([str(self.mtl) + ".diffuse_front_color"], str(cavity_blend_tx))
         self.ix.cmds.SetValues([str(cavity_remap_tx) + ".pass_through"], ["1"])
         self.textures["cavity_remap"] = cavity_remap_tx
