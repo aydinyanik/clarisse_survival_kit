@@ -6,9 +6,11 @@ Home-page: https://github.com/aydinyanik/clarisse_survival_kit
 Author: Aydin Yanik
 Author-email: aydinyanik@gmail.com
 License: UNKNOWN
-Description: # Clarisse Survival Kit
+Description: **CSK NO LONGER GETS FURTHER DEVELOPED, BECAUSE I NO LONGER USE CLARISSE**
         
-        ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
+        # Clarisse Survival Kit
+        
+        ![Header Image](https://yanik3d.art/wp-content/uploads/2020/08/csk_splash.jpg)
         
         >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
         
@@ -30,8 +32,8 @@ Description: # Clarisse Survival Kit
         - C:\Python27\Scripts
         - C:\Python27\Lib\site-packages
         
-        ![Environment_Variables Image](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png)
-        Click [here](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png) for a larger version of the image above.
+        ![Environment_Variables Image](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png)
+        Click [here](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png) for a larger version of the image above.
         
         The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
         
@@ -72,7 +74,7 @@ Description: # Clarisse Survival Kit
         sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
         ```
         
-        ![OSX_Image](http://remuno.nl/wp-content/uploads/2019/03/mac_installation.jpg)
+        ![OSX_Image](https://yanik3d.art/wp-content/uploads/2020/09/mac_installation.jpg)
         
         The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
         
@@ -97,7 +99,7 @@ Description: # Clarisse Survival Kit
           - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
           - Import meshes(.abc/.obj) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
           
-          ![Auto_Material_Setup_Image](http://remuno.nl/wp-content/uploads/2019/02/auto_material_setup.png)
+          ![Auto_Material_Setup_Image](https://yanik3d.art/wp-content/uploads/2020/08/auto_material_setup.png)
           
           [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
         
@@ -110,7 +112,7 @@ Description: # Clarisse Survival Kit
         
         [Video: Megascans Bridge Communication](https://vimeo.com/315113262)
         
-        ![Bridge_Communication_Image](http://remuno.nl/wp-content/uploads/2019/02/bridge_communication.png)
+        ![Bridge_Communication_Image](https://yanik3d.art/wp-content/uploads/2020/08/bridge_communication.png)
         
         ### Mix Multiple Surfaces
          - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -123,7 +125,7 @@ Description: # Clarisse Survival Kit
            * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
            * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
            
-           ![Mix Image](http://remuno.nl/wp-content/uploads/2019/01/SnowMix.jpg)
+           ![Mix Image](https://yanik3d.art/wp-content/uploads/2020/08/snow_mix.jpg)
            
         ### Add Surface(s) to Mix
         Adds the selected surfaces to an existing mix.
@@ -162,7 +164,7 @@ Description: # Clarisse Survival Kit
         ### Texture Converter
         Convert images to tx or other formats and vice versa. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx.
         
-        ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
+        ![Texture_Converter Image](https://yanik3d.art/wp-content/uploads/2020/08/texture_converter.png)
         [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
         
         ### Reconvert Selected Textures
@@ -171,7 +173,7 @@ Description: # Clarisse Survival Kit
         ### Quick Blend
         Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
         
-        ![Quick_Blend Image](http://remuno.nl/wp-content/uploads/2019/02/quick_blend.png)
+        ![Quick_Blend Image](https://yanik3d.art/wp-content/uploads/2020/08/quick_blend.png)
         [Check out the Quick Blend video on Vimeo](https://vimeo.com/319181380)
         
         ### Mask
@@ -234,7 +236,7 @@ Description: # Clarisse Survival Kit
         - **12-01-19** Added multi mix feature.
         
         # Donate
-        ![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%203-green.svg?style=for-the-badge)
+        ![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%204-green.svg?style=for-the-badge)
         
         [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
         
@@ -243,9 +245,11 @@ Description: # Clarisse Survival Kit
         # TODO
         I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
         
-        ![CSK_New_Interface](http://remuno.nl/wp-content/uploads/2019/10/csk_new_interface.png)
+        **edit** I stopped development for the survival kit because of data loss and because I no longer use Clarisse.
         
-        Got any ideas? Did I miss anything important? Let me know.
+        ![CSK_New_Interface](https://yanik3d.art/wp-content/uploads/2020/09/csk_v2.png)
+        ![CSK_New_Interface_2](https://yanik3d.art/wp-content/uploads/2020/09/csk_v2_2.png)
+        
         
         # Thank you
         [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.

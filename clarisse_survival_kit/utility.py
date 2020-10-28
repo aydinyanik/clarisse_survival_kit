@@ -838,14 +838,14 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
 
     for conversion_file in conversion_files:
         conversion_file_arguments = command_arguments
-        command_arguments['old_file'] = conversion_file
-        command_arguments['new_file'] = os.path.splitext(conversion_file)[0] + '.' + extension
+        command_arguments['old_file'] = r"{}".format(conversion_file.replace(r'\\', r'/'))
+        command_arguments['new_file'] = r"{}".format(os.path.splitext(command_arguments['old_file'])[0] + '.' + extension)
         if target_folder != file_dir:
-            command_arguments['new_file'] = os.path.join(target_folder, os.path.basename(command_arguments['new_file']))
+            command_arguments['new_file'] = r"{}".format(os.path.join(target_folder, os.path.basename(command_arguments['new_file'])).replace(r'\\', r'/'))
         else:
             pass
         if command_arguments['old_file'] == command_arguments['new_file']:
-            logging.debug('File ignored because input same as output: ' + conversion_file)
+            logging.debug('File ignored because input same as output: ' + command_arguments['old_file'])
             continue
         formatted_command_string = command_string.format(**conversion_file_arguments)
         logging.debug(formatted_command_string)
