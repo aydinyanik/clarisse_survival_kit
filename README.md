@@ -1,4 +1,4 @@
-**CSK NO LONGER GETS FURTHER DEVELOPED, BECAUSE I NO LONGER USE CLARISSE**
+**I'm updating CSK to make things compatible with Clarisse 5. It might take a while so please be patient**
 
 # Clarisse Survival Kit
 
@@ -236,12 +236,6 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # TODO
 I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
-
-**edit** I stopped development for the survival kit because of data loss and because I no longer use Clarisse.
-
-![CSK_New_Interface](https://yanik3d.art/wp-content/uploads/2020/09/csk_v2.png)
-![CSK_New_Interface_2](https://yanik3d.art/wp-content/uploads/2020/09/csk_v2_2.png)
-
 
 # Thank you
 [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
