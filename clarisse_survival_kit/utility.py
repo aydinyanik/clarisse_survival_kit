@@ -656,7 +656,7 @@ def toggle_map_file_stream(tx, **kwargs):
         default_color_space = ix.api.ColorIO.get_color_space_names()[0]
         ix.cmds.SetValue(str(new_tx) + '.color_space_auto_detect', [str(0)])
         ix.application.check_for_events()
-        ix.cmds.SetValue(str(new_tx) + '.color_space', [default_color_space])
+        ix.cmds.SetValue(str(new_tx) + '.file_color_space', [default_color_space])
 
         single_channel = tx.attrs.single_channel_file_behavior[0] == 1
         out_tx = new_tx
