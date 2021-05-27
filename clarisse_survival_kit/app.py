@@ -700,7 +700,7 @@ def generate_decimated_pointcloud(geometry, ctx=None,
     ix.cmds.AddValues([str(pc) + ".constraints"], ["ConstraintParent"])
     ix.application.check_for_events()
     time.sleep(0.25)
-    ix.cmds.SetValues([str(pc) + ".parent.target"], [str(geometry)])
+    ix.cmds.SetValues([str(pc.get_attribute('constraints').get_object().get_attribute('target'))], [str(geometry)])
     ix.application.check_for_events()
     logging.debug("Setting up multi blend and selectors...")
     multi_blend_tx = ix.cmds.CreateObject(geo_name + DECIMATE_SUFFIX + MULTI_BLEND_SUFFIX, "TextureMultiBlend",

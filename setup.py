@@ -198,11 +198,11 @@ with open(os.path.join(script_dir, "README.md"), "r") as fh:
     long_description = fh.read()
 
 package_name = "clarisse_survival_kit"
-versions = ['3.5', '3.6', '4.0']
+versions = ['5.0']
 
 setup(
     name=package_name,
-    version="1.0.0",
+    version="2.0.0",
     author="Aydin Yanik",
     author_email="aydinyanik@gmail.com",
     description="Provides utility functions to import common assets such as Megascans assets and Substance textures.",

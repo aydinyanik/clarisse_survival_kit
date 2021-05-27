@@ -704,7 +704,7 @@ def toggle_map_file_stream(tx, **kwargs):
             if attr.is_locked() or not attr.is_editable():
                 logging.debug("Attribute was locked")
                 continue
-            attr_type = attr.get_type_name(attr.get_type())
+            attr_type = ix.api.OfAttr.get_type_name(attr.get_type())
             logging.debug("Attr type: " + attr_type)
             if attr_type == 'TYPE_STRING':
                 value = [r'{}'.format(attr.get_string())]
