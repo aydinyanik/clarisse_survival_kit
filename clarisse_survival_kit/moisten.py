@@ -8,7 +8,7 @@ def moisten_surface_gui():
             sender.get_window().hide()
 
         def run(self, sender, evtid):
-            if check_selection([ix.selection[0]], is_kindof=["MaterialPhysicalStandard",
+            if ix.selection.get_count() > 0 and check_selection([ix.selection[0]], is_kindof=["MaterialPhysicalStandard",
                                                              "OfContext"], max_num=1):
                 if ix.selection[0].is_context():
                     ctx = ix.selection[0]
