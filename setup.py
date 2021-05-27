@@ -15,7 +15,7 @@ import codecs
 
 def setup_shelf(shelf_path, slot=0):
     """Sets up the shelf"""
-    print os.path.dirname(os.path.join(shelf_path, 'shelf_installation.log'))
+    print(os.path.dirname(os.path.join(shelf_path, 'shelf_installation.log')))
     logging.basicConfig(filename=os.path.join(os.path.dirname(shelf_path), 'shelf_installation.log'),
                         level=logging.DEBUG, format='%(message)s')
     log_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -41,14 +41,14 @@ def setup_shelf(shelf_path, slot=0):
 
     # Search for view mode #:
     logging.debug("Searching for view mode string")
-    view_mode_search = re.search(ur"view_mode [0-9]", shelf_file, re.MULTILINE | re.DOTALL)
+    view_mode_search = re.search(r"view_mode [0-9]", shelf_file, re.MULTILINE | re.DOTALL)
     if view_mode_search:
         write_index = view_mode_search.end()
         logging.debug("Found view mode:")
         logging.debug(view_mode_search.group(0))
     # Search for slot #:
     logging.debug("Searching for slot string")
-    slot_search = re.search(ur"slot [0-9] {", shelf_file,
+    slot_search = re.search(r"slot [0-9] {", shelf_file,
                             re.MULTILINE | re.DOTALL)
     if not slot_search:
         generated_string += "\n\tslot " + str(slot) + " {\n"
@@ -66,14 +66,14 @@ def setup_shelf(shelf_path, slot=0):
         generated_string += "\t\tcategory \"" + shelf_title + "\" {\n"
     else:
         logging.debug("Found category block:")
-        logging.debug(unicode(shelf_file[category_search.start():category_search.end()]))
+        logging.debug(str(shelf_file[category_search.start():category_search.end()]))
         write_index = category_search.end()
         shelf_item_search = re.finditer(r"\s{12}shelf_item {(.*?)(?<! ) {12}(?! )}",
                                         shelf_file[category_search.start():category_search.end()],
                                         re.MULTILINE | re.DOTALL)
         for shelf_item in shelf_item_search:
             logging.debug("Found shelf item block:")
-            logging.debug(unicode(shelf_file[category_search.start():category_search.end()][
+            logging.debug(str(shelf_file[category_search.start():category_search.end()][
                                   shelf_item.start():shelf_item.end()]))
             shelf_attributes_search = re.search(r"\s{16}title \"(?P<title>.*?)\".*"
                                                 r"\s{16}description \"(?P<description>.*?)\".*"
@@ -150,7 +150,7 @@ class PostDevelopCommand(develop):
 
     def run(self):
         develop.run(self)
-        print "Post develop command running..."
+        print("Post develop command running...")
 
 
 class PostInstallCommand(install):
@@ -158,17 +158,17 @@ class PostInstallCommand(install):
 
     def run(self):
         install.run(self)
-        print "Post installation command running..."
+        print("Post installation command running...")
         if platform.system().lower() == "windows":
             clarisse_dir = os.path.join(os.getenv('APPDATA'), "Isotropix\Clarisse\\")
             for version_dir in os.listdir(clarisse_dir):
                 if os.path.isdir(os.path.join(clarisse_dir, version_dir)):
                     if version_dir in versions:
-                        print "Looking for shelf file in." + os.path.join(clarisse_dir, version_dir)
+                        print("Looking for shelf file in." + os.path.join(clarisse_dir, version_dir))
                         shelf_path = os.path.join(clarisse_dir, version_dir, "shelf.cfg")
-                        print os.path.join(clarisse_dir, version_dir, "shelf.cfg")
+                        print(os.path.join(clarisse_dir, version_dir, "shelf.cfg"))
                         if os.path.isfile(shelf_path):
-                            print "Found shelf config file."
+                            print("Found shelf config file.")
                             setup_shelf(shelf_path)
 
         elif platform.system().lower().startswith("linux"):
@@ -189,7 +189,7 @@ class PostInstallCommand(install):
                         shelf_path = os.path.join(clarisse_dir, version_dir, "shelf.cfg")
                         if os.path.isfile(shelf_path):
                             setup_shelf(shelf_path)
-                            print "sp: ", shelf_path
+                            print("sp: ", shelf_path)
 
 
 long_description = ''
@@ -216,7 +216,7 @@ setup(
         'install': PostInstallCommand,
     },
     classifiers=[
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPLv3",
         "Operating System :: OS Independent",
     ]

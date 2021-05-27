@@ -145,7 +145,7 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
     if lod_files:
         logging.debug('Lod files:')
         logging.debug(str(lod_files))
-        keys = lod_files.keys()
+        keys = list(lod_files.keys())
         keys.sort()
         search_key = lod if lod is not None else -1
         search_key_index = bisect.bisect(keys, search_key)
@@ -463,7 +463,7 @@ def import_ms_library(library_dir, target_ctx=None, lod=None, custom_assets=True
     if os.path.isdir(os.path.join(library_dir, "Downloaded")):
         library_dir = os.path.join(library_dir, "Downloaded")
     logging.debug("Directory set to: " + library_dir)
-    print "Scanning folders in " + library_dir
+    print("Scanning folders in " + library_dir)
 
     for category_dir_name in os.listdir(library_dir):
         category_dir_path = os.path.join(library_dir, category_dir_name)
@@ -477,12 +477,12 @@ def import_ms_library(library_dir, target_ctx=None, lod=None, custom_assets=True
                 if not ctx:
                     ctx = ix.cmds.CreateContext(MEGASCANS_LIBRARY_CATEGORY_PREFIX + context_name,
                                                 "Global", str(target_ctx))
-                print "Importing library folder: " + category_dir_name
+                print("Importing library folder: " + category_dir_name)
                 for asset_directory_name in os.listdir(category_dir_path):
                     asset_directory_path = os.path.join(category_dir_path, asset_directory_name)
                     if os.path.isdir(asset_directory_path):
                         if not ix.item_exists(str(ctx) + "/" + asset_directory_name):
-                            print "Importing asset: " + asset_directory_path
+                            print("Importing asset: " + asset_directory_path)
                             import_asset(asset_directory_path, resolution=resolution, lod=lod, target_ctx=ctx, ix=ix)
     if custom_assets and os.path.isdir(os.path.join(library_dir, "My Assets")):
         logging.debug("My Assets exists...")

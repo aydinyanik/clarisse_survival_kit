@@ -41,7 +41,7 @@ class Surface:
     def create_textures(self, textures, color_spaces, streamed_maps=(), clip_opacity=True):
         """Creates all textures from a index:filename dict."""
         logging.debug("Creating textures...")
-        for index, texture_settings in TEXTURE_SETTINGS.items():
+        for index, texture_settings in list(TEXTURE_SETTINGS.items()):
             if index in textures:
                 if index == 'opacity' and clip_opacity:
                     texture_settings['connection'] = None
@@ -54,7 +54,7 @@ class Surface:
 
     def update_textures(self, textures, color_spaces, streamed_maps=()):
         logging.debug("Updating textures...")
-        for index, texture_settings in TEXTURE_SETTINGS.items():
+        for index, texture_settings in list(TEXTURE_SETTINGS.items()):
             if index in textures:
                 logging.debug("Using these settings for texture: " + str(texture_settings))
                 color_space = color_spaces.get(index)
@@ -85,7 +85,7 @@ class Surface:
                 if ctx_member.is_local() or not mtl:
                     mtl = ctx_member
                     logging.debug("Material found:" + str(mtl))
-            for key, suffix in SUFFIXES.iteritems():
+            for key, suffix in list(SUFFIXES.items()):
                 if ctx_member.get_contextual_name().endswith(suffix):
                     textures[key] = ctx_member
                     logging.debug("Texture found with index:" + str(key))
@@ -95,11 +95,11 @@ class Surface:
             if ctx_member.get_contextual_name().endswith(TRIPLANAR_SUFFIX):
                 triplanar = True
                 logging.debug("Triplanar tx found:" + str(ctx_member))
-                for key, suffix in SUFFIXES.iteritems():
+                for key, suffix in list(SUFFIXES.items()):
                     if ctx_member.get_contextual_name().endswith(suffix + TRIPLANAR_SUFFIX):
                         textures[key + '_triplanar'] = ctx_member
             if ctx_member.get_contextual_name().endswith(SINGLE_CHANNEL_SUFFIX):
-                for key, suffix in SUFFIXES.iteritems():
+                for key, suffix in list(SUFFIXES.items()):
                     if ctx_member.get_contextual_name().endswith(suffix + SINGLE_CHANNEL_SUFFIX):
                         textures[key + '_reorder'] = ctx_member
                         self.streamed_maps.append(key)
@@ -118,9 +118,9 @@ class Surface:
     def update_projection(self, projection="triplanar", uv_scale=DEFAULT_UV_SCALE,
                           triplanar_blend=0.5, object_space=0, tile=True):
         """Updates the projections in each TextureMapFile."""
-        print "PROJECTION SET TO: " + projection
+        print("PROJECTION SET TO: " + projection)
         logging.debug("Projection set to:" + projection)
-        for key, tx in self.textures.iteritems():
+        for key, tx in list(self.textures.items()):
             if (tx.is_kindof("TextureMapFile") or tx.is_kindof("TextureStreamedMapFile")) and tx.is_local():
                 if key == "preview":
                     continue
@@ -199,7 +199,7 @@ class Surface:
     def create_sub_ctx(self, index):
         """"Assigns or creates the context for this specific texture."""
         assigned_ctx = None
-        for key, texture_indices in TEXTURE_CONTEXTS.iteritems():
+        for key, texture_indices in list(TEXTURE_CONTEXTS.items()):
             if index in texture_indices:
                 assigned_ctx = key
         if assigned_ctx:
@@ -213,7 +213,7 @@ class Surface:
 
     def get_sub_ctx(self, index):
         """"Returns the sub context."""
-        for key, texture_indices in TEXTURE_CONTEXTS.iteritems():
+        for key, texture_indices in list(TEXTURE_CONTEXTS.items()):
             if index in texture_indices:
                 ctx_path = str(self.ctx) + "/" + key
                 if self.ix.item_exists(ctx_path):
@@ -401,7 +401,7 @@ class Surface:
             return None
         ao_tx = self.get_out_tx('ao')
         if not ao_tx:
-            print 'ERROR: AO could not be properly created.'
+            print('ERROR: AO could not be properly created.')
             logging.error('ERROR: AO could not be properly created.')
             return False
         diffuse_tx = self.get_out_tx('diffuse')
@@ -422,7 +422,7 @@ class Surface:
             return None
         cavity_tx = self.get_out_tx('cavity')
         if not cavity_tx:
-            print 'ERROR: CAVITY could not be properly created.'
+            print('ERROR: CAVITY could not be properly created.')
             logging.error('ERROR: CAVITY could not be properly created.')
             return False
         diffuse_tx = self.get_out_tx('diffuse')
@@ -448,7 +448,7 @@ class Surface:
             return None
         bump_tx = self.get_out_tx('bump')
         if not bump_tx:
-            print 'ERROR: BUMP could not be properly created.'
+            print('ERROR: BUMP could not be properly created.')
             logging.error('ERROR: BUMP could not be properly created.')
             return False
 
@@ -467,7 +467,7 @@ class Surface:
             return None
         ior_tx = self.get_out_tx('ior')
         if not ior_tx:
-            print 'ERROR: IOR could not be properly created.'
+            print('ERROR: IOR could not be properly created.')
             logging.error('ERROR: IOR could not be properly created.')
             return False
 
@@ -495,7 +495,7 @@ class Surface:
             return None
         metallic_tx = self.get_out_tx('metallic')
         if not metallic_tx:
-            print 'ERROR: METALLIC could not be properly created.'
+            print('ERROR: METALLIC could not be properly created.')
             logging.error('ERROR: METALLIC could not be properly created.')
             return False
 

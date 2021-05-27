@@ -324,21 +324,21 @@ def replace_surface(ctx, surface_directory, selected_provider=None, **kwargs):
     surface = Surface(ix)
     surface.load(ctx)
     update_textures = {}
-    for key, tx in surface.textures.copy().iteritems():
+    for key, tx in list(surface.textures.copy().items()):
         if tx.is_kindof('TextureMapFile') or tx.is_kindof('TextureStreamedMapFile'):
             # Swap filename
             if key in textures:
-                print "UPDATING FROM SURFACE: " + key
+                print("UPDATING FROM SURFACE: " + key)
                 logging.debug("Texture needing update: " + key)
                 update_textures[key] = textures.get(key)
             elif key not in textures:
-                print "DELETING FROM SURFACE: " + key
+                print("DELETING FROM SURFACE: " + key)
                 logging.debug("Texture no longer needed: " + key)
                 surface.destroy_tx(key)
     new_textures = {}
-    for key, tx in textures.iteritems():
+    for key, tx in list(textures.items()):
         if key not in surface.textures:
-            print "NOT IN SURFACE: " + key
+            print("NOT IN SURFACE: " + key)
             logging.debug("New texture: " + key)
             new_textures[key] = tx
 
@@ -365,7 +365,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
         target_context = ix.application.get_working_context()
     if not check_context(target_context, ix=ix):
         return None
-    print "Mixing surfaces"
+    print("Mixing surfaces")
     logging.debug("Mixing surfaces...")
 
     if mode == 'create':
@@ -446,7 +446,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
         previous_blend_mtl = get_items(root_ctx, kind=['MaterialPhysicalBlend'], return_first_hit=True, ix=ix)
         multi_blend_tx = get_items(root_ctx, kind=['TextureMultiBlend'], return_first_hit=True, max_depth=1, ix=ix)
         if not previous_blend_mtl:
-            print "ERROR: Couldn't find blend material."
+            print("ERROR: Couldn't find blend material.")
             logging.error("Couldn't find blend material.")
             return None
         cover_mtl = previous_blend_mtl.attrs.input1.attr.get_object()
@@ -486,7 +486,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
                                         str(mix_multi_blend_tx) + ".enable_layer_2"], True)
             # Setup displacements for height blending.
             # Base surface
-            print "Setting up surface 1"
+            print("Setting up surface 1")
             base_srf_height = base_disp.attrs.front_value[0]
             base_disp_blend_offset_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
                                                              "TextureAdd", "Global", str(mix_selectors_ctx))
@@ -494,7 +494,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             base_disp_tx = base_disp_tx_front_value.get_texture()
             legacy_mode = False
             if base_srf_height != 1:
-                print "Base surface height: " + str(base_srf_height)
+                print("Base surface height: " + str(base_srf_height))
                 base_disp_height_scale_tx = ix.cmds.CreateObject(mix_srf_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
                                                                  "TextureMultiply", "Global", str(mix_selectors_ctx))
                 ix.cmds.SetTexture([str(base_disp_height_scale_tx) + ".input1"], str(base_disp_tx))
@@ -518,7 +518,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
                 base_disp_offset_tx = base_disp_tx
 
             # Surface 2
-            print "Setting up surface 2"
+            print("Setting up surface 2")
             cover_srf_height = cover_disp.attrs.front_value[0]
 
             cover_disp_blend_offset_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_BLEND_OFFSET_SUFFIX,
@@ -526,7 +526,7 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
             cover_disp_tx_front_value = ix.get_item(str(cover_disp) + ".front_value")
             cover_disp_tx = cover_disp_tx_front_value.get_texture()
             if cover_srf_height != 1:
-                print "Surface 2 height: " + str(cover_srf_height)
+                print("Surface 2 height: " + str(cover_srf_height))
                 cover_disp_height_scale_tx = ix.cmds.CreateObject(cover_name + DISPLACEMENT_HEIGHT_SCALE_SUFFIX,
                                                                   "TextureMultiply", "Global", str(mix_selectors_ctx))
                 ix.cmds.SetTexture([str(cover_disp_height_scale_tx) + ".input1"], str(cover_disp_tx))
@@ -980,7 +980,7 @@ def create_tiled_terrain(divisions_x, divisions_y, ctx=None, tile_flip_x=False, 
         # distance_expr += "if (obj_distance > lod_radius){\noutput_var = 1.0;\n}\n"
         # distance_expr += "}\n"
         # distance_expr += "output_var"
-        # print distance_expr
+        # print(distance_expr)
         # ix.cmds.SetExpression([str(tile) + ".proxy_control_by_lod"], [distance_expr])
 
         # show_tiles_expr = "out = 0;\n"

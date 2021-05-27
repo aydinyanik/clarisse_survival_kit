@@ -9,7 +9,7 @@ def get_selected_textures(items=None):
     if items is None:
         items = ix.selection
     for item in items:
-        print str(item)
+        print(str(item))
         kind = ['TextureStreamedMapFile', 'TextureMapFile']
         if item.is_context():
             ctx_textures = get_items(item, kind=kind, ix=ix)

@@ -14,22 +14,22 @@ def import_asset_gui(**kwargs):
                 color_space_preset = DEFAULT_COLOR_SPACES.copy()
                 color_space_preset.update(COLOR_SPACE_PRESETS.get(sender.get_selected_item_name().lower()))
                 if color_space_preset:
-                    for key, color_space_list_button in color_space_list_buttons.iteritems():
+                    for key, color_space_list_button in list(color_space_list_buttons.items()):
                         for color_space in color_spaces:
                             if color_space_preset.get(key) and color_space in color_space_preset[key]:
                                 color_space_list_button.set_selected_item_by_index(color_spaces.index(color_space))
             else:
                 select_id = 0
-                for preset_index, preset in COLOR_SPACE_PRESETS.items():
+                for preset_index, preset in list(COLOR_SPACE_PRESETS.items()):
                     passes = True
                     color_space_preset = DEFAULT_COLOR_SPACES.copy()
                     color_space_preset.update(preset)
-                    for key, color_space_list_button in color_space_list_buttons.iteritems():
+                    for key, color_space_list_button in list(color_space_list_buttons.items()):
                         if not color_space_list_button.get_selected_item_name() in color_space_preset[key]:
                             passes = False
                             break
                     if passes:
-                        select_id = COLOR_SPACE_PRESETS.keys().index(preset_index) + 1
+                        select_id = list(COLOR_SPACE_PRESETS.keys()).index(preset_index) + 1
                 color_space_presets_list.set_selected_item_by_index(select_id)
             return None
 
@@ -65,7 +65,7 @@ def import_asset_gui(**kwargs):
                         else:
                             lod = int(lod)
                         color_space_selection = {}
-                        for color_space_key, color_space_list_button in color_space_list_buttons.items():
+                        for color_space_key, color_space_list_button in list(color_space_list_buttons.items()):
                             color_space_selection[color_space_key] = color_space_list_button.get_selected_item_name()
                         surface = import_controller(directory,
                                                     provider_name=provider_name,
@@ -152,7 +152,7 @@ def import_asset_gui(**kwargs):
     color_space_presets_list = ix.api.GuiListButton(panel, 270, 280, 120, 22)
     color_space_presets_list.add_item('Custom')
     color_space_presets_list.add_separator()
-    for key, color_space_preset in COLOR_SPACE_PRESETS.items():
+    for key, color_space_preset in list(COLOR_SPACE_PRESETS.items()):
         color_space_presets_list.add_item(key.capitalize())
     color_space_presets_list.set_selected_item_by_index(1)
 
@@ -168,7 +168,7 @@ def import_asset_gui(**kwargs):
     color_space_items = DEFAULT_COLOR_SPACES.copy()
     color_space_items.pop('preview')
 
-    for key, options in color_space_items.items():
+    for key, options in list(color_space_items.items()):
         offset_x = 10 if (i % 2) == 0 else 220
         if (i % 2) == 0:
             offset_y += 30
@@ -229,7 +229,7 @@ def import_asset_gui(**kwargs):
     event_rewire = EventRewire()  # init the class
     event_rewire.connect(color_space_presets_list, 'EVT_ID_LIST_BUTTON_SELECT',
                          event_rewire.color_space_preset_refresh)
-    for key, color_space_list_button in color_space_list_buttons.iteritems():
+    for key, color_space_list_button in list(color_space_list_buttons.items()):
         event_rewire.connect(color_space_list_button, 'EVT_ID_LIST_BUTTON_SELECT',
                              event_rewire.color_space_preset_refresh)
     event_rewire.connect(path_button, 'EVT_ID_PUSH_BUTTON_CLICK',

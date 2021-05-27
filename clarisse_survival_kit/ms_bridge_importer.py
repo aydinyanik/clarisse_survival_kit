@@ -94,18 +94,18 @@ class ms_Init(threading.Thread):
         self.importer = importer
 
     def run(self):
-        print "Starting up..."
+        print("Starting up...")
         time.sleep(0.1)
         try:
-            print "Making socket on port " + str(port)
+            print("Making socket on port " + str(port))
             socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             if platform.system().lower() == "windows":
                 socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             else:
                 socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             socket_.bind((host, port))
-            print "Socket bound"
-            print "Listening to incoming Bridge requests..."
+            print("Socket bound")
+            print("Listening to incoming Bridge requests...")
             while True:
                 socket_.listen(5)
                 client, addr = socket_.accept()
@@ -129,7 +129,7 @@ class ms_Init(threading.Thread):
 def send_to_command_port(assets):
     rclarisse = ClarisseNet()
     import_command = 'from clarisse_survival_kit.providers.megascans import *\n\n'
-    print assets
+    print(assets)
     for asset in assets:
         asset_path = str(json.dumps(asset['path']))
         resolution = str(asset['resolution'])
@@ -146,7 +146,7 @@ def send_to_command_port(assets):
 
 
 def ms_asset_importer(imported_data):
-    print "Imported json data"
+    print("Imported json data")
     try:
         json_array = json.loads(imported_data)
         assets = []
@@ -173,6 +173,6 @@ def ms_asset_importer(imported_data):
         pass
 
 
-print "Running Megascans Bridge client"
+print("Running Megascans Bridge client")
 t = ms_Init(ms_asset_importer)
 t.start()

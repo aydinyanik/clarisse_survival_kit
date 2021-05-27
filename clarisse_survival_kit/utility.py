@@ -78,7 +78,7 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
             if extension in image_formats:
                 logging.debug("Found image: " + str(f))
                 path = os.path.normpath(os.path.join(root, f))
-                for key, pattern in filename_match_template.iteritems():
+                for key, pattern in list(filename_match_template.items()):
                     match = re.search(pattern, filename, re.IGNORECASE)
                     if match:
                         logging.debug("Image matches with: " + str(key))
@@ -126,7 +126,7 @@ def get_textures_from_directory(directory, filename_match_template=FILENAME_MATC
             logging.debug('No LODs Found.')
             break
         logging.debug('LOD for key "{}" is missing. Trying to pick texture from next LOD level.'.format(lod_key))
-        keys = lod_files[lod_key].keys()
+        keys = list(lod_files[lod_key].keys())
         keys.sort()
         search_key = lod if lod is not None else -1
         search_key_index = bisect.bisect(keys, search_key)
@@ -168,7 +168,7 @@ def get_stream_map_files(textures):
     stream_map_files = []
     if not textures:
         return []
-    for index, texture in textures.iteritems():
+    for index, texture in list(textures.items()):
         logging.debug("Testing: " + str(textures))
         if type(texture) == list:
             items = get_stream_map_files({str(i): texture[i] for i in range(0, len(texture))})
@@ -305,7 +305,7 @@ def get_color_spaces(preset, **kwargs):
     ix = get_ix(kwargs.get("ix"))
     color_spaces = {}
     installed_color_spaces = ix.api.ColorIO.get_color_space_names()
-    for key, choices in preset.items():
+    for key, choices in list(preset.items()):
         for choice in choices:
             if choice in installed_color_spaces:
                 color_spaces[key] = choice
@@ -432,7 +432,7 @@ def quick_blend(items, **kwargs):
         ix.cmds.SetTexture([str(item_a) + ".input"], str(blend_tx))
         return blend_tx
     elif check_selection(items, ['Texture'], min_num=2):
-        print "Mixing Textures"
+        print("Mixing Textures")
         if len(items) == 2:
             blend_tx = ix.cmds.CreateObject(item_a.get_contextual_name() + BLEND_SUFFIX, "TextureBlend",
                                             "Global", str(ctx))
@@ -456,7 +456,7 @@ def quick_blend(items, **kwargs):
                 ix.cmds.SetTexture([str(blend_tx) + ".layer_{}_color".format(str(item_index))], str(item))
         return blend_tx
     elif check_selection(items, ['MaterialPhysical'], min_num=2):
-        print "Mixing Materials"
+        print("Mixing Materials")
         if len(items) == 2:
             blend_mtl = ix.cmds.CreateObject(item_a.get_contextual_name() + MIX_SUFFIX, "MaterialPhysicalBlend",
                                              "Global", str(ctx))
@@ -828,7 +828,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
                 logging.debug('Found newer or equal file in directy: ' + f)
                 logging.debug('Time of file a: ' + str(other_mtime))
                 logging.debug('Time of file b: ' + str(source_mtime))
-                print 'Found newer or equal file in directory: ' + f
+                print('Found newer or equal file in directory: ' + f)
                 conversion_files.append(f)
     else:
         conversion_files = source_files
@@ -853,15 +853,15 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
         out, err = conversion.communicate()
         if out.strip():
             logging.debug(str(out))
-            print out
+            print(out)
         if err:
             logging.debug(str(err))
-            print err
+            print(err)
         if err or not os.path.exists(command_arguments['new_file']) or \
                         os.path.getsize(command_arguments['new_file']) < 10:
             error_msg = 'ERROR: File has not been converted. Failed to find new converted file: ' + \
                         command_arguments['new_file']
-            print error_msg
+            print(error_msg)
             ix.log_error(error_msg)
             return tx
         try:

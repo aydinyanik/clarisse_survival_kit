@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import sys
 import os
 import logging
@@ -63,7 +63,7 @@ if user_path:
                     folder_path = os.path.normpath(os.path.join(sitepackages_folder, sub_folder))
                     if os.path.isdir(folder_path):
                         if sub_folder == 'clarisse_survival_kit':
-                            print "Found CSK package location on disk"
+                            print("Found CSK package location on disk")
                             settings_file = open(settings_path, 'a')
                             settings_file.write('\nPACKAGE_PATH = "%s"' % folder_path)
                             os.environ["CSK_PACKAGE_PATH"] = folder_path
@@ -74,4 +74,4 @@ if user_path:
     logging.debug("--------------------------------------")
     logging.debug("Log start: " + log_start)
 else:
-    print "Could not generate log or user settings!!!"
+    print("Could not generate log or user settings!!!")
