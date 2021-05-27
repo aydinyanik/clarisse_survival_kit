@@ -9,23 +9,26 @@ def blur_textures_gui():
             sender.get_window().hide()  # Hide the window, if it is done, the window is destroy
 
         def run(self, sender, evtid):
-            textures = []
-            for selected in ix.selection:
-                if check_selection([selected], is_kindof=["Texture"]):
-                    textures.append(selected)
-                else:
-                    ix.log_warning("One or more selected items are not texture objects.")
-            ix.begin_command_batch("Blur textures")
-            blurred_textures = []
-            for texture in textures:
-                blurred_textures.append(blur_tx(texture, radius=radius_field.get_value(),
-                                                quality=int(quality_field.get_value()),
-                                                ix=ix))
-            if blurred_textures:
-                ix.selection.deselect_all()
-                for blurred_tx in blurred_textures:
-                    ix.selection.add(blurred_tx)
-            ix.end_command_batch()
+            if ix.selection.get_count() == 0:
+                ix.log_warning("Please select one or more texture objects.")
+            else:
+                textures = []
+                for selected in ix.selection:
+                    if check_selection([selected], is_kindof=["Texture"]):
+                        textures.append(selected)
+                    else:
+                        ix.log_warning("One or more selected items are not texture objects.")
+                ix.begin_command_batch("Blur textures")
+                blurred_textures = []
+                for texture in textures:
+                    blurred_textures.append(blur_tx(texture, radius=radius_field.get_value(),
+                                                    quality=int(quality_field.get_value()),
+                                                    ix=ix))
+                if blurred_textures:
+                    ix.selection.deselect_all()
+                    for blurred_tx in blurred_textures:
+                        ix.selection.add(blurred_tx)
+                ix.end_command_batch()
             sender.get_window().hide()
 
     # Window creation

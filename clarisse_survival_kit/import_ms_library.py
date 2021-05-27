@@ -7,7 +7,7 @@ def import_ms_library_gui():
 
     class EventRewire(ix.api.EventObject):
         def categories_refresh(self, sender, evtid):
-            for key, category_checkbox in category_checkboxes.iteritems():
+            for key, category_checkbox in list(category_checkboxes.items()):
                 if not category_checkbox.get_value():
                     skip_categories.append(key)
                 else:
@@ -117,7 +117,7 @@ def import_ms_library_gui():
     # Connect to function
     event_rewire = EventRewire()  # init the class
 
-    for key, category_checkbox in category_checkboxes.iteritems():
+    for key, category_checkbox in list(category_checkboxes.items()):
         event_rewire.connect(category_checkbox, 'EVT_ID_CHECKBOX_CLICK',
                              event_rewire.categories_refresh)
     event_rewire.connect(path_button, 'EVT_ID_PUSH_BUTTON_CLICK',

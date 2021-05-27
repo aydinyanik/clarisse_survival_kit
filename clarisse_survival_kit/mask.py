@@ -9,7 +9,7 @@ def get_blend_nodes(items=None):
     if items is None:
         items = ix.selection
     for item in items:
-        print str(item)
+        print(str(item))
         kind = ['TextureBlend', 'MaterialPhysicalBlend']
         if item.is_context():
             ctx_textures = get_items(item, kind=kind, ix=ix)
@@ -18,7 +18,7 @@ def get_blend_nodes(items=None):
             if not item.attrs.mix.attr.get_texture():
                 blend_nodes.append(item)
             else:
-                print str(item) + ' was ignored because mix attribute is already connected.'
+                print(str(item) + ' was ignored because mix attribute is already connected.')
     return blend_nodes
 
 

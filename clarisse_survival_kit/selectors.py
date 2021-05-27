@@ -71,7 +71,7 @@ def create_ao_selector(ctx, name, name_suffix, ix):
 	ao_tx.attrs.occlusion_color[0] = 1.0
 	ao_tx.attrs.occlusion_color[1] = 1.0
 	ao_tx.attrs.occlusion_color[2] = 1.0
-	ao_tx.attrs.quality = 10
+	ao_tx.attrs.sample_count = 16
 	ao_remap_tx = ix.cmds.CreateObject(name + name_suffix + AO_BLEND_REMAP_SUFFIX, "TextureRemap", "Global", str(ctx))
 	ix.cmds.SetTexture([str(ao_remap_tx) + ".input"], str(ao_tx))
 	return ao_remap_tx
