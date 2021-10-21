@@ -1,4 +1,4 @@
-**I'm updating CSK to make things compatible with Clarisse 5. It might take a while so please be patient**
+**The Survival Kit works with Clarisse 5 Python 2. Make sure to launch the Python 2 version of Clarisse. You can find the shortcut in the start menu on Windows.**
 
 # Clarisse Survival Kit
 
@@ -29,42 +29,25 @@ Click [here](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_va
 
 The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
 
-### Step 1: First update pip:
-```sh
-pip install -U pip
-```
-### Step 2: Then install setuptools:
-```sh
-pip install setuptools
-```
-### Step 3: The next step is to install the kit:
-
-**OSX users should use Option 3.**
-
-With pip you can download the installation files automatically by passing a link to the tarball or by downloading the tarball yourself and refer it locally:
-
-**Option 1: Online**
-```sh
-pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
-```
-Use the -U setting to upgrade if you have an existing installation and want to upgrade:
-
-```sh
-pip install -U https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
-```
-
-**Option 2: Local**
-```sh
-pip install .\clarisse_survival_kit-1.0.0.tar.gz
-```
-**Option 3 (OSX users should use this method): Setup.py**
+### The next step is to install the kit:
 
 **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
 
-Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
+Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt/powershell:
+
+**Windows:** If you don't know how to open the Command Prompt or PowerShell window you can do it really easily. There's two easy methods. The first is to browse to the extracted folder where the setup.py file resides with Windows Explorer and Shift+Right Click on an empty space in the Windows Explorer folder (don't click on a file) and choose "Open PowerShell windows here".
+Another way is to press Win+R and type `cmd` and hit enter. Then type `cd ` (note the space after cd) and drag and drop the extracted folder into the Command Prompt window. Then hit enter.
+
+```sh
+C:\Python27\python.exe ENTER_HERE_THE_PATH_OF_THE_EXTRACTED_FOLDER\setup.py install
+```
+
+**OSX**
 ```sh
 sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
 ```
+
+**Important:** After the installation is done make sure to run Clarisse 5.0 SPx python2 via the Start Menu. The regular Clarisse shortcut uses Python3.
 
 ![OSX_Image](https://yanik3d.art/wp-content/uploads/2020/09/mac_installation.jpg)
 
