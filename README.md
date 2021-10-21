@@ -31,7 +31,7 @@ The next step is to check if pip is up to date and install setuptools. The follo
 
 ### The next step is to install the kit:
 
-Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt/powershell:
+Download the zip by clicking the big green Code button, extract the files and run the following command via terminal/command prompt/powershell:
 
 **Windows:** If you don't know how to open the Command Prompt or PowerShell window you can do it really easily. There's two easy methods. The first is to browse to the extracted folder where the setup.py file resides with Windows Explorer and Shift+Right Click on an empty space in the Windows Explorer folder (don't click on a file) and choose "Open PowerShell windows here".
 Another way is to press Win+R and type `cmd` and hit enter. Then type `cd ` (note the space after cd) and drag and drop the extracted folder into the Command Prompt window. Then hit enter.
