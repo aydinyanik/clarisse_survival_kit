@@ -31,18 +31,17 @@ The next step is to check if pip is up to date and install setuptools. The follo
 
 ### The next step is to install the kit:
 
-**NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
-
 Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt/powershell:
 
 **Windows:** If you don't know how to open the Command Prompt or PowerShell window you can do it really easily. There's two easy methods. The first is to browse to the extracted folder where the setup.py file resides with Windows Explorer and Shift+Right Click on an empty space in the Windows Explorer folder (don't click on a file) and choose "Open PowerShell windows here".
 Another way is to press Win+R and type `cmd` and hit enter. Then type `cd ` (note the space after cd) and drag and drop the extracted folder into the Command Prompt window. Then hit enter.
 
 ```sh
-C:\Python27\python.exe ENTER_HERE_THE_PATH_OF_THE_EXTRACTED_FOLDER\setup.py install
+C:\Python27\python.exe .\setup.py install
 ```
 
-**OSX**
+**OSX:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
+
 ```sh
 sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
 ```
