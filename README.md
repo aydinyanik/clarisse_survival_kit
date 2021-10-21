@@ -10,7 +10,7 @@
 
 CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed. On Windows install it for **All Users**.
 
-CSK works with Clarisse 3.5, 3.6 and 4.0.
+CSK works with Clarisse 5.0 Python2. If you want access to the Clarisse 4 version you can download the tarball file in the dist folder.
 
 ## Installation
 
