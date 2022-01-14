@@ -8,7 +8,7 @@
 
 ## Requirements
 
-CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.2/python-2.7.2.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`. On Windows install it for **All Users**.
+CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`. On Windows install it for **All Users**.
 
 CSK works ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `ONLY WITH Clarisse 5.0 Python2`. If you want access to the Clarisse 4 version you can download the tarball file in the dist folder.
 
