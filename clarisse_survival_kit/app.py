@@ -470,7 +470,10 @@ def mix_surfaces(srf_ctxs, cover_ctx, mode="create", mix_name="mix" + MATERIAL_S
         has_displacement = base_disp and cover_disp
 
         mix_multi_blend_tx = ix.cmds.Instantiate([str(multi_blend_tx)])[0]
+        old_name = mix_multi_blend_tx.get_contextual_name()
+        moved_name = str(mix_selectors_ctx) + "/" + old_name
         ix.cmds.MoveItemsTo([str(mix_multi_blend_tx)], mix_selectors_ctx)
+        mix_multi_blend_tx = ix.get_item(moved_name)
         ix.cmds.RenameItem(str(mix_multi_blend_tx), mix_srf_name + MULTI_BLEND_SUFFIX)
         # Blend materials
         mix_mtl = ix.cmds.CreateObject(mix_srf_name + MIX_SUFFIX + MATERIAL_SUFFIX, "MaterialPhysicalBlend", "Global",

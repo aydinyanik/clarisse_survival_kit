@@ -1,22 +1,24 @@
 Metadata-Version: 2.1
 Name: clarisse-survival-kit
-Version: 1.0.0
+Version: 2.0.0
 Summary: Provides utility functions to import common assets such as Megascans assets and Substance textures.
 Home-page: https://github.com/aydinyanik/clarisse_survival_kit
 Author: Aydin Yanik
 Author-email: aydinyanik@gmail.com
 License: UNKNOWN
-Description: # Clarisse Survival Kit
+Description: **The Survival Kit works with Clarisse 5 Python 2. Make sure to launch the Python 2 version of Clarisse. You can find the shortcut in the start menu on Windows.**
         
-        ![Header Image](http://remuno.nl/wp-content/uploads/2019/01/mountain_cave.jpg)
+        # Clarisse Survival Kit
+        
+        ![Header Image](https://yanik3d.art/wp-content/uploads/2020/08/csk_splash.jpg)
         
         >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
         
         ## Requirements
         
-        CSK requires Python 2.7 (64 bit) to be installed. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/downloads/release/python-2716/) and make sure **pip** gets installed. On Windows install it for **All Users**.
+        CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`. On Windows install it for **All Users**.
         
-        CSK works with Clarisse 3.5, 3.6 and 4.0.
+        CSK works ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `ONLY WITH Clarisse 5.0 Python2`. If you want access to the Clarisse 4 version you can download the tarball file in the dist folder.
         
         ## Installation
         
@@ -30,49 +32,31 @@ Description: # Clarisse Survival Kit
         - C:\Python27\Scripts
         - C:\Python27\Lib\site-packages
         
-        ![Environment_Variables Image](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png)
-        Click [here](http://remuno.nl/wp-content/uploads/2019/02/setup_environment_variables.png) for a larger version of the image above.
+        ![Environment_Variables Image](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png)
+        Click [here](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png) for a larger version of the image above.
         
         The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
         
-        ### Step 1: First update pip:
-        ```sh
-        pip install -U pip
-        ```
-        ### Step 2: Then install setuptools:
-        ```sh
-        pip install setuptools
-        ```
-        ### Step 3: The next step is to install the kit:
+        ### The next step is to install the kit:
         
-        **OSX users should use Option 3.**
+        Download the zip by clicking the big green Code button, extract the files and run the following command via terminal/command prompt/powershell:
         
-        With pip you can download the installation files automatically by passing a link to the tarball or by downloading the tarball yourself and refer it locally:
-        
-        **Option 1: Online**
-        ```sh
-        pip install https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
-        ```
-        Use the -U setting to upgrade if you have an existing installation and want to upgrade:
+        **Windows:** If you don't know how to open the Command Prompt or PowerShell window you can do it really easily. There's two easy methods. The first is to browse to the extracted folder where the setup.py file resides with Windows Explorer and Shift+Right Click on an empty space in the Windows Explorer folder (don't click on a file) and choose "Open PowerShell windows here".
+        Another way is to press Win+R and type `cmd` and hit enter. Then type `cd ` (note the space after cd) and drag and drop the extracted folder into the Command Prompt window. Then hit enter.
         
         ```sh
-        pip install -U https://raw.githubusercontent.com/aydinyanik/clarisse_survival_kit/master/dist/clarisse_survival_kit-1.0.0.tar.gz
+        C:\Python27\python.exe .\setup.py install
         ```
         
-        **Option 2: Local**
-        ```sh
-        pip install .\clarisse_survival_kit-1.0.0.tar.gz
-        ```
-        **Option 3 (OSX users should use this method): Setup.py**
+        **OSX:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
         
-        **NOTICE:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
-        
-        Download the zip by clicking the big green button, extract the files and run the following command via terminal/command prompt:
         ```sh
         sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
         ```
         
-        ![OSX_Image](http://remuno.nl/wp-content/uploads/2019/03/mac_installation.jpg)
+        **Important:** After the installation is done make sure to run Clarisse 5.0 SPx python2 via the Start Menu. The regular Clarisse shortcut uses Python3.
+        
+        ![OSX_Image](https://yanik3d.art/wp-content/uploads/2020/09/mac_installation.jpg)
         
         The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
         
@@ -97,7 +81,7 @@ Description: # Clarisse Survival Kit
           - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
           - Import meshes(.abc/.obj) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
           
-          ![Auto_Material_Setup_Image](http://remuno.nl/wp-content/uploads/2019/02/auto_material_setup.png)
+          ![Auto_Material_Setup_Image](https://yanik3d.art/wp-content/uploads/2020/08/auto_material_setup.png)
           
           [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
         
@@ -110,7 +94,7 @@ Description: # Clarisse Survival Kit
         
         [Video: Megascans Bridge Communication](https://vimeo.com/315113262)
         
-        ![Bridge_Communication_Image](http://remuno.nl/wp-content/uploads/2019/02/bridge_communication.png)
+        ![Bridge_Communication_Image](https://yanik3d.art/wp-content/uploads/2020/08/bridge_communication.png)
         
         ### Mix Multiple Surfaces
          - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -123,7 +107,7 @@ Description: # Clarisse Survival Kit
            * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
            * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
            
-           ![Mix Image](http://remuno.nl/wp-content/uploads/2019/01/SnowMix.jpg)
+           ![Mix Image](https://yanik3d.art/wp-content/uploads/2020/08/snow_mix.jpg)
            
         ### Add Surface(s) to Mix
         Adds the selected surfaces to an existing mix.
@@ -162,7 +146,7 @@ Description: # Clarisse Survival Kit
         ### Texture Converter
         Convert images to tx or other formats and vice versa. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx.
         
-        ![Texture_Converter Image](http://remuno.nl/wp-content/uploads/2019/02/texture_converter.png)
+        ![Texture_Converter Image](https://yanik3d.art/wp-content/uploads/2020/08/texture_converter.png)
         [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
         
         ### Reconvert Selected Textures
@@ -171,7 +155,7 @@ Description: # Clarisse Survival Kit
         ### Quick Blend
         Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
         
-        ![Quick_Blend Image](http://remuno.nl/wp-content/uploads/2019/02/quick_blend.png)
+        ![Quick_Blend Image](https://yanik3d.art/wp-content/uploads/2020/08/quick_blend.png)
         [Check out the Quick Blend video on Vimeo](https://vimeo.com/319181380)
         
         ### Mask
@@ -234,7 +218,7 @@ Description: # Clarisse Survival Kit
         - **12-01-19** Added multi mix feature.
         
         # Donate
-        ![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%203-green.svg?style=for-the-badge)
+        ![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%204-green.svg?style=for-the-badge)
         
         [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
         
@@ -242,10 +226,6 @@ Description: # Clarisse Survival Kit
         
         # TODO
         I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
-        
-        ![CSK_New_Interface](http://remuno.nl/wp-content/uploads/2019/10/csk_new_interface.png)
-        
-        Got any ideas? Did I miss anything important? Let me know.
         
         # Thank you
         [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
@@ -258,7 +238,7 @@ Description: # Clarisse Survival Kit
         GNU GPLV3
         
 Platform: UNKNOWN
-Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: GPLv3
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown
