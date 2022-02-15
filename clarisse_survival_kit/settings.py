@@ -5,23 +5,23 @@ import collections
 IMAGE_FORMATS = ('tx', 'tex', 'exr', 'sxr', 'hdr', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
 
 
-FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$)',
-                           'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$)',
-                           'roughness': r'(?:_Roughness|^roughness$)',
-                           'refraction': r'(?:_refraction|^refraction$)',
+FILENAME_MATCH_TEMPLATE = {'diffuse': r'(?:_Diffuse|_Albedo|_baseColor|_color|albedo|^diffuse$|^color$|_diff_|Diffuse_)',
+                           'specular': r'(?:_Specular|_spec$|_Reflection|^specular$|^reflection$|specular_)',
+                           'roughness': r'(?:_Roughness|^roughness$|_rough|roughness_)',
+                           'refraction': r'(?:_refraction|^refraction$|_refr)',
                            'gloss': r'(?:_Gloss|_glossiness|^glossiness$)',
-                           'normal': r'(?:_Normal|_NormalBump$|^normal$)',
-                           'bump': r'(?:_bump|^bump$)',
-                           'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$)',
-                           'translucency': r'_Translucency|_translucent|^translucent$',
+                           'normal': r'(?:_Normal|_NormalBump$|^normal$|_nor_gl|normal_|_nml|_norm$)',
+                           'bump': r'(?:_bump|^bump$|_bmp|bump_)',
+                           'opacity': r'(?:_Opacity|_transparency|^opacity$|^transparency$|_alpha|_transparent|opacity_)',
+                           'translucency': r'(_Translucency|_translucent|^translucent$|translucency_)',
                            'emissive': r'(?:_Emissive|^emissive$|^luminance$|^luminosity$)',
                            'ior': r'(?:_ior|^ior$)',
                            'f0': r'(?:_f0|^f0$)',
-                           'metallic': r'(?:_metallic|^metallic$|_metalness|^metalness$)',
-                           'displacement': r'(?:_Displacement|_height|^displacement$|^height$)',
-                           'ao': r'(?:_ao|^ao$|_occlusion)',
-                           'cavity': r'(?:_cavity|^cavity$)',
-                           'preview': r'(?:_preview|^preview$|_render)'}
+                           'metallic': r'(?:_metallic|^metallic$|_metalness|^metalness$|metallic_)',
+                           'displacement': r'(?:_Displacement|_height|^displacement$|^height$|_disp|displacement_|disp_)',
+                           'ao': r'(?:_ao|^ao$|_occlusion|ao_)',
+                           'cavity': r'(?:_cavity|^cavity$|_cav$|cavity_)',
+                           'preview': r'(?:_preview|^preview$|_render|preview_)'}
 
 LOD_MATCH_TEMPLATE = r'_LOD(?P<lod>[0-9]*)'
 
