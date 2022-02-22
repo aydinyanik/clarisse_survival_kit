@@ -70,7 +70,7 @@ The kit provides the following scripts:
 ### Megascans Bridge Communication
 ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `IMPORTANT: In the latest Bridge versions they renamed all textures and models filenames for some reason. Please reset the naming settings to the following settings:`
 
-![Megascans export filenames settings](https://yanik3d.art/wp-content/uploads/2022/02/bridge_export_settings.jdpg)
+![Megascans export filenames settings](https://yanik3d.art/wp-content/uploads/2022/02/bridge_export_settings.jpg)
 
 Launch the Bridge listener from the shelf and send assets directly to Clarisse. Make sure the **Command Port** is running. You can enable the Command Port from the preferences. Keep it at the default port number of **55000**. When exporting assets from Bridge to Clarisse **make sure to select Custom Socket Export as your application target** and keep the port at the default of **24981**. 
 
