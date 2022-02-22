@@ -238,7 +238,8 @@ Description: **The Survival Kit works with Clarisse 5 Python 2. Make sure to lau
         GNU GPLV3
         
 Platform: UNKNOWN
-Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.7
 Classifier: License :: OSI Approved :: GPLv3
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown

@@ -27,7 +27,8 @@ if not package_path:
 
 def run_script():
     if package_path:
-        os.system('python %s' % os.path.join(package_path, 'ms_bridge_importer.py'))
+        python_path = ix.application.get_factory().get_vars().get("IX_PYTHON" + str(ix.application.get_ix_python_version()) + "HOME").get_string()
+        os.system('{}/python {}'.format(python_path, os.path.join(package_path, 'ms_bridge_importer.py')))
 
 
 t = threading.Thread(target=run_script)

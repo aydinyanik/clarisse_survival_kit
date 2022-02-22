@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 import os
 import json
 import platform
@@ -216,7 +215,8 @@ setup(
         'install': PostInstallCommand,
     },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: GPLv3",
         "Operating System :: OS Independent",
     ]
