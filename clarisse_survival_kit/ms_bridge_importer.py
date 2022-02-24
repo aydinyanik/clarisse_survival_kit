@@ -1,3 +1,4 @@
+import traceback
 import json, sys, socket, time, threading, os
 import struct
 import socket
@@ -66,6 +67,8 @@ class ClarisseNet:
         command_size = struct.pack("<I", command_size)
         self._socket.send(command_size)
         packet = str(mode) + command
+        if sys.version_info[0] == 3:
+            packet = packet.encode()
         self._socket.send(packet)
         result_size = self._socket.recv(4)
         result_size = struct.unpack("<I", result_size)[0]
@@ -73,7 +76,10 @@ class ClarisseNet:
         result = ''
         remaining = result_size
         while (must_recv):
-            result += self._socket.recv(remaining)
+            if sys.version_info[0] == 3:
+                result += self._socket.recv(remaining).decode()
+            else:
+                result += self._socket.recv(remaining)
             remaining = result_size - len(result)
             if remaining == 0: must_recv = False
 
@@ -159,16 +165,21 @@ def ms_asset_importer(imported_data):
                 if extension == ".json":
                     json_exists = True
             if not json_exists:
+                print("Writing json file...")
                 json_file = os.path.join(os.path.normpath(json_data['path']), json_data['id'] + '.json')
-                with open(json_file, 'w') as outfile:
+
+                with open(json_file, 'w', encoding="utf8") as outfile:
                     outfile.write(json.dumps(json_data, indent=4))
+                print("... done writing json file")
         if assets:
+            print("Send to command port")
             send_to_command_port(assets)
         threaded_server = ms_Init(ms_asset_importer)
         threaded_server.start()
 
     except Exception as e:
         print('Error Line : {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
+        print(traceback.format_exc())
         pass
 
 
