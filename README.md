@@ -1,4 +1,4 @@
-**The Survival Kit works with Clarisse 5 Python 2. Make sure to launch the Python 2 version of Clarisse. You can find the shortcut in the start menu on Windows.**
+**The Survival Kit works with Clarisse 5 Python 2 and 3. Make sure to setup with the python version you're using.**
 
 # Clarisse Survival Kit
 
@@ -6,47 +6,37 @@
 
 >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
 
-## Requirements
+## Python 3 Requirements (recommended)
 
-CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`. On Windows install it for **All Users**.
+Clarisse gets shipped with python so you don't need to download anything, but you have to ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed` during the python installation. Also ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `enable the "Add python.exe to Path"`.
 
-CSK works ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `ONLY WITH Clarisse 5.0 Python2`. If you want access to the Clarisse 4 version you can download the tarball file in the dist folder.
+## Python 2 Requirements (deprecated)
+
+CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed for Python 2. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`.
 
 ## Installation
 
 **Make sure Clarisse is not running while installing the kit. CSK won't work for some scripts on the PLE version, because of Python restrictions.**
 
-### Windows Environment Variables Setup
-To add the correct Environment Variables open the start menu and type "Environment Variables". Click on the first search result. It should be called "Edit the system environment variables".
-
-Follow the steps described in the picture below. Make sure to add the following entries to your **Path** environment variable(don't confuse it with PythonPath).
-- C:\Python27
-- C:\Python27\Scripts
-- C:\Python27\Lib\site-packages
-
-![Environment_Variables Image](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png)
-Click [here](https://yanik3d.art/wp-content/uploads/2020/09/setup_environment_variables.png) for a larger version of the image above.
-
-The next step is to check if pip is up to date and install setuptools. The following commands must be run from a command prompt/shell. In Windows you can press <kbd>win</kbd> + <kbd>r</kbd> and type ***cmd*** to open command prompt.
-
 ### The next step is to install the kit:
 
-Download the zip by clicking the big green Code button, extract the files and run the following command via terminal/command prompt/powershell:
+Download the zip by clicking the big green Code button or [here](https://github.com/aydinyanik/clarisse_survival_kit/archive/refs/heads/master.zip), extract the files and run the following command via terminal/command prompt/powershell:
 
 **Windows:** If you don't know how to open the Command Prompt or PowerShell window you can do it really easily. There's two easy methods. The first is to browse to the extracted folder where the setup.py file resides with Windows Explorer and Shift+Right Click on an empty space in the Windows Explorer folder (don't click on a file) and choose "Open PowerShell windows here".
 Another way is to press Win+R and type `cmd` and hit enter. Then type `cd ` (note the space after cd) and drag and drop the extracted folder into the Command Prompt window. Then hit enter.
 
 ```sh
-C:\Python27\python.exe .\setup.py install
+python .\setup.py install
 ```
 
 **OSX:** OSX users should open their **clarisse.env** file and locate their Python installation before running one of the following commands. The commands must be run with the Python installation that is used by Clarisse. By default it should be somewhere in /System/Library and not /Library.
 
+Example for python 2:
 ```sh
 sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.py install
 ```
 
-**Important:** After the installation is done make sure to run Clarisse 5.0 SPx python2 via the Start Menu. The regular Clarisse shortcut uses Python3.
+**Important:** After the installation is done make sure to run Clarisse 5.0 SPx with the Python version you used for the installer via the Start Menu. The regular Clarisse shortcut uses Python3.
 
 ![OSX_Image](https://yanik3d.art/wp-content/uploads/2020/09/mac_installation.jpg)
 
@@ -78,7 +68,11 @@ The kit provides the following scripts:
   [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
 
 ### Megascans Bridge Communication
-Launch the Bridge listener from the shelf and send assets directly to Clarisse. Make sure the **Command Port** is running. You can enable the Command Port from the preferences. Keep it at the default port number of **55000**. When exporting assets from Bridge to Clarisse make sure to select Custom as your application and keep the port at the default of **24981**. 
+![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `IMPORTANT: In the latest Bridge versions they renamed all textures and models filenames for some reason. Please reset the naming settings to the following settings:`
+
+![Megascans export filenames settings](https://yanik3d.art/wp-content/uploads/2022/02/bridge_filename_export_settings.jpg)
+
+Launch the Bridge listener from the shelf and send assets directly to Clarisse. Make sure the **Command Port** is running. You can enable the Command Port from the preferences. Keep it at the default port number of **55000**. When exporting assets from Bridge to Clarisse **make sure to select Custom Socket Export as your application target** and keep the port at the default of **24981**. 
 
 Since the Bridge communication script is running outside of Clarisse and decoupled from CSK I didn't make these settings configurable. You can edit the ms_bridge_importer.py python file if you need to customize the ports, but these settings will be overwritten once you install a new version.
 
