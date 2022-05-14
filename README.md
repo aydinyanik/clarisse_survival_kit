@@ -205,6 +205,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 
 # Donate
 ![Donations Received](https://img.shields.io/badge/Donations%20Received-5-green.svg?style=for-the-badge)
+
 Special thanks to Andrew Schuhler. I really appreciate it.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
