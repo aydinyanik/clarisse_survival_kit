@@ -204,7 +204,7 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 - **12-01-19** Added multi mix feature.
 
 # Donate
-![Donations Received](https://img.shields.io/badge/Donations%20Received-5-green.svg?style=for-the-badge)
+![Donations Received](https://img.shields.io/badge/Donations%20Received-6-green.svg?style=for-the-badge)
 
 Special thanks to Andrew Schuhler. I really appreciate it.
 
