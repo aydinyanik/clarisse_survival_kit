@@ -204,14 +204,16 @@ All [variables](https://github.com/aydinyanik/clarisse_survival_kit/blob/master/
 - **12-01-19** Added multi mix feature.
 
 # Donate
-![Donations Received](https://img.shields.io/badge/Donations%20Received-Only%204-green.svg?style=for-the-badge)
+![Donations Received](https://img.shields.io/badge/Donations%20Received-6-green.svg?style=for-the-badge)
+
+Special thanks to Andrew Schuhler. I really appreciate it.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=LWF3MAPZNPDQU&source=url) 
 
 >This toolkit started out initially as a small script to import Megascans assets. After a while it has become much larger than that. I invested a lot  of my time and energy into making it this kit. If you feel like it has been of any use to you I would highly appreciate any donations and your feedback.
 
 # TODO
-I'm currently busy on making the UI decoupled from Clarisse which allows for much more flexibility. Files can be dragged and dropped in the window and all settings are customizable. I also added Disney support and much more other new features. I hope I can finish this soon.
+Some new version is in the works for Angie, but I can't give any ETA or details about it.
 
 # Thank you
 [Aleks Katunar](https://github.com/ddesmond) was really kind to help me test out the script and for becoming a collaborator.
