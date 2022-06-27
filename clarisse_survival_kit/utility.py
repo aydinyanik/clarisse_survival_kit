@@ -632,9 +632,9 @@ def replace_connections(new_item, old_item, source_item=None, ignored_attributes
         else:
             attr_name = attr.get_name()
             logging.debug('Attribute name: ' + attr_name)
-            parent_obj = attr.get_parent_object()
-            logging.debug('Parent node: ' + str(parent_obj))
-            logging.debug('Parent class: ' + parent_obj.get_class_name())
+            # parent_obj = attr.get_parent_object()
+            # logging.debug('Parent node: ' + str(parent_obj))
+            # logging.debug('Parent class: ' + parent_obj.get_class_name())
             if attr_name in ignored_attributes:
                 logging.debug('Ignoring attribute')
                 continue
