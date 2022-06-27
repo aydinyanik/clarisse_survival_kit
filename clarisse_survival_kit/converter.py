@@ -62,7 +62,7 @@ def converter_gui():
                 tx = ix.get_item(selection_list.get_item_name(i))
                 if tx:
                     convert_tx(tx, extension=extension_list.get_selected_item_name(),
-                               replace=replace_checkbox.get_value(), target_folder=directory, ix=ix)
+                               replace=replace_checkbox.get_value(), target_folder=directory, convert_srgb_to_linear=convert_srgb_to_linear_checkbox.get_value(), ix=ix)
                 progress.step(i)
                 ix.application.check_for_events()
             progress.destroy()
@@ -96,6 +96,10 @@ def converter_gui():
     replace_label = ix.api.GuiLabel(panel, 10, 130, 150, 22, "Replace textures: ")
     replace_checkbox = ix.api.GuiCheckbox(panel, 180, 130, "")
     replace_checkbox.set_value(True)
+
+    convert_srgb_to_linear_label = ix.api.GuiLabel(panel, 210, 130, 150, 22, "Convert sRGB to Linear: ")
+    convert_srgb_to_linear_checkbox = ix.api.GuiCheckbox(panel, 380, 130, "")
+    convert_srgb_to_linear_checkbox.set_value(True)
 
     selection_label = ix.api.GuiLabel(panel, 10, 160, 350, 22, "Textures that will be converted: ")
     textures = get_selected_textures()

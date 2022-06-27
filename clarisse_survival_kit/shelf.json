@@ -108,6 +108,12 @@
       "description": "Imports a heightmap and displaces it on a polygrid. Can also generate a low resolution proxy.",
       "script_filename": "terrain.py",
       "icon_filename": "terrain.png"
+    },
+    {
+      "title": "Toggle all map color space to ACES or Clarisse",
+      "description": "After you change your Color Management configuration via preferences this script allows you to fix the color spaces of all textures.",
+      "script_filename": "aces.py",
+      "icon_filename": "aces.png"
     }
   ]
 }

@@ -311,6 +311,15 @@ def get_color_spaces(preset, **kwargs):
                 color_spaces[key] = choice
     return color_spaces
 
+def get_aces_installed(**kwargs):
+    ix = get_ix(kwargs.get("ix"))
+    installed = False
+
+    for name in ix.api.ColorIO.get_color_space_names():
+        if 'Utility - Linear - sRGB' in name:
+            installed = True
+    return installed
+
 
 def get_sub_contexts(ctx, name="", max_depth=0, current_depth=0, **kwargs):
     """Gets all subcontexts."""
@@ -758,7 +767,7 @@ def toggle_map_file_stream(tx, **kwargs):
     return new_tx
 
 
-def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **kwargs):
+def convert_tx(tx, extension, target_folder=None, replace=True, update=False, convert_srgb_to_linear=True, **kwargs):
     """Converts the selected texture. Update argument will force newer files to be reconverted."""
     logging.debug("Converting texture: {} to .{}".format(str(tx), extension))
     ix = get_ix(kwargs.get("ix"))
@@ -776,7 +785,12 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
     if thread_count > 32:
         thread_count = 32
 
-    command_arguments = {'threads': thread_count}
+    convert_srgb_to_linear_arg = ""
+    srgb_color_space = "Utility|Utility - sRGB - Texture" if get_aces_installed(ix=ix) else "sRGB"
+    if convert_srgb_to_linear and tx.attrs.file_color_space.attr.get_string() == srgb_color_space:
+        convert_srgb_to_linear_arg = " --colorconvert sRGB linear"
+
+    command_arguments = {'threads': thread_count, 'convert_srgb_to_linear': convert_srgb_to_linear_arg}
     clarisse_dir = ix.application.get_factory().get_vars().get("CLARISSE_BIN_DIR").get_string()
 
     if extension == 'tx':
@@ -789,10 +803,12 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, **
             os.environ['DYLD_LIBRARY_PATH'] = os.path.normpath(clarisse_dir)
 
         if not tx.is_kindof('TextureStreamedMapFile') and replace:
+            linear_color_space = r"Utility|Utility - Linear - sRGB" if get_aces_installed(ix=ix) else "linear"
+            tx.attrs.file_color_space.attr.set_string(linear_color_space)
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(os.path.join(clarisse_dir, executable_name))
         command_arguments['converter'] = converter_path
-        command_string = r'"{converter}" -v -u --oiio --resize --threads {threads} "{old_file}" -o "{new_file}"'
+        command_string = r'"{converter}" -v -u --oiio --resize --threads {threads}{convert_srgb_to_linear} "{old_file}" -o "{new_file}"'
         logging.debug('Command string:')
         logging.debug(command_string)
     else:

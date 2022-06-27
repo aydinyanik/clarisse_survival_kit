@@ -1,6 +1,8 @@
 README.md
 setup.py
 clarisse_survival_kit/__init__.py
+clarisse_survival_kit/aces.png
+clarisse_survival_kit/aces.py
 clarisse_survival_kit/add_to_mix.png
 clarisse_survival_kit/add_to_mix.py
 clarisse_survival_kit/app.py
