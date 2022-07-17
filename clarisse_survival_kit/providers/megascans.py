@@ -408,7 +408,7 @@ def get_json_data_from_directory(directory):
             json_file = os.path.join(directory, filename + ".json")
             with open(json_file) as json_file:
                 json_data = json.load(json_file)
-                if not json_data:
+                if not json_data or type(json_data) == list:
                     return None
                 meta_data = json_data.get('meta')
                 logging.debug("Meta JSON Data: " + str(meta_data))
