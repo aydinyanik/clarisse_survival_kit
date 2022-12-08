@@ -804,7 +804,7 @@ def convert_tx(tx, extension, target_folder=None, replace=True, update=False, co
 
         if not tx.is_kindof('TextureStreamedMapFile') and replace:
             linear_color_space = r"Utility|Utility - Linear - sRGB" if get_aces_installed(ix=ix) else "linear"
-            if not tx.attrs.color_space_auto_detect.attr.get_boole():
+            if not tx.attrs.color_space_auto_detect.attr.get_bool():
                 tx.attrs.file_color_space.attr.set_string(linear_color_space)
             tx = toggle_map_file_stream(tx, ix=ix)
         converter_path = os.path.normpath(os.path.join(clarisse_dir, executable_name))
