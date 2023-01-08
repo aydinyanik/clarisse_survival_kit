@@ -8,7 +8,7 @@
 
 ## Python 3 Requirements (recommended)
 
-Clarisse gets shipped with python so you don't need to download anything, but you have to ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed` during the python installation. Also ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `enable the "Add python.exe to Path"`.
+Clarisse gets shipped with python so you don't need to download anything, but you have to ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed` during the python installation. Also ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `enable the "Add python.exe to Path"`. Clarisse 5 won't work with Python3 versions other than 3.7.xx . So don't install 3.8 or higher.
 
 ## Python 2 Requirements (deprecated)
 
