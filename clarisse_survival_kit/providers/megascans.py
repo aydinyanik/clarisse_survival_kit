@@ -141,6 +141,17 @@ def import_3d(asset_directory, target_ctx=None, lod=None, resolution=None, clip_
                     item.attrs.scale_offset[0] = .01
                     item.attrs.scale_offset[1] = .01
                     item.attrs.scale_offset[2] = .01
+                    geo = item.get_module()
+                    for i in range(geo.get_shading_group_count()):
+                        logging.debug('Applying material to geometry')
+                        geo.assign_material(mtl.get_module(), i)
+                        ix.application.check_for_events()
+                        if clip_opacity and surface.get('opacity'):
+                            logging.debug('Applying clip map')
+                            geo.assign_clip_map(surface.get('opacity').get_module(), i)
+                        if not filename.endswith("_High") and surface.get('displacement'):
+                            logging.debug('Applying displacement map')
+                            geo.assign_displacement(surface.get('displacement_map').get_module(), i)
 
     if lod_files:
         logging.debug('Lod files:')
@@ -364,11 +375,27 @@ def import_3dplant(asset_directory, target_ctx=None, ior=DEFAULT_IOR, object_spa
                     logging.debug("Found abc: " + f)
                     abc_reference = ix.cmds.CreateFileReference(str(plant_root_ctx),
                                                                 [os.path.normpath(os.path.join(variation_dir, f))])
+
                     for item in get_items(abc_reference, kind=('GeometryAbcMesh', 'AbcXform'), ix=ix):
                         if not item.attrs.parent[0]:
                             item.attrs.scale_offset[0] = .01
                             item.attrs.scale_offset[1] = .01
                             item.attrs.scale_offset[2] = .01
+                            geo = item.get_module()
+                            for i in range(geo.get_shading_group_count()):
+                                logging.debug('Applying material to geometry')
+                                if filename.endswith('3'):
+                                    geo.assign_material(billboard_mtl.get_module(), i)
+                                    ix.application.check_for_events()
+                                    if clip_opacity and billboard_surface.get('opacity'):
+                                        logging.debug('Applying clip map')
+                                        geo.assign_clip_map(billboard_surface.get('opacity').get_module(), i)
+                                else:
+                                    geo.assign_material(atlas_mtl.get_module(), i)
+                                    ix.application.check_for_events()
+                                    if clip_opacity and atlas_surface.get('opacity'):
+                                        logging.debug('Applying clip map')
+                                        geo.assign_clip_map(atlas_surface.get('opacity').get_module(), i)
 
     shading_layer = ix.cmds.CreateObject(asset_name + SHADING_LAYER_SUFFIX, "ShadingLayer", "Global",
                                          str(plant_root_ctx))
