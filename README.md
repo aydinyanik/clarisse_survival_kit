@@ -2,17 +2,17 @@
 
 # Clarisse Survival Kit
 
-![Header Image](https://yanik3d.art/wp-content/uploads/2020/08/csk_splash.jpg)
+![Header Image](assets/csk_splash.jpg)
 
 >Clarisse Survival Kit(***CSK***) is a set of Python functions for Clarisse to automate repetitive processes such as importing generic textures, Megascans assets and mixing materials.
 
 ## Python 3 Requirements (recommended)
 
-Clarisse gets shipped with python so you don't need to download anything, but you have to ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed` during the python installation. Also ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `enable the "Add python.exe to Path"`. Clarisse 5 won't work with Python3 versions other than 3.7.xx . So don't install 3.8 or higher.
+Clarisse gets shipped with python so you don't need to download anything, but you have to ![#c5f015](https://via.placeholder.com/15/f03c15/000000?text=+) `make sure pip gets installed` during the python installation. Also ![#c5f015](https://via.placeholder.com/15/f03c15/000000?text=+) `enable the "Add python.exe to Path"`. Clarisse 5 won't work with Python3 versions other than 3.7.xx . So don't install 3.8 or higher.
 
 ## Python 2 Requirements (deprecated)
 
-CSK requires ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `Python 2.7 (64 bit)` to be installed for Python 2. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`.
+CSK requires ![#c5f015](https://via.placeholder.com/15/f03c15/000000?text=+) `Python 2.7 (64 bit)` to be installed for Python 2. ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `Do NOT install the default x86 python`, make sure to download the x86-64 version. **IMPORTANT** on Windows the Python installation that comes with Clarisse doesn't set up required environment variables. Please install Python from [here](https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi) and ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) `make sure pip gets installed`.
 
 ## Installation
 
@@ -38,7 +38,7 @@ sudo /System/Library/frameworks/Python.framework/Versions/2.7/bin/python setup.p
 
 **Important:** After the installation is done make sure to run Clarisse 5.0 SPx with the Python version you used for the installer via the Start Menu. The regular Clarisse shortcut uses Python3.
 
-![OSX_Image](https://yanik3d.art/wp-content/uploads/2020/09/mac_installation.jpg)
+![OSX_Image](assets/mac_installation.jpg)
 
 The shelf will automatically be updated and backed up. If the installation does not install the shelf correctly you can find a shelf_installation.log file in your Isotropix/VERSION/ user folder.
 
@@ -63,14 +63,14 @@ The kit provides the following scripts:
   - Import a Megascans asset. Meshes will automatically have their materials assigned when imported as .obj. Alembic(.abc) files will be imported as references. 3D assets such as  3d models, plants & atlases will also have a shading rule created for them. 
   - Import meshes(.abc/.obj) and generic textures such as Substance. Meshes will automatically have their material assigned and shading rules are created. You can specify which textures should be interpreted in which color space if needed. Custom rules can be added/modified in the settings.py file. TX or UDIM files will be converted to Streamed Maps.
   
-  ![Auto_Material_Setup_Image](https://yanik3d.art/wp-content/uploads/2020/08/auto_material_setup.png)
+  ![Auto_Material_Setup_Image](assets/auto_material_setup.png)
   
   [Video: Importing UDIMs from Substance Painter](https://vimeo.com/315088494)
 
 ### Megascans Bridge Communication
 ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `IMPORTANT: In the latest Bridge versions they renamed all textures and models filenames for some reason. Please reset the naming settings to the following settings:`
 
-![Megascans export filenames settings](https://yanik3d.art/wp-content/uploads/2022/02/bridge_filename_export_setting.jpg)
+![Megascans export filenames settings](assets/bridge_filename_export_setting.jpg)
 
 Launch the Bridge listener from the shelf and send assets directly to Clarisse. Make sure the **Command Port** is running. You can enable the Command Port from the preferences. Keep it at the default port number of **55000**. When exporting assets from Bridge to Clarisse **make sure to select Custom Socket Export as your application target** and keep the port at the default of **24981**. 
 
@@ -80,7 +80,7 @@ Packing channels is not supported. Assets that are exported outside of the libra
 
 [Video: Megascans Bridge Communication](https://vimeo.com/315113262)
 
-![Bridge_Communication_Image](https://yanik3d.art/wp-content/uploads/2020/08/bridge_communication.png)
+![Bridge_Communication_Image](assets/bridge_communication.png)
 
 ### Mix Multiple Surfaces
  - Creates a PhysicalBlend between one or more base surfaces and a cover surface(like dirt/snow). All selectors except displacement are instanced so you can manipulate multiple mixed surfaces at once. With this powerful script you can transform a whole scene into a snow covered one with ease.
@@ -93,7 +93,7 @@ Packing channels is not supported. Assets that are exported outside of the libra
    * Occlusion blend: You can use Ambient Occlusion to blend the materials. Has a huge impact on performance when used with Displacement.
    * Fractal blend: If any other selectors are active the Fractal blend selector will be overlayed on top to break up the masking in the transition areas.
    
-   ![Mix Image](https://yanik3d.art/wp-content/uploads/2020/08/snow_mix.jpg)
+   ![Mix Image](assets/snow_mix.jpg)
    
 ### Add Surface(s) to Mix
 Adds the selected surfaces to an existing mix.
@@ -132,7 +132,7 @@ Converts the selected Map Files to Streamed Map Files and vice versa. If the tex
 ### Texture Converter
 Convert images to tx or other formats and vice versa. TextureMapFiles will be converted to TextureStreamedMapFile when converting to .tx.
 
-![Texture_Converter Image](https://yanik3d.art/wp-content/uploads/2020/08/texture_converter.png)
+![Texture_Converter Image](assets/texture_converter.png)
 [Check out the Conversion to .tx video on Vimeo](https://vimeo.com/319342502)
 
 ### Reconvert Selected Textures
@@ -141,7 +141,7 @@ Scans the selected textures or child textures in the selected context for newer 
 ### Quick Blend
 Select two or more items of type: Texture(any type), TextureNormalMap, Displacement, Physical Material(any Physical material) and your selection will be blended together with the appropiate blend or multiblend node.
 
-![Quick_Blend Image](https://yanik3d.art/wp-content/uploads/2020/08/quick_blend.png)
+![Quick_Blend Image](assets/quick_blend.png)
 [Check out the Quick Blend video on Vimeo](https://vimeo.com/319181380)
 
 ### Mask
